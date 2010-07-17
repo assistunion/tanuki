@@ -30,7 +30,9 @@ module Tanuki
     end
 
     def self.set(option, value)
-      (class << self; self; end).instance_eval { undef_method option if method_defined? option }
+      (class << self; self; end).instance_eval do
+        undef_method option if method_defined? option
+      end
       instance_eval "def #{option};#{value.inspect};end"
       self
     end
@@ -58,12 +60,7 @@ module Tanuki
     end
 
     def self.each(&block)
-      teacher = User_Model_Teacher.new
-      teacher.name = 'Boris'
-      teacher.surname = 'Yeltsin'
-      teacher.photo_url = 'http://google.com'
-      top = teacher.full_view('hey', 'hi'){ 'hello' }
-      top.call(proc {|out| block.call(out.to_s)})
+      controller_stub(&block)
     end
 
     def self.run
@@ -87,7 +84,8 @@ module Tanuki
 
     def self.class_path(klass)
       path = const_to_path(klass, Application.app_root, File::SEPARATOR)
-      File.join(path, path.match(File::SEPARATOR + '([^' + File::SEPARATOR + ']*)$')[1] + '.rb')
+      File.join(path, path.match(
+        "#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
     end
 
     class << self
@@ -112,20 +110,24 @@ module Tanuki
 
       def template_owner(klass, method_name)
         klass.ancestors.each do |ancestor|
-          return ancestor if File.file? File.join(const_to_path(ancestor, Application.app_root, File::SEPARATOR), method_name.to_s + '.rhtml')
+          return ancestor if File.file? File.join(
+            const_to_path(ancestor, Application.app_root, File::SEPARATOR),
+            method_name.to_s << '.rhtml')
         end
         nil
       end
 
       def template_path(klass, method_name, root, sep, ext)
         if owner = template_owner(klass, method_name)
-          return File.join(const_to_path(owner, root, sep), method_name.to_s + ext)
+          return File.join(const_to_path(owner, root, sep),
+            method_name.to_s << ext)
         end
         nil
       end
 
       def source_template_path(klass, method_name)
-        template_path(klass, method_name, Application.app_root, File::SEPARATOR, '.rhtml')
+        template_path(klass, method_name, Application.app_root,
+          File::SEPARATOR, '.rhtml')
       end
 
       def compiled_template_path(klass, method_name)
