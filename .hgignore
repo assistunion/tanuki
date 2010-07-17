@@ -3,3 +3,7 @@ syntax: glob
 *~
 .DS_Store
 *.tmproj
+
+syntax: re
+app/user/.*
+main.*
