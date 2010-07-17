@@ -6,4 +6,5 @@ syntax: glob
 
 syntax: re
 app/user/.*
+cache/.*
 main.*
