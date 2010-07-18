@@ -32,8 +32,12 @@ module Tanuki
     def self.set(option, value)
       (class << self; self; end).instance_eval do
         undef_method option if method_defined? option
+        if value.is_a? Proc
+          define_method(option, &value)
+        else
+          define_method(option) { value }
+        end
       end
-      instance_eval "def #{option};#{value.inspect};end"
       self
     end
 
