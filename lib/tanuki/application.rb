@@ -113,7 +113,7 @@ module Tanuki
         klass.ancestors.each do |ancestor|
           return ancestor if File.file? File.join(
             const_to_path(ancestor, Application.app_root, File::SEPARATOR),
-            method_name.to_s << '.rhtml')
+            method_name.to_s << '.erb')
         end
         nil
       end
@@ -128,7 +128,7 @@ module Tanuki
 
       def source_template_path(klass, method_name)
         template_path(klass, method_name, Application.app_root,
-          File::SEPARATOR, '.rhtml')
+          File::SEPARATOR, '.erb')
       end
 
       def compiled_template_path(klass, method_name)
