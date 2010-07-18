@@ -1,5 +1,9 @@
-libdir = File.dirname(__FILE__)
-$:.unshift(libdir) unless $:.include?(libdir)
+module Tanuki
+  libdir = File.dirname(__FILE__)
+  $:.unshift(libdir) unless $:.include?(libdir)
+  CLASSES_DIR = File.join(libdir, 'tanuki')
+  VERSION = 'alpha'
+end
 
 require 'rack'
 require 'fileutils'
@@ -7,10 +11,6 @@ require 'yaml'
 require 'tanuki/application'
 require 'tanuki/localization'
 require 'tanuki/template_compiler'
-
-module Tanuki
-  VERSION = 'alpha'
-end
 
 def application(&block)
   def Object.const_missing(sym)

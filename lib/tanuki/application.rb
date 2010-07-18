@@ -11,7 +11,10 @@ module Tanuki
       if st_path
         owner = template_owner(obj.class, sym)
         ct_path = compiled_template_path(obj.class, sym)
-        if !File.file?(ct_path) || File.mtime(st_path) > File.mtime(ct_path)
+        if !File.file?(ct_path) ||
+            File.mtime(st_path) > File.mtime(ct_path) ||
+            File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) >
+            File.mtime(ct_path)
           ct_dir = File.dirname(ct_path)
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
           File.open(ct_path, 'w') do |file|
