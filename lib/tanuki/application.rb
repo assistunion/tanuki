@@ -52,15 +52,9 @@ module Tanuki
       set :host, 'localhost'
       set :port, 3000
       set :root, '.'
+      set :app_root, proc { File.join(root, 'app') }
+      set :cache_root, proc { File.join(root, 'cache') }
       self
-    end
-
-    def self.app_root
-      File.join(root, 'app')
-    end
-
-    def self.cache_root
-      File.join(root, 'cache')
     end
 
     def self.each(&block)
