@@ -58,8 +58,9 @@ module Tanuki
     def self.run
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
-          if match = env['REQUEST_PATH'].match(/^(.*)\/$/)
-            [301, {'Location' => match[1] << "?#{env['QUERY_STRING']}"}, []]
+          if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
+            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+            [301, {'Location' => match[1]}, []]
           else
             puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
             ctrl = Tanuki_Controller.dispatch(env, Tanuki::Application.root_page, env['REQUEST_PATH'])
