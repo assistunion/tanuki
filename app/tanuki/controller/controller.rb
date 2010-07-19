@@ -87,9 +87,7 @@ class Tanuki_Controller < Tanuki_Object
 
   def each
     ensure_configured
-    @parts.each_pair do |route, part|
-      yield(instantiate_part(part)) unless part[:hidden]
-    end
+    @parts.each_pair {|route, part| yield(instantiate_part(part)) unless part[:hidden] }
     self
   end
 
@@ -104,12 +102,7 @@ class Tanuki_Controller < Tanuki_Object
   private
 
   def has_part(klass, route, model, hidden=false)
-    @parts[route] = {
-      :class => klass,
-      :model => model,
-      :hidden => hidden,
-      :instance => nil
-    }
+    @parts[route] = {:class => klass, :model => model, :hidden => hidden, :instance => nil}
     @visible_parts_count += 1 unless hidden
     self
   end
@@ -134,9 +127,7 @@ class Tanuki_Controller < Tanuki_Object
     path = ''
     route_parts.each do |route_part|
       path << route_part[:route]
-      route_part[:args].each_pair do |name, value|
-        path << ":#{name.gsub(/[\$:-]/, '$\1')}-#{value.gsub(/[\$:-]/, '$\1')}"
-      end
+      route_part[:args].each_pair {|name, value| path << ":#{name.gsub(/[\$:-]/, '$\1')}-#{value.gsub(/[\$:-]/, '$\1')}" }
     end
     path
   end
@@ -145,11 +136,9 @@ class Tanuki_Controller < Tanuki_Object
     @part_arg ||= /:([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)-([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)/
     parts = request_path[1..-1].split('/').map do |s|
       match = s.match(/^([^:]+)(:.*)?/)
-      route_part = { :route => match[1], :args => {} }
+      route_part = {:route => match[1], :args => {}}
       if match[2] && matches = match[2].scan(@part_arg)
-        matches.each do |m|
-          route_part[:args][m[1].gsub(/\$([\$:-])/, '\1')] = m[2].gsub(/\$([\$:-])/, '\1')
-        end
+        matches.each {|m| route_part[:args][m[1].gsub(/\$([\$:-])/, '\1')] = m[2].gsub(/\$([\$:-])/, '\1') }
       end
       route_part
     end

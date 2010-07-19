@@ -58,9 +58,7 @@ module Tanuki
           s = src[index..(new_index ? new_index - 1 : -1)]
           s.gsub!(/\A\n/, '') if last_state
           s.gsub!(/(?<=\n)[ \t]*\Z/, '') if new_state && new_state != :l10n
-          unless s.empty?
-            ios << "\n_.call(#{s.inspect})"
-          end
+          ios << "\n_.call(#{s.inspect})" unless s.empty?
         end
         if new_index
           if new_state == :outer

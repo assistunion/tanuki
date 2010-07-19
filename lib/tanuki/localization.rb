@@ -13,9 +13,7 @@ module Tanuki
     end
 
     def available(lngs)
-      @languages.each do |language|
-        return language if lngs.include? language
-      end
+      @languages.each {|language| return language if lngs.include? language }
       nil
     end
 

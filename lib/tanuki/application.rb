@@ -11,15 +11,11 @@ module Tanuki
       if st_path
         owner = template_owner(obj.class, sym)
         ct_path = compiled_template_path(obj.class, sym)
-        if !File.file?(ct_path) ||
-            File.mtime(st_path) > File.mtime(ct_path) ||
-            File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) >
-            File.mtime(ct_path)
+        if !File.file?(ct_path) || File.mtime(st_path) > File.mtime(ct_path) ||
+            File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > File.mtime(ct_path)
           ct_dir = File.dirname(ct_path)
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
-          File.open(ct_path, 'w') do |file|
-            TemplateCompiler.compile(file, File.read(st_path), owner, sym)
-          end
+          File.open(ct_path, 'w') {|file| TemplateCompiler.compile(file, File.read(st_path), owner, sym) }
         end
         unless has_template?(owner, sym)
           require ct_path
@@ -62,11 +58,7 @@ module Tanuki
       root_page = User_Page_Language
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
-          puts '%15s %s %s' % [
-            env['REMOTE_ADDR'],
-            env['REQUEST_METHOD'],
-            env['REQUEST_URI']
-          ]
+          puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
           ctrl = Tanuki_Controller.dispatch(env, root_page, env['REQUEST_PATH'])
           case ctrl.result_type
           when :redirect then
@@ -80,15 +72,13 @@ module Tanuki
         run rack_proc
       end.to_app
       srv = available_server
-      puts "A wild Tanuki appears!"
-      puts "You used #{srv.name.gsub(/.*::/, '')} at #{host}:#{port}."
+      puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{host}:#{port}."
       srv.run rack_app, :Host => host, :Port => port
     end
 
     def self.class_path(klass)
       path = const_to_path(klass, Application.app_root, File::SEPARATOR)
-      File.join(path, path.match(
-        "#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
+      File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
     end
 
     class << self
@@ -106,24 +96,20 @@ module Tanuki
       end
 
       def const_to_path(klass, root, sep)
-        File.join(root, klass.to_s.split('_').map do |item|
-          item.gsub(/(?!^)([A-Z])/, '_\1')
-        end.join(sep)).downcase
+        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep)).downcase
       end
 
       def template_owner(klass, method_name)
+        method_file = method_name.to_s << '.erb'
         klass.ancestors.each do |ancestor|
-          return ancestor if File.file? File.join(
-            const_to_path(ancestor, Application.app_root, File::SEPARATOR),
-            method_name.to_s << '.erb')
+          return ancestor if File.file? File.join(const_to_path(ancestor, Application.app_root, File::SEPARATOR), method_file)
         end
         nil
       end
 
       def template_path(klass, method_name, root, sep, ext)
         if owner = template_owner(klass, method_name)
-          return File.join(const_to_path(owner, root, sep),
-            method_name.to_s << ext)
+          return File.join(const_to_path(owner, root, sep), method_name.to_s << ext)
         end
         nil
       end
