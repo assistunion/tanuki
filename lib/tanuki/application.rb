@@ -51,15 +51,15 @@ module Tanuki
       set :root, '.'
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
+      set :root_page, User_Page_Language
       self
     end
 
     def self.run
-      root_page = User_Page_Language
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
           puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
-          ctrl = Tanuki_Controller.dispatch(env, root_page, env['REQUEST_PATH'])
+          ctrl = Tanuki_Controller.dispatch(env, Tanuki::Application.root_page, env['REQUEST_PATH'])
           case ctrl.result_type
           when :redirect then
             [302, {'Location' => ctrl.result}, []]
