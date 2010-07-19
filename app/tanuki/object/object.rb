@@ -1,4 +1,4 @@
-module Tanuki_Object
+class Tanuki_Object
   def _has_tpl(klass, sym)
     Tanuki::Application.has_template?(klass, sym)
   end
