@@ -9,6 +9,7 @@ require 'rack'
 require 'fileutils'
 require 'yaml'
 require 'tanuki/application'
+require 'tanuki/launcher'
 require 'tanuki/localization'
 require 'tanuki/template_compiler'
 

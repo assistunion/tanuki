@@ -49,8 +49,6 @@ module Tanuki
     end
 
     def self.defaults
-      set :code, 200
-      set :headers, {'Content-Type' => 'text/plain'}
       set :server, [:thin, :mongrel, :webrick]
       set :host, 'localhost'
       set :port, 3000
@@ -60,12 +58,8 @@ module Tanuki
       self
     end
 
-    def self.each(&block)
-      controller_stub(&block)
-    end
-
     def self.run
-      app = self
+      root_page = User_Page_Language
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
           puts '%15s %s %s' % [
@@ -73,7 +67,15 @@ module Tanuki
             env['REQUEST_METHOD'],
             env['REQUEST_URI']
           ]
-          [app.code, app.headers, app]
+          ctrl = Tanuki_Controller.dispatch(env, root_page, env['REQUEST_PATH'])
+          case ctrl.result_type
+          when :redirect then
+            [302, {'Location' => ctrl.result}, []]
+          when :page_missing then
+            [404, {'Content-Type' => 'text/html'}, Tanuki::Launcher.new(ctrl)]
+          else
+            [200, {'Content-Type' => 'text/html'}, Tanuki::Launcher.new(ctrl)]
+          end
         end
         run rack_proc
       end.to_app
