@@ -72,9 +72,9 @@ module Tanuki
           when :redirect then
             [302, {'Location' => ctrl.result}, []]
           when :page_missing then
-            [404, {'Content-Type' => 'text/html'}, Tanuki::Launcher.new(ctrl)]
+            [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
           else
-            [200, {'Content-Type' => 'text/html'}, Tanuki::Launcher.new(ctrl)]
+            [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
           end
         end
         run rack_proc
