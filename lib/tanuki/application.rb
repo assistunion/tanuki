@@ -58,15 +58,19 @@ module Tanuki
     def self.run
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
-          puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
-          ctrl = Tanuki_Controller.dispatch(env, Tanuki::Application.root_page, env['REQUEST_PATH'])
-          case ctrl.result_type
-          when :redirect then
-            [302, {'Location' => ctrl.result}, []]
-          when :page_missing then
-            [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+          if match = env['REQUEST_PATH'].match(/^(.*)\/$/)
+            [301, {'Location' => match[1] << "?#{env['QUERY_STRING']}"}, []]
           else
-            [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+            puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
+            ctrl = Tanuki_Controller.dispatch(env, Tanuki::Application.root_page, env['REQUEST_PATH'])
+            case ctrl.result_type
+            when :redirect then
+              [302, {'Location' => ctrl.result}, []]
+            when :page_missing then
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+            else
+              [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+            end
           end
         end
         run rack_proc
