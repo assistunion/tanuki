@@ -5,7 +5,7 @@ module Tanuki
     end
 
     def each(&block)
-      @ctrl.index_view.call(proc {|out| block.call(out.to_s) })
+      @ctrl.default_view.call(proc {|out| block.call(out.to_s) })
     end
   end
 end
