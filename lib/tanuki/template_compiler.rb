@@ -1,7 +1,7 @@
 module Tanuki
   class TemplateCompiler
     EXPECT = {
-      :outer => /(?:^(?=\s*)%|<%(?:=|&|#)?)|<l10n>/,
+      :outer => /(?:(?=\s*)%|<%(?:=|&|#)?)|<l10n>/,
       :code_line => /\n/,
       :code_span => /%>/,
       :code_print => /%>/,
