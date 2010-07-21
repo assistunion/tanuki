@@ -46,9 +46,9 @@ module Tanuki
 
     def self.defaults
       set :server, [:thin, :mongrel, :webrick]
-      set :host, 'localhost'
+      set :host, '0.0.0.0'
       set :port, 3000
-      set :root, '.'
+      set :root, File.dirname($0)
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :root_page, User_Page_Language

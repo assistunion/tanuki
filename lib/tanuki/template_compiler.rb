@@ -44,9 +44,8 @@ module Tanuki
       state = :outer
       last_state = nil
       index = 0
-      ios << "class #{klass}\ndef #{sym}_view(*args,&block)\n" \
-        "_run_tpl self,:#{sym},*args,&block " \
-        "unless _has_tpl self.class,:#{sym}\nproc do|_|" if klass && sym
+      ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\n" \
+        "_run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\nproc do|_|" if klass && sym
       begin
         if new_index = src.index(EXPECT[state], index)
           match = src[index..-1].match(EXPECT[state])[0]
