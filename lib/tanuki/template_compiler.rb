@@ -1,12 +1,12 @@
 module Tanuki
   class TemplateCompiler
     EXPECT = {
-      :outer => /(?:(?=\s*)%|<%(?:=|&|#)?)|<l10n>/,
+      :outer => /(?:^(?=\s*)%|<%(?:=|&|#|%|))|<l10n>/,
       :code_line => /\n/,
-      :code_span => /%>/,
-      :code_print => /%>/,
-      :code_template => /%>/,
-      :code_comment => /%>/,
+      :code_span => /-?%>/,
+      :code_print => /-?%>/,
+      :code_template => /-?%>/,
+      :code_comment => /-?%>/,
       :l10n => /<\/l10n>/
     }
     STATES = {
@@ -16,22 +16,27 @@ module Tanuki
         '<%=' => :code_print,
         '<%&' => :code_template,
         '<%#' => :code_comment,
+        '<%%' => :code_skip,
         '<l10n>' => :l10n
       },
       :code_line => {
         "\n" => :outer
       },
       :code_span => {
-        '%>' => :outer
+        '%>' => :outer,
+        '-%>' => :outer
       },
       :code_print => {
-        '%>' => :outer
+        '%>' => :outer,
+        '-%>' => :outer
       },
       :code_template => {
-        '%>' => :outer
+        '%>' => :outer,
+        '-%>' => :outer
       },
       :code_comment => {
-        '%>' => :outer
+        '%>' => :outer,
+        '-%>' => :outer
       },
       :l10n => {
         '</l10n>' => :outer
@@ -39,11 +44,13 @@ module Tanuki
     }
 
     PRINT_STATES = [:outer, :code_print]
+    TRIM_STATES = [:code_span, :code_print, :code_template, :code_comment]
 
     def self.compile(ios, src, klass = nil, sym = nil)
       state = :outer
       last_state = nil
       index = 0
+      trim_newline = false
       ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\n" \
         "_run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\nproc do|_|" if klass && sym
       begin
@@ -53,11 +60,20 @@ module Tanuki
         else
           new_state = nil
         end
-        if state == :outer
+        skip = new_state == :code_skip
+        if state == :outer || skip
           s = src[index..(new_index ? new_index - 1 : -1)]
-          s.gsub!(/\A\n/, '') if last_state
-          s.gsub!(/(?<=\n)[ \t]*\Z/, '') if new_state && new_state != :l10n
-          ios << "\n_.call(#{s.inspect})" unless s.empty?
+          if trim_newline
+            s[0] = '' if s[0] == "\n"
+            trim_newline = false
+          end
+          if skip
+            ios << "\n_.call(#{(s << '<%').inspect})" unless s.empty?
+            index = new_index + 3
+            next
+          else
+            ios << "\n_.call(#{s.inspect})" unless s.empty?
+          end
         end
         if new_index
           if new_state == :outer
@@ -73,6 +89,7 @@ module Tanuki
             end
           end
           index = new_index + match.length
+          trim_newline = true if (match == '-%>') && TRIM_STATES.include?(state)
           last_state = state unless state == :code_comment
           state = new_state
         end
