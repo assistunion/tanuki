@@ -17,10 +17,9 @@ def application(&block)
   def Object.const_missing(sym)
     if File.file?(path = Tanuki::Application.class_path(sym))
       require path
-      const_get(sym)
-    else
-      super
+      return const_get(sym)
     end
+    super
   end
   app = Tanuki::Application.defaults
   app.instance_eval(&block) if block_given?
