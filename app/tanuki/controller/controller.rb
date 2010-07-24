@@ -39,7 +39,7 @@ class Tanuki_Controller < Tanuki_Object
           @result_type = @logical_child.result_type
         else
           @result = self
-          @result_type = :missing_page
+          @result_type = :not_found
         end
       end
       if @result == self

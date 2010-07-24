@@ -62,10 +62,10 @@ module Tanuki
             case ctrl.result_type
             when :redirect then
               [302, {'Location' => ctrl.result}, []]
-            when :missing_page then
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
-            else
+            when :page then
               [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+            else
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
             end
           end
         end
