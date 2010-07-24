@@ -8,10 +8,11 @@ end
 require 'rack'
 require 'fileutils'
 require 'yaml'
-require 'tanuki/application'
+require 'tanuki/context'
 require 'tanuki/launcher'
 require 'tanuki/localization'
 require 'tanuki/template_compiler'
+require 'tanuki/application'
 
 def application(&block)
   def Object.const_missing(sym)

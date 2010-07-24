@@ -5,7 +5,7 @@ class Tanuki_Controller < Tanuki_Object
   attr_accessor :logical_child, :visual_child
 
   def initialize(ctx, model, logical_parent=nil, route_parts=nil, index=nil)
-    @ctx = ctx
+    @ctx = process_context(ctx)
     @model = model
     @route = ''
     @logical_parent = logical_parent
@@ -60,6 +60,10 @@ class Tanuki_Controller < Tanuki_Object
 
   def is_current?
     @current
+  end
+
+  def process_context(ctx)
+    ctx
   end
 
   def configure

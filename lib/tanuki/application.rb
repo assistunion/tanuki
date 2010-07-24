@@ -1,6 +1,7 @@
 module Tanuki
   class Application
     @templates = {}
+    @context = Tanuki::Context.new
 
     def self.has_template?(klass, sym)
       @templates.include? "#{klass}##{sym}"
@@ -29,15 +30,7 @@ module Tanuki
     end
 
     def self.set(option, value)
-      (class << self; self; end).instance_eval do
-        undef_method option if method_defined? option
-        if value.is_a? Proc
-          define_method(option, &value)
-        else
-          define_method(option) { value }
-        end
-      end
-      self
+      @context.send("#{option}=".to_sym, value)
     end
 
     def self.visitor(sym, &block)
@@ -56,6 +49,7 @@ module Tanuki
     end
 
     def self.run
+      ctx = @context
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
           if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
@@ -63,7 +57,8 @@ module Tanuki
             [301, {'Location' => match[1]}, []]
           else
             puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
-            ctrl = Tanuki_Controller.dispatch(env, Tanuki::Application.root_page, env['REQUEST_PATH'])
+            ctx.env = env
+            ctrl = Tanuki_Controller.dispatch(ctx, ctx.root_page, env['REQUEST_PATH'])
             case ctrl.result_type
             when :redirect then
               [302, {'Location' => ctrl.result}, []]
@@ -77,12 +72,12 @@ module Tanuki
         run rack_proc
       end.to_app
       srv = available_server
-      puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{host}:#{port}."
-      srv.run rack_app, :Host => host, :Port => port
+      puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
+      srv.run rack_app, :Host => @context.host, :Port => @context.port
     end
 
     def self.class_path(klass)
-      path = const_to_path(klass, Application.app_root, File::SEPARATOR)
+      path = const_to_path(klass, @context.app_root, File::SEPARATOR)
       File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
     end
 
@@ -90,7 +85,7 @@ module Tanuki
       private
 
       def available_server
-        server.each do |server_name|
+        @context.server.each do |server_name|
           begin
             return Rack::Handler.get(server_name.downcase)
           rescue LoadError
@@ -107,7 +102,7 @@ module Tanuki
       def template_owner(klass, method_name)
         method_file = method_name.to_s << '.erb'
         klass.ancestors.each do |ancestor|
-          return ancestor if File.file? File.join(const_to_path(ancestor, Application.app_root, File::SEPARATOR), method_file)
+          return ancestor if File.file? File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file)
         end
         nil
       end
@@ -120,12 +115,12 @@ module Tanuki
       end
 
       def source_template_path(klass, method_name)
-        template_path(klass, method_name, Application.app_root,
+        template_path(klass, method_name, @context.app_root,
           File::SEPARATOR, '.erb')
       end
 
       def compiled_template_path(klass, method_name)
-        template_path(klass, method_name, Application.cache_root, '.', '.rb')
+        template_path(klass, method_name, @context.cache_root, '.', '.rb')
       end
     end
   end
