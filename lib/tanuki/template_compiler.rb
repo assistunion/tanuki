@@ -63,17 +63,23 @@ module Tanuki
         end
         skip = new_state == :code_skip
         if state == :outer || skip
-          s = src[index..(new_index ? new_index - 1 : -1)]
-          if trim_newline
-            s[0] = '' if s[0] == "\n"
-            trim_newline = false
-          end
-          if skip
-            ios << "\n_.call(#{(s << '<%').inspect},ctx)" unless s.empty?
-            index = new_index + 3
-            next
+          if new_index
+            s = src[index, new_index - index]
+            if trim_newline
+              s[0] = '' if s[0] == "\n"
+              trim_newline = false
+            end
           else
-            ios << "\n_.call(#{s.inspect},ctx)" unless s.empty?
+            s = src[index..-1]
+          end
+          unless s.empty?
+            if skip
+              ios << "\n_.call(#{(s << '<%').inspect},ctx)" unless s.empty?
+              index = new_index + 3
+              next
+            else
+              ios << "\n_.call(#{s.inspect},ctx)" unless s.empty?
+            end
           end
         end
         if new_index
