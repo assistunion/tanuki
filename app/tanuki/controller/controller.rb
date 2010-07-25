@@ -34,7 +34,8 @@ class Tanuki_Controller < Tanuki_Object
         next_route = route_parts[index][:route]
         if @parts.include? next_route
           next_part = @parts[next_route]
-          @logical_child = next_part[:instance] = next_part[:class].new(@ctx, next_part[:model], self, route_parts, index + 1)
+          @logical_child = next_part[:instance] = next_part[:class].new(process_part_context(@ctx, next_route),
+            next_part[:model], self, route_parts, index + 1)
           @result = @logical_child.result
           @result_type = @logical_child.result_type
         else
@@ -70,6 +71,10 @@ class Tanuki_Controller < Tanuki_Object
     ctx
   end
 
+  def process_part_context(ctx, route)
+    ctx
+  end
+
   def configure
   end
 
@@ -84,7 +89,7 @@ class Tanuki_Controller < Tanuki_Object
   def method_missing(sym)
     if match = sym.to_s.match(/^(.*)_part$/)
       if part = @parts[match[1]]
-        instantiate_part(part)
+        instantiate_part(match[1], part)
       else
         raise "undefined controller part `#{match[1]}' for #{self.class}"
       end
@@ -95,7 +100,7 @@ class Tanuki_Controller < Tanuki_Object
 
   def each
     ensure_configured
-    @parts.each_pair {|route, part| yield(instantiate_part(part)) unless part[:hidden] }
+    @parts.each_pair {|route, part| yield(instantiate_part(route, part)) unless part[:hidden] }
     self
   end
 
@@ -109,14 +114,14 @@ class Tanuki_Controller < Tanuki_Object
 
   private
 
-  def has_part(klass, route, model, hidden=false)
+  def has_part(klass, route, model=nil, hidden=false)
     @parts[route] = {:class => klass, :model => model, :hidden => hidden, :instance => nil}
     @visible_parts_count += 1 unless hidden
     self
   end
 
-  def instantiate_part(part)
-    part[:instance] ||= part[:class].new(@ctx, part[:model], self)
+  def instantiate_part(route, part)
+    part[:instance] ||= part[:class].new(process_part_context(@ctx, route), part[:model], self)
   end
 
   def ensure_configured

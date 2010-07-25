@@ -7,10 +7,6 @@ class Tanuki_Object
     Tanuki::Application.run_template(obj, sym, *args, &block)
   end
 
-  def _lngs(lngs)
-    Tanuki::Localization.current.available(lngs)
-  end
-
   def _ctx(ctx)
     ctx
   end

@@ -104,7 +104,7 @@ module Tanuki
     def self.localize(ios, src)
       index = 0
       lngs = []
-      ios << "\ncase _lngs "
+      ios << "\ncase ctx.best_language "
       code = StringIO.new
       while index = src.index(/<[a-z]{2}>/, index)
         lngs << (lng = src[index + 1, 2].to_sym)

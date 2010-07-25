@@ -10,7 +10,6 @@ require 'fileutils'
 require 'yaml'
 require 'tanuki/context'
 require 'tanuki/launcher'
-require 'tanuki/localization'
 require 'tanuki/template_compiler'
 require 'tanuki/application'
 

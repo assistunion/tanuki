@@ -25,7 +25,7 @@ module Tanuki
         @templates["#{obj.class}##{sym}"] = nil
         obj.send("#{sym}_view".to_sym, *args, &block)
       else
-        raise "undefined template `#{sym}' for #{klass}"
+        raise "undefined template `#{sym}' for #{obj.class}"
       end
     end
 
@@ -45,6 +45,13 @@ module Tanuki
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :root_page, User_Page_Index
+      set :i18n, false
+      set :language, nil
+      set :language_fallback, {}
+      set :best_language, proc {|lngs|
+        language_fallback[language].each {|lng| return lng if lngs.include? lng }
+        nil
+      }
       @context = @context.child
       self
     end
@@ -60,7 +67,7 @@ module Tanuki
           else
             puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
             request_ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.root_page, env['REQUEST_PATH'])
+            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page, env['REQUEST_PATH'])
             case ctrl.result_type
             when :redirect then
               [302, {'Location' => ctrl.result}, []]
