@@ -82,7 +82,7 @@ module Tanuki
             when :code_line, :code_span then
               ios << "\n#{src[index...new_index].strip}"
             when :code_print then
-              ios << "\n_.call(#{src[index...new_index].strip},ctx)"
+              ios << "\n_.call((#{src[index...new_index].strip}),ctx)"
             when :code_template then
               ios << "\n(#{src[index...new_index].strip}).call(_,ctx)"
             when :l10n then
