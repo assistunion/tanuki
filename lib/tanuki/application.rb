@@ -18,10 +18,8 @@ module Tanuki
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
           File.open(ct_path, 'w') {|file| TemplateCompiler.compile(file, File.read(st_path), owner, sym) }
         end
-        unless has_template?(owner, sym)
-          require ct_path
-          @templates["#{owner}##{sym}"] = nil
-        end
+        require ct_path
+        @templates["#{owner}##{sym}"] = nil
         @templates["#{obj.class}##{sym}"] = nil
         obj.send("#{sym}_view".to_sym, *args, &block)
       else
