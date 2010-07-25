@@ -1,7 +1,7 @@
 class Tanuki_Controller < Tanuki_Object
   include Enumerable
 
-  attr_reader :ctx, :model, :route, :result, :result_type, :logical_parent
+  attr_reader :model, :route, :result, :result_type, :logical_parent
   attr_accessor :logical_child, :visual_child
 
   def initialize(ctx, model, logical_parent=nil, route_parts=nil, index=nil)
@@ -52,6 +52,10 @@ class Tanuki_Controller < Tanuki_Object
     else
       @current = false
     end
+  end
+
+  def _ctx(ctx)
+    @ctx
   end
 
   def is_active?

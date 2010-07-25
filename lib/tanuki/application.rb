@@ -45,6 +45,7 @@ module Tanuki
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :root_page, User_Page_Index
+      @context = @context.child
       self
     end
 
@@ -64,9 +65,9 @@ module Tanuki
             when :redirect then
               [302, {'Location' => ctrl.result}, []]
             when :page then
-              [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+              [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
             else
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl)]
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
             end
           end
         end

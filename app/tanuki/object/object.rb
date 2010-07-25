@@ -11,6 +11,10 @@ class Tanuki_Object
     Tanuki::Localization.current.available(lngs)
   end
 
+  def _ctx(ctx)
+    ctx
+  end
+
   def method_missing(sym, *args, &block)
     if matches = sym.to_s.match(/^(.*)_view$/)
       Tanuki::Application.run_template(self, matches[1].to_sym, *args, &block)

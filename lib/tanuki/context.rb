@@ -6,20 +6,18 @@ module Tanuki
 
     def method_missing(sym, arg=nil)
       match = sym.to_s.match(/^([^=]+)(=)?$/)
-      if match[2]
-        if method_defined? match[1]
-          self.class.instance_eval do
-            if arg.is_a? Proc
-              define_method(match[1], &arg)
-            else
-              define_method(match[1]) { arg }
-            end
+      self.class.instance_eval do
+        unless instance_methods(false).include? match[1]
+          if arg.is_a? Proc
+            define_method(match[1], &arg)
+          else
+            define_method(match[1]) { arg }
           end
           return arg
         else
-          raise "context value `#{sym}' redefined, use Context#child"
+          raise "context entry `#{match[1]}' redefined, use Context#child"
         end
-      end
+      end if match[2]
       super
     end
   end

@@ -52,7 +52,8 @@ module Tanuki
       index = 0
       trim_newline = false
       ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\n" \
-        "_run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\nproc do|_|" if klass && sym
+        "_run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\n" \
+        "proc do|_,ctx|\nctx=_ctx(ctx)" if klass && sym
       begin
         if new_index = src.index(EXPECT[state], index)
           match = src[index..-1].match(EXPECT[state])[0]
@@ -68,11 +69,11 @@ module Tanuki
             trim_newline = false
           end
           if skip
-            ios << "\n_.call(#{(s << '<%').inspect})" unless s.empty?
+            ios << "\n_.call(#{(s << '<%').inspect},ctx)" unless s.empty?
             index = new_index + 3
             next
           else
-            ios << "\n_.call(#{s.inspect})" unless s.empty?
+            ios << "\n_.call(#{s.inspect},ctx)" unless s.empty?
           end
         end
         if new_index
@@ -81,9 +82,9 @@ module Tanuki
             when :code_line, :code_span then
               ios << "\n#{src[index...new_index].strip}"
             when :code_print then
-              ios << "\n_.call(#{src[index...new_index].strip})"
+              ios << "\n_.call(#{src[index...new_index].strip},ctx)"
             when :code_template then
-              ios << "\n(#{src[index...new_index].strip}).call(_)"
+              ios << "\n(#{src[index...new_index].strip}).call(_,ctx)"
             when :l10n then
               localize(ios, src[index...new_index].strip)
             end
@@ -95,7 +96,7 @@ module Tanuki
         end
       end until new_index.nil?
       if klass && sym
-        ios << "\n_.call('')" unless PRINT_STATES.include? last_state
+        ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
         ios << "\nend\nend\nend"
       end
     end
