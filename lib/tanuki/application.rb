@@ -52,13 +52,14 @@ module Tanuki
       ctx = @context
       rack_app = Rack::Builder.new do
         rack_proc = proc do |env|
+          request_ctx = ctx.child
           if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
             match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
             [301, {'Location' => match[1]}, []]
           else
             puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
-            ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(ctx, ctx.root_page, env['REQUEST_PATH'])
+            request_ctx.env = env
+            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.root_page, env['REQUEST_PATH'])
             case ctrl.result_type
             when :redirect then
               [302, {'Location' => ctrl.result}, []]
