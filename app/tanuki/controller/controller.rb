@@ -23,11 +23,12 @@ class Tanuki_Controller < Tanuki_Object
       end
       if @current
         if route = default_route
-          @result = combine_path(route_parts[0..index].dup << [route])
+          @result = self.class.combine_path(route_parts[0..index].dup << route)
           @result_type = :redirect
         else
           @result = self
           @result_type = :page
+          @result_type = result_type
         end
       else
         ensure_configured
@@ -39,15 +40,9 @@ class Tanuki_Controller < Tanuki_Object
           @result = @logical_child.result
           @result_type = @logical_child.result_type
         else
-          @result = self
-          @result_type = :not_found
-        end
-      end
-      if @result == self
-        prev = self
-        while curr = prev.visual_parent
-          curr.visual_child = self
-          prev = curr
+          @logical_child = part_missing.new(process_part_context(@ctx, @route), nil, self, route_parts, index + 1)
+          @result = @logical_child.result
+          @result_type = @logical_child.result_type
         end
       end
     else
@@ -84,6 +79,10 @@ class Tanuki_Controller < Tanuki_Object
 
   def default_route
     nil
+  end
+
+  def part_missing
+    Tanuki_Missing
   end
 
   def method_missing(sym)
@@ -155,6 +154,15 @@ class Tanuki_Controller < Tanuki_Object
       end
       route_part
     end
-    klass.new(ctx, nil, nil, parts, 0)
+    root_ctrl = klass.new(ctx, nil, nil, parts, 0)
+    if (prev = root_ctrl.result).is_a? Tanuki_Controller
+      while curr = prev.visual_parent
+        curr.visual_child = prev
+        prev = curr
+      end
+      prev
+    else
+      root_ctrl
+    end
   end
 end
