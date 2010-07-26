@@ -2,6 +2,7 @@ module Tanuki
   class Application
     @templates = {}
     @context = Tanuki::Context.new
+    @rack_middleware = []
 
     def self.has_template?(klass, sym)
       @templates.include? "#{klass}##{sym}"
@@ -31,6 +32,10 @@ module Tanuki
       @context.send("#{option}=".to_sym, value)
     end
 
+    def self.use(middleware, *args, &block)
+      @rack_middleware << [middleware, args, block]
+    end
+
     def self.visitor(sym, &block)
       Tanuki_Object.instance_eval { define_method sym, &block }
     end
@@ -56,31 +61,31 @@ module Tanuki
 
     def self.run
       ctx = @context
-      rack_app = Rack::Builder.new do
-        rack_proc = proc do |env|
-          request_ctx = ctx.child
-          if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
-            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
-            [301, {'Location' => match[1]}, []]
+      rack_builder = Rack::Builder.new
+      @rack_middleware.each {|middleware, args, block| rack_builder.use(middleware, *args, &block) }
+      rack_app = proc do |env|
+        request_ctx = ctx.child
+        if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
+          match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+          [301, {'Location' => match[1]}, []]
+        else
+          puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
+          request_ctx.env = env
+          ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page, env['REQUEST_PATH'])
+          case ctrl.result_type
+          when :redirect then
+            [302, {'Location' => ctrl.result}, []]
+          when :page then
+            [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
           else
-            puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
-            request_ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page, env['REQUEST_PATH'])
-            case ctrl.result_type
-            when :redirect then
-              [302, {'Location' => ctrl.result}, []]
-            when :page then
-              [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
-            else
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
-            end
+            [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
           end
         end
-        run rack_proc
-      end.to_app
+      end
+      rack_builder.run(rack_app)
       srv = available_server
       puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
-      srv.run rack_app, :Host => @context.host, :Port => @context.port
+      srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
     end
 
     def self.class_path(klass)
