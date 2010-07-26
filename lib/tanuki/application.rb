@@ -40,7 +40,7 @@ module Tanuki
       Tanuki_Object.instance_eval { define_method sym, &block }
     end
 
-    def self.defaults
+    def self.configure(&block)
       set :server, [:thin, :mongrel, :webrick]
       set :host, '0.0.0.0'
       set :port, 3000
@@ -51,11 +51,9 @@ module Tanuki
       set :i18n, false
       set :language, nil
       set :language_fallback, {}
-      set :best_language, proc {|lngs|
-        language_fallback[language].each {|lng| return lng if lngs.include? lng }
-        nil
-      }
+      set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
       @context = @context.child
+      Tanuki::Configurator.instance_eval(&block) if block_given?
       self
     end
 

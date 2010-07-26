@@ -8,6 +8,7 @@ end
 require 'rack'
 require 'fileutils'
 require 'yaml'
+require 'tanuki/configurator'
 require 'tanuki/context'
 require 'tanuki/launcher'
 require 'tanuki/template_compiler'
@@ -21,7 +22,5 @@ def application(&block)
     end
     super
   end
-  app = Tanuki::Application.defaults
-  app.instance_eval(&block) if block_given?
-  app.run
+  Tanuki::Application.configure(&block).run
 end
