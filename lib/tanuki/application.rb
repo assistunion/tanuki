@@ -1,28 +1,35 @@
 module Tanuki
   class Application
-    @templates = {}
     @context = Tanuki::Context.new
     @rack_middleware = []
 
-    def self.has_template?(klass, sym)
-      @templates.include? "#{klass}##{sym}"
+    def self.has_template?(templates, klass, sym)
+      templates.include? "#{klass}##{sym}"
     end
 
-    def self.run_template(obj, sym, *args, &block)
+    def self.run_template(templates, obj, sym, *args, &block)
       st_path = source_template_path(obj.class, sym)
       if st_path
         owner = template_owner(obj.class, sym)
         ct_path = compiled_template_path(obj.class, sym)
+        no_refresh = true
         if !File.file?(ct_path) || File.mtime(st_path) > File.mtime(ct_path) ||
             File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > File.mtime(ct_path)
           ct_dir = File.dirname(ct_path)
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
           File.open(ct_path, 'w') {|file| TemplateCompiler.compile(file, File.read(st_path), owner, sym) }
+          no_refresh = false
         end
-        require ct_path
-        @templates["#{owner}##{sym}"] = nil
-        @templates["#{obj.class}##{sym}"] = nil
-        obj.send("#{sym}_view".to_sym, *args, &block)
+        method_name = "#{sym}_view".to_sym
+        owner.instance_eval do
+          unless (method_exists = instance_methods(false).include? method_name) && no_refresh
+            remove_method method_name if method_exists
+            load ct_path
+          end
+        end
+        templates["#{owner}##{sym}"] = nil
+        templates["#{obj.class}##{sym}"] = nil
+        obj.send(method_name, *args, &block)
       else
         raise "undefined template `#{sym}' for #{obj.class}"
       end
@@ -64,6 +71,7 @@ module Tanuki
       @rack_middleware.each {|middleware, args, block| rack_builder.use(middleware, *args, &block) }
       rack_app = proc do |env|
         request_ctx = ctx.child
+        request_ctx.templates = {}
         if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
           match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
           [301, {'Location' => match[1]}, []]
