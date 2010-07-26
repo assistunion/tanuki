@@ -51,6 +51,7 @@ module Tanuki
       set :i18n, false
       set :language, nil
       set :language_fallback, {}
+      set :languages, proc { language_fallback.keys }
       set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
       @context = @context.child
       Tanuki::Configurator.instance_eval(&block) if block_given?
