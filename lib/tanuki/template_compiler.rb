@@ -52,7 +52,7 @@ module Tanuki
       index = 0
       trim_newline = false
       ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\n" \
-        "_run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\n" \
+        "return _run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\n" \
         "proc do|_,ctx|\nctx=_ctx(ctx)" if klass && sym
       begin
         if new_index = src.index(EXPECT[state], index)
