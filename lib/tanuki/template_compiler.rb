@@ -52,9 +52,8 @@ module Tanuki
       last_state = nil
       index = 0
       trim_newline = false
-      ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\n" \
-        "return _run_tpl self,:#{sym},*args,&block unless _has_tpl self.class,:#{sym}\n" \
-        "proc do|_,ctx|\nctx=_ctx(ctx)" if klass && sym
+      ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
+        "if _has_tpl self.class,:#{sym}\nctx=_ctx(ctx)" if klass && sym
       begin
         if new_index = src.index(EXPECT[state], index)
           match = src[index..-1].match(EXPECT[state])[0]
@@ -104,7 +103,7 @@ module Tanuki
       end until new_index.nil?
       if klass && sym
         ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
-        ios << "\nend\nend\nend"
+        ios << "\nelse\n(_run_tpl self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
       end
     end
 
