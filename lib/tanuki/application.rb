@@ -47,24 +47,6 @@ module Tanuki
       Tanuki_Object.instance_eval { define_method sym, &block }
     end
 
-    def self.configure(&block)
-      set :server, [:thin, :mongrel, :webrick]
-      set :host, '0.0.0.0'
-      set :port, 3000
-      set :root, File.dirname($0)
-      set :app_root, proc { File.join(root, 'app') }
-      set :cache_root, proc { File.join(root, 'cache') }
-      set :root_page, User_Page_Index
-      set :i18n, false
-      set :language, nil
-      set :language_fallback, {}
-      set :languages, proc { language_fallback.keys }
-      set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
-      @context = @context.child
-      Tanuki::Configurator.instance_eval(&block) if block_given?
-      self
-    end
-
     def self.run
       ctx = @context
       rack_builder = Rack::Builder.new
@@ -74,14 +56,13 @@ module Tanuki
         request_ctx.templates = {}
         if match = env['REQUEST_PATH'].match(/^(.+)\/$/)
           match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
-          [301, {'Location' => match[1]}, []]
+          [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
         else
-          puts '%15s %s %s' % [env['REMOTE_ADDR'], env['REQUEST_METHOD'], env['REQUEST_URI']]
           request_ctx.env = env
           ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page, env['REQUEST_PATH'])
           case ctrl.result_type
           when :redirect then
-            [302, {'Location' => ctrl.result}, []]
+            [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           when :page then
             [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
           else

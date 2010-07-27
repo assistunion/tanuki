@@ -14,13 +14,10 @@ require 'tanuki/launcher'
 require 'tanuki/template_compiler'
 require 'tanuki/application'
 
-def application(&block)
-  def Object.const_missing(sym)
-    if File.file?(path = Tanuki::Application.class_path(sym))
-      require path
-      return const_get(sym)
-    end
-    super
+def Object.const_missing(sym)
+  if File.file?(path = Tanuki::Application.class_path(sym))
+    require path
+    return const_get(sym)
   end
-  Tanuki::Application.configure(&block).run
+  super
 end
