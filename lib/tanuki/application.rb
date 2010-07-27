@@ -10,15 +10,23 @@ module Tanuki
     def self.run_template(templates, obj, sym, *args, &block)
       st_path = source_template_path(obj.class, sym)
       if st_path
+        no_refresh = true
         owner = template_owner(obj.class, sym)
         ct_path = compiled_template_path(obj.class, sym)
-        no_refresh = true
-        if !File.file?(ct_path) || File.mtime(st_path) > File.mtime(ct_path) ||
-            File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > File.mtime(ct_path)
-          ct_dir = File.dirname(ct_path)
-          FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
-          File.open(ct_path, 'w') {|file| TemplateCompiler.compile(file, File.read(st_path), owner, sym) }
-          no_refresh = false
+        ct_file_exists = File.file?(ct_path)
+        ct_file_mtime = ct_file_exists ? File.mtime(ct_path) : nil
+        st_file = File.new(st_path)
+        if !ct_file_exists || st_file.mtime > ct_file_mtime ||
+            File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > ct_file_mtime
+          st_file.flock(File::LOCK_EX)
+          if !File.file?(ct_path) || File.mtime(ct_path) == ct_file_mtime
+            no_refresh = false
+            ct_dir = File.dirname(ct_path)
+            FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
+            File.open(tmp_ct_path = ct_path + '~', 'w') {|ct_file| TemplateCompiler.compile(ct_file, st_file.read, owner, sym) }
+            FileUtils.mv(tmp_ct_path, ct_path)
+          end
+          st_file.flock(File::LOCK_UN)
         end
         method_name = "#{sym}_view".to_sym
         owner.instance_eval do
