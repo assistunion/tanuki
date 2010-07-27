@@ -44,12 +44,15 @@ module Tanuki
               ios << "\n_.call((#{src[index...new_index].strip}),ctx)"
             when :code_template then
               ios << "\n(#{src[index...new_index].strip}).call(_,ctx)"
+            when :code_visitor
+              inner_m = src[index...new_index].rstrip.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
+              ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
             when :l10n then
               localize(ios, src[index...new_index].strip)
             end
           end
           index = new_index + match.length
-          trim_newline = true if (match == '-%>') && TRIM_STATES.include?(state)
+          trim_newline = true if (match == '-%>')
           last_state = state unless state == :code_comment
           state = new_state
         end
@@ -63,13 +66,12 @@ module Tanuki
     private
 
     PRINT_STATES = [:outer, :code_print]
-    TRIM_STATES = [:code_span, :code_print, :code_template, :code_comment]
 
     def self.expect_pattern(state)
       case state
-      when :outer then %r{(?:^(?=\s*)%|<%(?:=|\!|#|%|))|<l10n>}
+      when :outer then %r{(?:^(?=\s*)%|<%(?:=|!|_|#|%|))|<l10n>}
       when :code_line then %r{\n|\Z}
-      when :code_span, :code_print, :code_template, :code_comment then %r{-?%>}
+      when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{-?%>}
       when :l10n then %r{<\/l10n>}
       end
     end
@@ -82,12 +84,13 @@ module Tanuki
         when '<%' then :code_span
         when '<%=' then :code_print
         when '<%!' then :code_template
+        when '<%_' then :code_visitor
         when '<%#' then :code_comment
         when '<%%' then :code_skip
         when '<l10n>' then :l10n
         end
       when :code_line then :outer
-      when :code_span, :code_print, :code_template, :code_comment then :outer
+      when :code_span, :code_print, :code_template, :code_visitor, :code_comment then :outer
       when :l10n then :outer
       end
     end
