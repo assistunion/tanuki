@@ -72,9 +72,9 @@ module Tanuki
           when :redirect then
             [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           when :page then
-            [200, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
+            [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
           else
-            [404, {'Content-Type' => 'text/html; charset=utf-8'}, Tanuki::Launcher.new(ctrl, request_ctx)]
+            [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
           end
         end
       end
@@ -91,6 +91,10 @@ module Tanuki
 
     class << self
       private
+
+      def build_body(ctrl, request_ctx)
+        Tanuki::Launcher.new(ctrl, request_ctx).each &Tanuki_Object.new.array_visitor
+      end
 
       def available_server
         @context.server.each do |server_name|
