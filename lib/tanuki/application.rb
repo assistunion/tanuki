@@ -1,6 +1,6 @@
 module Tanuki
   class Application
-    @context = Tanuki::Context.new
+    @context = Context.new
     @rack_middleware = []
 
     def self.has_template?(templates, klass, sym)
