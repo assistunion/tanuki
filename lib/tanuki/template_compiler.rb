@@ -1,52 +1,5 @@
 module Tanuki
   class TemplateCompiler
-    EXPECT = {
-      :outer => /(?:^(?=\s*)%|<%(?:=|&|#|%|))|<l10n>/,
-      :code_line => /\n|\Z/,
-      :code_span => /-?%>/,
-      :code_print => /-?%>/,
-      :code_template => /-?%>/,
-      :code_comment => /-?%>/,
-      :l10n => /<\/l10n>/
-    }
-    STATES = {
-      :outer => {
-        '%' => :code_line,
-        '<%' => :code_span,
-        '<%=' => :code_print,
-        '<%&' => :code_template,
-        '<%#' => :code_comment,
-        '<%%' => :code_skip,
-        '<l10n>' => :l10n
-      },
-      :code_line => {
-        "\n" => :outer,
-        '' => :outer
-      },
-      :code_span => {
-        '%>' => :outer,
-        '-%>' => :outer
-      },
-      :code_print => {
-        '%>' => :outer,
-        '-%>' => :outer
-      },
-      :code_template => {
-        '%>' => :outer,
-        '-%>' => :outer
-      },
-      :code_comment => {
-        '%>' => :outer,
-        '-%>' => :outer
-      },
-      :l10n => {
-        '</l10n>' => :outer
-      }
-    }
-
-    PRINT_STATES = [:outer, :code_print]
-    TRIM_STATES = [:code_span, :code_print, :code_template, :code_comment]
-
     def self.compile(ios, src, klass = nil, sym = nil)
       state = :outer
       last_state = nil
@@ -55,9 +8,9 @@ module Tanuki
       ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
         "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)" if klass && sym
       begin
-        if new_index = src.index(EXPECT[state], index)
-          match = src[index..-1].match(EXPECT[state])[0]
-          new_state = STATES[state][match]
+        if new_index = src.index(expect_pattern(state), index)
+          match = src[index..-1].match(expect_pattern(state))[0]
+          new_state = next_state(state, match)
         else
           new_state = nil
         end
@@ -104,6 +57,47 @@ module Tanuki
       if klass && sym
         ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
         ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
+      end
+    end
+
+    private
+
+    PRINT_STATES = [:outer, :code_print]
+    TRIM_STATES = [:code_span, :code_print, :code_template, :code_comment]
+
+    def self.expect_pattern(state)
+      case state
+      when :outer then %r{(?:^(?=\s*)%|<%(?:=|&|#|%|))|<l10n>}
+      when :code_line then %r{\n|\Z}
+      when :code_span, :code_print, :code_template, :code_comment then %r{-?%>}
+      when :l10n then %r{<\/l10n>}
+      end
+    end
+
+    def self.next_state(state, match)
+      case state
+      when :outer then
+        case match
+        when '%' then :code_line
+        when '<%' then :code_span
+        when '<%=' then :code_print
+        when '<%&' then :code_template
+        when '<%#' then :code_comment
+        when '<%%' then :code_skip
+        when '<l10n>' then :l10n
+        end
+      when :code_line then
+        case match
+        when "\n" then :outer
+        when '' then :outer
+        end
+      when :code_span, :code_print, :code_template, :code_comment then
+        case match
+        when '%>' then :outer
+        when '-%>' then :outer
+        end
+      when :l10n then
+        :outer
       end
     end
 
