@@ -1,26 +1,31 @@
 class Tanuki_Controller < Tanuki_Object
   include Enumerable
 
-  attr_reader :model, :route, :result, :result_type, :logical_parent
+  attr_reader :model, :route, :result, :result_type, :logical_parent, :link
   attr_accessor :logical_child, :visual_child
 
-  def initialize(ctx, model, logical_parent=nil, route_parts=nil, index=nil)
+  def initialize(ctx, model, logical_parent, route_parts, index, active)
     @ctx = process_context(ctx)
     @model = model
-    @route = ''
-    @logical_parent = logical_parent
+    if index > 0
+      @route = route_parts[index - 1][:route]
+      process_args(route_parts[index - 1][:args])
+    else
+      @route = ''
+    end
+    if @logical_parent = logical_parent
+      @link = "#{@logical_parent.link == '/' ? '' : @logical_parent.link}/#{route_parts[index - 1][:full]}"
+    else
+      @link = '/'
+    end
     @visual_child = nil
-    @active = (route_parts != nil)
+    @active = active
     @parts = {}
     @visible_parts_count = 0
     @configured = false
     if @active
       @current = (index == route_parts.count)
       logical_parent.logical_child = self if logical_parent
-      if index > 0
-        @route = route_parts[index - 1][:route]
-        process_args(route_parts[index - 1][:args])
-      end
       if @current
         if route = default_route
           @result = self.class.combine_path(route_parts[0..index].dup << route)
@@ -36,11 +41,11 @@ class Tanuki_Controller < Tanuki_Object
         if @parts.include? next_route
           next_part = @parts[next_route]
           @logical_child = next_part[:instance] = next_part[:class].new(process_part_context(@ctx, next_route),
-            next_part[:model], self, route_parts, index + 1)
+            next_part[:model], self, route_parts, index + 1, true)
           @result = @logical_child.result
           @result_type = @logical_child.result_type
         else
-          @logical_child = part_missing.new(process_part_context(@ctx, @route), nil, self, route_parts, index + 1)
+          @logical_child = part_missing.new(process_part_context(@ctx, @route), nil, self, route_parts, index + 1, true)
           @result = @logical_child.result
           @result_type = @logical_child.result_type
         end
@@ -54,11 +59,11 @@ class Tanuki_Controller < Tanuki_Object
     @ctx
   end
 
-  def is_active?
+  def active?
     @active
   end
 
-  def is_current?
+  def current?
     @current
   end
 
@@ -75,6 +80,13 @@ class Tanuki_Controller < Tanuki_Object
 
   def visual_parent
     @logical_parent
+  end
+
+  def forward_link
+    uri_parts = @ctx.env['REQUEST_PATH'].split '/'
+    link_parts = link.split('/')
+    link_parts.each_index {|i| uri_parts[i] = link_parts[i] }
+    uri_parts.join('/') << ((qs = @ctx.env['QUERY_STRING']).empty? ? '' : "?#{qs}")
   end
 
   def default_route
@@ -97,6 +109,10 @@ class Tanuki_Controller < Tanuki_Object
     end
   end
 
+  def to_s
+    @route
+  end
+
   def each
     ensure_configured
     @parts.each_pair {|route, part| yield(instantiate_part(route, part)) unless part[:hidden] }
@@ -105,10 +121,6 @@ class Tanuki_Controller < Tanuki_Object
 
   def count
     @visible_parts_count
-  end
-
-  def link
-    '#'
   end
 
   private
@@ -120,7 +132,8 @@ class Tanuki_Controller < Tanuki_Object
   end
 
   def instantiate_part(route, part)
-    part[:instance] ||= part[:class].new(process_part_context(@ctx, route), part[:model], self)
+    part[:instance] ||= part[:class].new(process_part_context(@ctx, route), part[:model], self,
+      [{:route => route, :args => {}, :full => route}], 1, false)
   end
 
   def ensure_configured
@@ -148,13 +161,13 @@ class Tanuki_Controller < Tanuki_Object
     @part_arg ||= /:([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)-([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)/
     parts = request_path[1..-1].split('/').map do |s|
       match = s.match(/^([^:]+)(:.*)?/)
-      route_part = {:route => match[1], :args => {}}
+      route_part = {:route => match[1], :args => {}, :full => s}
       if match[2] && matches = match[2].scan(@part_arg)
         matches.each {|m| route_part[:args][m[1].gsub(/\$([\$:-])/, '\1')] = m[2].gsub(/\$([\$:-])/, '\1') }
       end
       route_part
     end
-    root_ctrl = klass.new(ctx, nil, nil, parts, 0)
+    root_ctrl = klass.new(ctx, nil, nil, parts, 0, true)
     if (prev = root_ctrl.result).is_a? Tanuki_Controller
       while curr = prev.visual_parent
         curr.visual_child = prev
