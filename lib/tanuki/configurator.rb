@@ -44,6 +44,7 @@ module Tanuki
       set :language_fallback, {}
       set :languages, proc { language_fallback.keys }
       set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
+      visitor :get do s = ''; proc {|out| s << out.to_s } end
     end
     Application.instance_eval { @context = @context.child }
     Configurator.instance_eval(&block) if block_given?

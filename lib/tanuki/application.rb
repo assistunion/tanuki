@@ -52,7 +52,7 @@ module Tanuki
     end
 
     def self.visitor(sym, &block)
-      Tanuki_Object.instance_eval { define_method sym, &block }
+      Tanuki_Object.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
     end
 
     def self.run
