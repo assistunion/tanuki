@@ -67,7 +67,7 @@ module Tanuki
 
     def self.expect_pattern(state)
       case state
-      when :outer then %r{(?:^(?=\s*)%|<%(?:=|&|#|%|))|<l10n>}
+      when :outer then %r{(?:^(?=\s*)%|<%(?:=|\!|#|%|))|<l10n>}
       when :code_line then %r{\n|\Z}
       when :code_span, :code_print, :code_template, :code_comment then %r{-?%>}
       when :l10n then %r{<\/l10n>}
@@ -81,23 +81,14 @@ module Tanuki
         when '%' then :code_line
         when '<%' then :code_span
         when '<%=' then :code_print
-        when '<%&' then :code_template
+        when '<%!' then :code_template
         when '<%#' then :code_comment
         when '<%%' then :code_skip
         when '<l10n>' then :l10n
         end
-      when :code_line then
-        case match
-        when "\n" then :outer
-        when '' then :outer
-        end
-      when :code_span, :code_print, :code_template, :code_comment then
-        case match
-        when '%>' then :outer
-        when '-%>' then :outer
-        end
-      when :l10n then
-        :outer
+      when :code_line then :outer
+      when :code_span, :code_print, :code_template, :code_comment then :outer
+      when :l10n then :outer
       end
     end
 
