@@ -19,14 +19,12 @@ class Tanuki_Controller < Tanuki_Object
       @link = '/'
     end
     @visual_child = nil
-    @active = active
     @parts = {}
     @visible_parts_count = 0
     @configured = false
-    if @active
-      @current = (index == route_parts.count)
-      logical_parent.logical_child = self if logical_parent
-      if @current
+    if @active = active
+      @logical_parent.logical_child = self if @logical_parent
+      if @current = (index == route_parts.count)
         if route = default_route
           @result = self.class.combine_path(route_parts[0..index].dup << route)
           @result_type = :redirect
