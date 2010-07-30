@@ -27,7 +27,6 @@ relations:
         type: one-to-many
         inverse: children
         join:
-            class: Page
             alias: tpp
             on:
                 tpp.id: tp.parent_id
@@ -36,7 +35,6 @@ relations:
         type: one-to-many
         inverse: pages
         join:
-            class: Controller
             alias: tc
             on:
                 tc.id: tp.parent_id
