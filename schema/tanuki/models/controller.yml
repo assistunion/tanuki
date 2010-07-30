@@ -1,0 +1,18 @@
+---
+namespaces:
+    default: Tanuki
+source:
+    table: tanuki_controllers
+    alias: tc
+key: tc.class
+to_s: tc.title
+attributes:
+    class: { type: String, size: 80, required: true }
+    title: { type: String, required: true }
+    pages: { type: Collection }
+l10n:
+    adapter: Shadow
+    table: tanuki_controllers_l10n
+list:
+    class: { link: true }
+    title: ~

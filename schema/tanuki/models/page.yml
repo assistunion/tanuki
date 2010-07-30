@@ -1,0 +1,49 @@
+---
+namespaces:
+    default: Tanuki
+source:
+    table: tanuki_pages
+    alias: tp
+key: tp.id
+to_s: [tp.long_title, tp.title]
+order:
+    by:
+        tp.parent_id: asc
+        tp.order: asc
+    reorder: tp.order
+attributes:
+    parent: { type: Object, required: true }
+    children: { type: Collection }
+    title: { type: String, size: 45, required: true }
+    long_title: { type: String, default: ~ }
+    content: { type: Html, required: true }
+    controller: { type: Object, required: true }
+    default_route: { type: String, size: 45, required: true, default: '' }
+    use_default_route: { type: Boolean, default: false }
+    hidden: { type: Boolean, default: false }
+relations:
+    parent:
+        class: Page
+        type: one-to-many
+        inverse: children
+        join:
+            class: Page
+            alias: tpp
+            on:
+                tpp.id: tp.parent_id
+    controller:
+        class: Controller
+        type: one-to-many
+        inverse: pages
+        join:
+            class: Controller
+            alias: tc
+            on:
+                tc.id: tp.parent_id
+list:
+    parent: ~
+    title: { link: true }
+    controller: ~
+    default_route: ~
+    use_default_route: ~
+    hidden: ~
