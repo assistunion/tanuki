@@ -1,0 +1,13 @@
+---
+numeral: [контроллер, контроллера, контроллеров]
+plural: контроллеры
+attributes:
+    class:
+        title: класс
+        description: Имя класса контроллера
+    title:
+        title: название
+        description: Читабельное название контроллера
+    pages:
+        title: страницы
+        description: Страницы, управляемые данным контроллером

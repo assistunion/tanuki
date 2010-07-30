@@ -1,0 +1,13 @@
+---
+numeral: [controller, controllers]
+plural: controllers
+attributes:
+    class:
+        title: class
+        description: Controller class name
+    title:
+        title: title
+        description: Readable controller title
+    pages:
+        title: pages
+        description: Pages with this controller

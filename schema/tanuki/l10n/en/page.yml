@@ -1,0 +1,31 @@
+---
+numeral: [page, pages]
+plural: pages
+attributes:
+    parent:
+        title: parent
+        description: Parent page
+    children:
+        title: children
+        description: Child pages
+    title:
+        title: title
+        description: Short page title
+    long_title:
+        title: long title
+        description: Long page title
+    content:
+        title: content
+        description: Page content
+    controller:
+        title: controller
+        description: Page creation logic
+    default_route:
+        title: default route
+        description: Path to main child page
+    use_default_route:
+        title: use default route
+        description: Use path to main child page
+    hidden:
+        title: hidden
+        description: Page is hidden or not

@@ -1,0 +1,31 @@
+---
+numeral: [страница, страницы, страниц]
+plural: страницы
+attributes:
+    parent:
+        title: родитель
+        description: Родительская страница
+    children:
+        title: дети
+        description: Дочерние страницы
+    title:
+        title: заголовок
+        description: Краткий заголовок страницы
+    long_title:
+        title: детальный заголовок
+        description: Детальный заголовок страницы
+    content:
+        title: содержимое
+        description: Содержимое страницы
+    controller:
+        title: контроллер
+        description: Программа, формирующая страницу
+    default_route:
+        title: переход
+        description: Путь к главной дочерней странице
+    use_default_route:
+        title: использовать переход
+        description: Переходить к главной дочерней странице
+    hidden:
+        title: скрыта
+        description: Скрыта страница или нет
