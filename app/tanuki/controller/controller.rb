@@ -143,7 +143,6 @@ class Tanuki_Controller < Tanuki_Object
 
   def process_args(args)
     # TODO
-    p args
   end
 
   def grow_link(ctrl, route_part)
