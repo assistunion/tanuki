@@ -1,3 +1,4 @@
+# encoding: utf-8
 class Tanuki_Controller < Tanuki_Object
   include Enumerable
 
@@ -7,16 +8,14 @@ class Tanuki_Controller < Tanuki_Object
   def initialize(ctx, model, logical_parent, route_parts, index, active)
     @ctx = process_context(ctx)
     @model = model
+    @link = '/'
     if index > 0
-      @route = route_parts[index - 1][:route]
-      process_args(route_parts[index - 1][:args])
+      route_part = route_parts[index - 1]
+      @route = route_part[:route]
+      process_args(route_part[:args])
+      @link = grow_link(@logical_parent, route_part) if @logical_parent = logical_parent
     else
       @route = ''
-    end
-    if @logical_parent = logical_parent
-      @link = "#{@logical_parent.link == '/' ? '' : @logical_parent.link}/#{route_parts[index - 1][:full]}"
-    else
-      @link = '/'
     end
     @visual_child = nil
     @parts = {}
@@ -25,8 +24,8 @@ class Tanuki_Controller < Tanuki_Object
     if @active = active
       @logical_parent.logical_child = self if @logical_parent
       if @current = (index == route_parts.count)
-        if route = default_route
-          @result = self.class.combine_path(route_parts[0..index].dup << route)
+        if route_part = default_route
+          @result = grow_link(self, route_part)
           @result_type = :redirect
         else
           @result = self
@@ -81,8 +80,8 @@ class Tanuki_Controller < Tanuki_Object
   end
 
   def forward_link
-    uri_parts = @ctx.env['REQUEST_PATH'].split '/'
-    link_parts = link.split('/')
+    uri_parts = @ctx.env['REQUEST_PATH'].split(/(?<!\$)\//)
+    link_parts = link.split(/(?<!\$)\//)
     link_parts.each_index {|i| uri_parts[i] = link_parts[i] }
     uri_parts.join('/') << ((qs = @ctx.env['QUERY_STRING']).empty? ? '' : "?#{qs}")
   end
@@ -131,7 +130,7 @@ class Tanuki_Controller < Tanuki_Object
 
   def instantiate_part(route, part)
     part[:instance] ||= part[:class].new(process_part_context(@ctx, route), part[:model], self,
-      [{:route => route, :args => {}, :full => route}], 1, false)
+      [{:route => route, :args => {}}], 1, false)
   end
 
   def ensure_configured
@@ -144,24 +143,31 @@ class Tanuki_Controller < Tanuki_Object
 
   def process_args(args)
     # TODO
+    p args
   end
 
-  def self.combine_path(route_parts)
-    path = ''
-    route_parts.each do |route_part|
-      path << route_part[:route]
-      route_part[:args].each_pair {|name, value| path << ":#{name.gsub(/[\$:-]/, '$\1')}-#{value.gsub(/[\$:-]/, '$\1')}" }
-    end
-    path
+  def grow_link(ctrl, route_part)
+    own_link = escape(route_part[:route], '\/:') << route_part[:args].map do |k, v|
+      ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
+    end.join
+    "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
+  end
+
+  def escape(s, chrs)
+    s ? Rack::Utils.escape(s.gsub(/[\$#{chrs}]/, '$\0')) : nil
+  end
+
+  def self.unescape(s)
+    s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
   end
 
   def self.dispatch(ctx, klass, request_path)
-    @part_arg ||= /:([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)-([^\$:-]*(?:(?:\$[\$:-])[^\$:-]*)*)/
-    parts = request_path[1..-1].split('/').map do |s|
-      match = s.match(/^([^:]+)(:.*)?/)
-      route_part = {:route => match[1], :args => {}, :full => s}
-      if match[2] && matches = match[2].scan(@part_arg)
-        matches.each {|m| route_part[:args][m[1].gsub(/\$([\$:-])/, '\1')] = m[2].gsub(/\$([\$:-])/, '\1') }
+    parts = request_path[1..-1].split(/(?<!\$)\//).map do |s|
+      arr = s.gsub('$/', '/').split(/(?<!\$):/)
+      route_part = {:route => unescape(arr[0]), :args => {}}
+      arr[1..-1].each do |argval|
+        varr = argval.split(/(?<!\$)-/)
+        route_part[:args][unescape(varr[0])] = unescape(varr[1..-1].join)
       end
       route_part
     end

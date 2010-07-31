@@ -8,6 +8,8 @@ end
 require 'rack'
 require 'fileutils'
 require 'yaml'
+require 'escape_utils'
+require 'escape_utils/url/rack'
 require 'tanuki/configurator'
 require 'tanuki/context'
 require 'tanuki/launcher'
