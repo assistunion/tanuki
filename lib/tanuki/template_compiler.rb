@@ -5,7 +5,7 @@ module Tanuki
       last_state = nil
       index = 0
       trim_newline = false
-      ios << "# encoding: utf-8\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
+      ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
         "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)" if klass && sym
       begin
         if new_index = src.index(expect_pattern(state), index)

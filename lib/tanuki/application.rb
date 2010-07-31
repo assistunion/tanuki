@@ -15,7 +15,7 @@ module Tanuki
         ct_path = compiled_template_path(obj.class, sym)
         ct_file_exists = File.file?(ct_path)
         ct_file_mtime = ct_file_exists ? File.mtime(ct_path) : nil
-        st_file = File.new(st_path)
+        st_file = File.new(st_path, 'r:UTF-8')
         if !ct_file_exists || st_file.mtime > ct_file_mtime ||
             File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > ct_file_mtime
           st_file.flock(File::LOCK_EX)
@@ -23,7 +23,9 @@ module Tanuki
             no_refresh = false
             ct_dir = File.dirname(ct_path)
             FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
-            File.open(tmp_ct_path = ct_path + '~', 'w') {|ct_file| TemplateCompiler.compile(ct_file, st_file.read, owner, sym) }
+            File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
+              TemplateCompiler.compile(ct_file, st_file.read, owner, sym)
+            end
             FileUtils.mv(tmp_ct_path, ct_path)
           end
           st_file.flock(File::LOCK_UN)
@@ -68,7 +70,7 @@ module Tanuki
         else
           request_ctx.env = env
           ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
-            Rack::Utils.unescape(env['REQUEST_PATH']))
+            Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
           case ctrl.result_type
           when :redirect then
             [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]

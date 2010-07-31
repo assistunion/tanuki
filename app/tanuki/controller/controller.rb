@@ -1,4 +1,3 @@
-# encoding: utf-8
 class Tanuki_Controller < Tanuki_Object
   include Enumerable
 
