@@ -107,7 +107,7 @@ module Tanuki
           rescue NameError
           end
         end
-        raise "servers #{server.join(', ')} not found"
+        raise "servers #{@context.server.join(', ')} not found"
       end
 
       def const_to_path(klass, root, sep)
