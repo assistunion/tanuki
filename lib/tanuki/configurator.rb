@@ -38,7 +38,7 @@ module Tanuki
       set :root, File.dirname($0)
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
-      set :root_page, User_Page_Index
+      set :root_page, ::User_Page_Index
       set :i18n, false
       set :language, nil
       set :language_fallback, {}
