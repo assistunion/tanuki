@@ -18,6 +18,7 @@ attributes:
     long_title: { type: String, default: ~ }
     content: { type: Html, required: true }
     controller: { type: Object, required: true }
+    route: { type: String, size: 45, required: true, default: '' }
     default_route: { type: String, size: 45, required: true, default: '' }
     use_default_route: { type: Boolean, default: false }
     hidden: { type: Boolean, default: false }
