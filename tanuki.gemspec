@@ -16,8 +16,9 @@ Gem::Specification.new do |s|
   s.files = Dir.glob(File.join("{#{File.join('app', 'tanuki')},bin,lib,#{File.join('schema', 'tanuki')}}", '**', '*')).select {|v| File.file? v } << 'LICENSE' << 'README.markdown'
   s.executables = %w{tanuki}
 
-  s.add_dependency 'rack', '>= 1.0'
-  s.add_dependency 'escape_utils', '>= 0.1.5'
+  s.add_runtime_dependency 'rack', '>= 1.0'
+  s.add_runtime_dependency 'escape_utils', '>= 0.1.5'
+  s.add_development_dependency 'rake', '>= 0.8.7'
 
   s.post_install_message = "#{'=' * 79}\n\nHello #{Etc.getlogin}!\nYour very own Tanuki adventure awaits!\n" \
     "Type `tanuki init yourproject' to get started.\nTyping `tanuki help' will show what you can do.\n\n#{'=' * 79}"
