@@ -17,6 +17,7 @@ module Tanuki
     Application.instance_eval do
       use Rack::CommonLogger
       use Rack::Lint
+      use Rack::Reloader, 0
       use Rack::ShowExceptions
     end
     common_application(&block)
