@@ -13,11 +13,14 @@ Gem::Specification.new do |s|
   s.email = 'tanuki@dimituri.com'
   s.homepage = 'http://bitbucket.org/dimituri/tanuki'
 
-  s.files = [File.join('app', 'tanuki'), 'bin', 'lib', File.join('schema', 'tanuki')].inject([]) {|arr, folder| arr += Dir.glob(File.join(folder, '**', '*')).select {|v| File.file? v } }
+  s.files = [File.join('app', 'tanuki'), 'bin', 'lib', File.join('schema', 'tanuki')].inject([]) do |arr, folder|
+    arr += Dir.glob(File.join(folder, '**', '*')).select {|v| File.file? v }
+  end << 'LICENSE' << 'README.markdown'
   s.executables = %w{tanuki}
 
   s.add_dependency 'rack', '>= 1.0'
   s.add_dependency 'escape_utils', '>= 0.1.5'
 
-  s.post_install_message = "#{'=' * 79}\n\nHello #{Etc.getlogin}!\nYour very own Tanuki adventure awaits!\nType `tanuki init yourproject' to get started.\nTyping `tanuki help' will show what you can do.\n\n#{'=' * 79}"
+  s.post_install_message = "#{'=' * 79}\n\nHello #{Etc.getlogin}!\nYour very own Tanuki adventure awaits!\n" \
+    "Type `tanuki init yourproject' to get started.\nTyping `tanuki help' will show what you can do.\n\n#{'=' * 79}"
 end
