@@ -1,22 +1,32 @@
 module Tanuki
+
+  # Tanuki::Configurator is a scope for evaluating a Tanuki application configuration block.
+  # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
+
+    # Invokes Tanuki::Application::set.
     def self.set(option, value)
       Application.set(option, value)
     end
 
+    # Invokes Tanuki::Application::use.
     def self.use(middleware, *args, &block)
       Application.use(middleware, *args, &block)
     end
 
+    # Invokes Tanuki::Application::discard.
     def self.discard(middleware)
       Application.discard(middleware)
     end
 
+    # Invokes Tanuki::Application::visitor.
     def self.visitor(sym, &block)
       Application.visitor(sym, &block)
     end
-  end
 
+  end # end Configurator
+
+  # Creates default configuration for development environments.
   def self.development_application(&block)
     Application.instance_eval do
       use Rack::CommonLogger
@@ -27,12 +37,14 @@ module Tanuki
     common_application(&block)
   end
 
+  # Creates default configuration for production environments.
   def self.production_application(&block)
     common_application(&block)
   end
 
   private
 
+  # Creates default configuration for common environments.
   def self.common_application(&block)
     Application.instance_eval do
       use Rack::Head
@@ -57,4 +69,5 @@ module Tanuki
     Configurator.instance_eval(&block) if block_given?
     Application.run
   end
-end
+
+end # end Tanuki
