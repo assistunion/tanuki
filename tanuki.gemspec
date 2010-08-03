@@ -13,9 +13,7 @@ Gem::Specification.new do |s|
   s.email = 'tanuki@dimituri.com'
   s.homepage = 'http://bitbucket.org/dimituri/tanuki'
 
-  s.files = [File.join('app', 'tanuki'), 'bin', 'lib', File.join('schema', 'tanuki')].inject([]) do |arr, folder|
-    arr += Dir.glob(File.join(folder, '**', '*')).select {|v| File.file? v }
-  end << 'LICENSE' << 'README.markdown'
+  s.files = Dir.glob(File.join("{#{File.join('app', 'tanuki')},bin,lib,#{File.join('schema', 'tanuki')}}", '**', '*')).select {|v| File.file? v } << 'LICENSE' << 'README.markdown'
   s.executables = %w{tanuki}
 
   s.add_dependency 'rack', '>= 1.0'
