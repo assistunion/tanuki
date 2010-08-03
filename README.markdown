@@ -12,7 +12,7 @@ Fire up the terminal and type:
     $ tanuki create test
     $ ruby test/main.rb
 
-View the result at: http://localhost:3000
+View the result at: [http://localhost:3000](http://localhost:3000)
 
 ## Resources
 
