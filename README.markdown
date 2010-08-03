@@ -1,0 +1,19 @@
+# Tanuki
+
+Tanuki is a web application framework inspired by the MVVM pattern with focus
+on DRY code and extensibility. Tanuki tries to keep its looks close to
+idiomatic Ruby, so you would feel at home.
+
+## Quick Start
+
+Fire up the terminal and type:
+
+    $ gem install tanuki
+    $ tanuki create test
+    $ ruby test/main.rb
+
+View the result at: http://localhost:3000
+
+## Resources
+
+[Home Page](http://bitbucket.org/dimituri/tanuki)
