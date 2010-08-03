@@ -1,43 +1,43 @@
 #!/usr/bin/env ruby
 module Tanuki
   class << self
-    def help
-      version
-      puts "\nbasic commands:\n"
-      {
-        'help' => 'show help (this text)',
-        'init' => 'create a new app with the given name',
-        'version' => 'show framework version'
-      }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
-    end
-
-    def init(name)
+    def create(name)
       require 'fileutils'
       version
       puts "\n creating #{name = name.downcase}"
       FileUtils.mkdir name
-      puts "  copying app/tanuki"
+      puts " copying app/tanuki"
       FileUtils.mkdir_p File.join(name, 'app', 'tanuki')
       FileUtils.cp_r File.expand_path(File.join('..', '..', 'app', 'tanuki'), __FILE__), "#{name}/app"
-      puts "  writing app/user"
+      puts " writing app/user"
       FileUtils.mkdir_p(index_dir = File.join(name, 'app', 'user', 'page', 'index'))
       File.open(File.join(index_dir, 'index.rb'), 'w') {|file| file.write "class User_Page_Index < Tanuki_Controller\nend" }
       File.open(File.join(index_dir, 'default.erb'), 'w') {|file| file.write "<h1>It works!</h1>" }
       puts " creating cache"
       FileUtils.mkdir(File.join(name, 'cache'))
-      puts "  copying schema"
+      puts " copying schema"
       FileUtils.mkdir(File.join(name, 'schema'))
       FileUtils.cp_r File.expand_path(File.join('..', '..', 'schema'), __FILE__), name
-      puts "  writing main"
-      File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'lib/tanuki'\nTanuki.development_application" }
+      puts " writing main"
+      File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.development_application" }
     end
 
-    def run
+    def help
+      version
+      puts "\nbasic commands:\n"
+      {
+        'help'    => 'show help (this text)',
+        'create'  => 'create a new app with the given name',
+        'version' => 'show framework version'
+      }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
+    end
+
+    def init
       case ARGV[0]
+      when /\Ac(r(e(a(te?)?)?)?)?\Z/, '--create', '-c' then create(ARGV[1])
       when /\Ah(e(lp?)?)?\Z/, '--help', '-h', nil then help
-      when /\Ai(n(it?)?)?\Z/, '--init', '-i' then init(ARGV[1])
       when /\Av(e(r(s(i(on?)?)?)?)?)?\Z/, '--version', '-v' then version
-      else init(ARGV[0])
+      else create(ARGV[0])
       end
     end
 
@@ -53,4 +53,4 @@ module Tanuki
   end
 end
 
-Tanuki.run if File.basename(__FILE__) == File.basename($0)
+Tanuki.init if File.basename(__FILE__) == File.basename($0)
