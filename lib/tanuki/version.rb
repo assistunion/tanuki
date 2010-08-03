@@ -1,3 +1,3 @@
 module Tanuki
-  VERSION = 'alpha'
+  VERSION = '0.1'
 end
