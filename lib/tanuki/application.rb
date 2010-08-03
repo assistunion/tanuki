@@ -1,7 +1,7 @@
 module Tanuki
   class Application
     @context = Context.new
-    @rack_middleware = []
+    @rack_middleware = {}
 
     def self.has_template?(templates, klass, sym)
       templates.include? "#{klass}##{sym}"
@@ -50,7 +50,11 @@ module Tanuki
     end
 
     def self.use(middleware, *args, &block)
-      @rack_middleware << [middleware, args, block]
+      @rack_middleware[middleware] = [args, block]
+    end
+
+    def self.discard(middleware)
+      @rack_middleware.delete(middleware)
     end
 
     def self.visitor(sym, &block)
@@ -60,7 +64,7 @@ module Tanuki
     def self.run
       ctx = @context
       rack_builder = Rack::Builder.new
-      @rack_middleware.each {|middleware, args, block| rack_builder.use(middleware, *args, &block) }
+      @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
       rack_app = proc do |env|
         request_ctx = ctx.child
         request_ctx.templates = {}

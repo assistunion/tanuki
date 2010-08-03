@@ -8,6 +8,10 @@ module Tanuki
       Application.use(middleware, *args, &block)
     end
 
+    def self.discard(middleware)
+      Application.discard(middleware)
+    end
+
     def self.visitor(sym, &block)
       Application.visitor(sym, &block)
     end
