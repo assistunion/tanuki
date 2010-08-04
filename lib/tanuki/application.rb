@@ -157,8 +157,9 @@ module Tanuki
           request_ctx = ctx.child
           request_ctx.templates = {}
           if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
-            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
-            [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
+            loc = match[1]
+            loc << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+            [301, {'Location' => loc, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           else
             request_ctx.env = env
             ctrl = ::Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? ::Tanuki_I18n : ctx.root_page,
