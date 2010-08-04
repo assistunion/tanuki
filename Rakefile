@@ -3,7 +3,9 @@ require 'spec/rake/spectask'
 require File.join('lib', 'tanuki', 'version.rb')
 
 Spec::Rake::SpecTask.new do |t|
-  t.spec_files = FileList['spec/**/*.rb']
+  t.libs = ['lib']
+  t.pattern = 'spec/**/*.rb'
+  t.spec_opts = ['--format', 'specdoc']
 end
 
 Rake::RDocTask.new do |rd|

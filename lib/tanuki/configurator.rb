@@ -4,25 +4,31 @@ module Tanuki
   # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
-    # Invokes Tanuki::Application::set.
-    def self.set(option, value)
-      Application.set(option, value)
-    end
+    class << self
 
-    # Invokes Tanuki::Application::use.
-    def self.use(middleware, *args, &block)
-      Application.use(middleware, *args, &block)
-    end
+      private
 
-    # Invokes Tanuki::Application::discard.
-    def self.discard(middleware)
-      Application.discard(middleware)
-    end
+      # Invokes Tanuki::Application::set.
+      def set(option, value)
+        Application.set(option, value)
+      end
 
-    # Invokes Tanuki::Application::visitor.
-    def self.visitor(sym, &block)
-      Application.visitor(sym, &block)
-    end
+      # Invokes Tanuki::Application::use.
+      def use(middleware, *args, &block)
+        Application.use(middleware, *args, &block)
+      end
+
+      # Invokes Tanuki::Application::discard.
+      def discard(middleware)
+        Application.discard(middleware)
+      end
+
+      # Invokes Tanuki::Application::visitor.
+      def visitor(sym, &block)
+        Application.visitor(sym, &block)
+      end
+
+    end # end class << self
 
   end # end Configurator
 
