@@ -27,29 +27,8 @@ module Tanuki
 
       # Runs the application with current settings
       def run
-        ctx = @context
         rack_builder = Rack::Builder.new
         @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
-        rack_app = proc do |env|
-          request_ctx = ctx.child
-          request_ctx.templates = {}
-          if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
-            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
-            [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
-          else
-            request_ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
-              Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
-            case ctrl.result_type
-            when :redirect then
-              [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
-            when :page then
-              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
-            else
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
-            end
-          end
-        end
         rack_builder.run(rack_app)
         srv = available_server
         puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
@@ -63,7 +42,6 @@ module Tanuki
       def run_template(templates, obj, sym, *args, &block)
         st_path = source_template_path(obj.class, sym)
         if st_path
-          no_refresh = true
           owner = template_owner(obj.class, sym)
           ct_path = compiled_template_path(obj.class, sym)
           ct_file_exists = File.file?(ct_path)
@@ -71,17 +49,9 @@ module Tanuki
           st_file = File.new(st_path, 'r:UTF-8')
           if !ct_file_exists || st_file.mtime > ct_file_mtime ||
               File.mtime(File.join(CLASSES_DIR, 'template_compiler.rb')) > ct_file_mtime
-            st_file.flock(File::LOCK_EX)
-            if !File.file?(ct_path) || File.mtime(ct_path) == ct_file_mtime
-              no_refresh = false
-              ct_dir = File.dirname(ct_path)
-              FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
-              File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
-                TemplateCompiler.compile_template(ct_file, st_file.read, owner, sym)
-              end
-              FileUtils.mv(tmp_ct_path, ct_path)
-            end
-            st_file.flock(File::LOCK_UN)
+            no_refresh = compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
+          else
+            no_refresh = false
           end
           method_name = "#{sym}_view".to_sym
           owner.instance_eval do
@@ -146,6 +116,25 @@ module Tanuki
         Launcher.new(ctrl, request_ctx).each &Tanuki_Object.new.array_visitor
       end
 
+      # Compiles template sym from owner class using source in st_file to ct_path.
+      # Compilation is only done if destination file modification time has not changed
+      # (is equal to ct_file_mtime) since file locking was initiated.
+      def compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
+        no_refresh = true
+        st_file.flock(File::LOCK_EX)
+        if !File.file?(ct_path) || File.mtime(ct_path) == ct_file_mtime
+          no_refresh = false
+          ct_dir = File.dirname(ct_path)
+          FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
+          File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
+            TemplateCompiler.compile_template(ct_file, st_file.read, owner, sym)
+          end
+          FileUtils.mv(tmp_ct_path, ct_path)
+        end
+        st_file.flock(File::LOCK_UN)
+        no_refresh
+      end
+
       # Returns the path to a compiled template file containing template method_name for class klass.
       def compiled_template_path(klass, method_name)
         template_path(klass, method_name, @context.cache_root, '.', '.rb')
@@ -156,10 +145,39 @@ module Tanuki
         File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep)).downcase
       end
 
+      # Returns a Rack app block for Rack::Builder.
+      # This block is passed a request environment and returns and array of three elements:
+      # * a response status code,
+      # * a hash of headers,
+      # * an iterable body object.
+      # It is run on each request.
+      def rack_app
+        ctx = @context
+        proc do |env|
+          request_ctx = ctx.child
+          request_ctx.templates = {}
+          if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
+            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+            [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
+          else
+            request_ctx.env = env
+            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
+              Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
+            case ctrl.result_type
+            when :redirect then
+              [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
+            when :page then
+              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+            else
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+            end
+          end
+        end
+      end
+
       # Returns the path to a source file containing template method_name for class klass.
       def source_template_path(klass, method_name)
-        template_path(klass, method_name, @context.app_root,
-          File::SEPARATOR, '.erb')
+        template_path(klass, method_name, @context.app_root, File::SEPARATOR, '.erb')
       end
 
       # Finds the direct template method_name owner among ancestors of class klass.
