@@ -9,9 +9,51 @@ module Tanuki
 
     class << self
 
+      # Returns the path to a source file containing class klass.
+      def class_path(klass)
+        path = const_to_path(klass, @context.app_root, File::SEPARATOR)
+        File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
+      end
+
+      # Removes a given middleware from the Rack middleware pipeline
+      def discard(middleware)
+        @rack_middleware.delete(middleware)
+      end
+
       # Checks if templates contain a compiled template sym for class klass
       def has_template?(templates, klass, sym)
         templates.include? "#{klass}##{sym}"
+      end
+
+      # Runs the application with current settings
+      def run
+        ctx = @context
+        rack_builder = Rack::Builder.new
+        @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
+        rack_app = proc do |env|
+          request_ctx = ctx.child
+          request_ctx.templates = {}
+          if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
+            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+            [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
+          else
+            request_ctx.env = env
+            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
+              Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
+            case ctrl.result_type
+            when :redirect then
+              [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
+            when :page then
+              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+            else
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+            end
+          end
+        end
+        rack_builder.run(rack_app)
+        srv = available_server
+        puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
+        srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
       end
 
       # Runs template sym from obj.
@@ -66,11 +108,6 @@ module Tanuki
         @rack_middleware[middleware] = [args, block]
       end
 
-      # Removes a given middleware from the Rack middleware pipeline
-      def discard(middleware)
-        @rack_middleware.delete(middleware)
-      end
-
       # Adds a template visitor block. This block must return a Proc.
       #
       #  visitor :escape do
@@ -90,49 +127,7 @@ module Tanuki
         Tanuki_Object.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
       end
 
-      # Runs the application with current settings
-      def run
-        ctx = @context
-        rack_builder = Rack::Builder.new
-        @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
-        rack_app = proc do |env|
-          request_ctx = ctx.child
-          request_ctx.templates = {}
-          if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
-            match[1] << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
-            [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
-          else
-            request_ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
-              Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
-            case ctrl.result_type
-            when :redirect then
-              [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
-            when :page then
-              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
-            else
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
-            end
-          end
-        end
-        rack_builder.run(rack_app)
-        srv = available_server
-        puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
-        srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
-      end
-
-      # Returns the path to a source file containing class klass.
-      def class_path(klass)
-        path = const_to_path(klass, @context.app_root, File::SEPARATOR)
-        File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
-      end
-
       private
-
-      # Returns an array of template outputs for controller ctrl in context ctx.
-      def build_body(ctrl, request_ctx)
-        Launcher.new(ctrl, request_ctx).each &Tanuki_Object.new.array_visitor
-      end
 
       # Returns the first available server from a server list in the current context.
       def available_server
@@ -146,9 +141,25 @@ module Tanuki
         raise "servers #{@context.server.join(', ')} not found"
       end
 
+      # Returns an array of template outputs for controller ctrl in context ctx.
+      def build_body(ctrl, request_ctx)
+        Launcher.new(ctrl, request_ctx).each &Tanuki_Object.new.array_visitor
+      end
+
+      # Returns the path to a compiled template file containing template method_name for class klass.
+      def compiled_template_path(klass, method_name)
+        template_path(klass, method_name, @context.cache_root, '.', '.rb')
+      end
+
       # Transforms a given constant klass to path with a given root and separated by sep.
       def const_to_path(klass, root, sep)
         File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep)).downcase
+      end
+
+      # Returns the path to a source file containing template method_name for class klass.
+      def source_template_path(klass, method_name)
+        template_path(klass, method_name, @context.app_root,
+          File::SEPARATOR, '.erb')
       end
 
       # Finds the direct template method_name owner among ancestors of class klass.
@@ -166,17 +177,6 @@ module Tanuki
           return File.join(const_to_path(owner, root, sep), method_name.to_s << ext)
         end
         nil
-      end
-
-      # Returns the path to a source file containing template method_name for class klass.
-      def source_template_path(klass, method_name)
-        template_path(klass, method_name, @context.app_root,
-          File::SEPARATOR, '.erb')
-      end
-
-      # Returns the path to a compiled template file containing template method_name for class klass.
-      def compiled_template_path(klass, method_name)
-        template_path(klass, method_name, @context.cache_root, '.', '.rb')
       end
 
     end # end class << self
