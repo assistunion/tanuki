@@ -94,7 +94,7 @@ module Tanuki
       #  <%_escape escaped_view %>
       #  <%_printf('<div>%s</div>') formatted_view %>
       def visitor(sym, &block)
-        Tanuki_Object.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
+        ::Tanuki_Object.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
       end
 
       private
@@ -113,7 +113,7 @@ module Tanuki
 
       # Returns an array of template outputs for controller ctrl in context ctx.
       def build_body(ctrl, request_ctx)
-        Launcher.new(ctrl, request_ctx).each &Tanuki_Object.new.array_visitor
+        Launcher.new(ctrl, request_ctx).each &::Tanuki_Object.new.array_visitor
       end
 
       # Compiles template sym from owner class using source in st_file to ct_path.
@@ -161,7 +161,7 @@ module Tanuki
             [301, {'Location' => match[1], 'Content-Type' => 'text/html; charset=utf-8'}, []]
           else
             request_ctx.env = env
-            ctrl = Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? Tanuki_I18n : ctx.root_page,
+            ctrl = ::Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? ::Tanuki_I18n : ctx.root_page,
               Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
             case ctrl.result_type
             when :redirect then
