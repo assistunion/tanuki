@@ -142,7 +142,7 @@ module Tanuki
 
       # Transforms a given constant klass to path with a given root and separated by sep.
       def const_to_path(klass, root, sep)
-        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep)).downcase
+        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep).downcase)
       end
 
       # Returns a Rack app block for Rack::Builder.
