@@ -6,13 +6,20 @@ module Tanuki
     class << self
 
       # Compiles a template from a given src string to ios for method sym in class klass.
-      def compile(ios, src, klass = nil, sym = nil)
+      def compile_template(ios, src, klass, sym)
+        ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
+          "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)"
+        last_state = compile(ios, src)
+        ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
+        ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
+      end
+
+      # Compiles code from a given src string to ios.
+      def compile(ios, src)
         state = :outer
         last_state = nil
         index = 0
         trim_newline = false
-        ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
-          "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)" if klass && sym
         begin
           if new_index = src.index(expect_pattern(state), index)
             match = src[index..-1].match(expect_pattern(state))[0]
@@ -42,37 +49,36 @@ module Tanuki
             end
           end
           if new_index
-            if new_state == :outer
-              case state
-              when :code_line, :code_span then
-                ios << "\n#{src[index...new_index].strip}"
-              when :code_print then
-                ios << "\n_.call((#{src[index...new_index].strip}),ctx)"
-              when :code_template then
-                ios << "\n(#{src[index...new_index].strip}).call(_,ctx)"
-              when :code_visitor
-                inner_m = src[index...new_index].rstrip.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
-                ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
-              when :l10n then
-                localize(ios, src[index...new_index].strip)
-              end
-            end
+            process_code_state(ios, src[index...new_index], state) if new_state == :outer
             index = new_index + match.length
             trim_newline = true if (match == '-%>')
             last_state = state unless state == :code_comment
             state = new_state
           end
         end until new_index.nil?
-        if klass && sym
-          ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
-          ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
-        end
+        last_state
       end
 
       private
 
       # Scanner states that output the evaluated result.
       PRINT_STATES = [:outer, :code_print]
+
+      def process_code_state(ios, src, state)
+        case state
+        when :code_line, :code_span then
+          ios << "\n#{src.strip}"
+        when :code_print then
+          ios << "\n_.call((#{src.strip}),ctx)"
+        when :code_template then
+          ios << "\n(#{src.strip}).call(_,ctx)"
+        when :code_visitor
+          inner_m = src.rstrip.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
+          ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
+        when :l10n then
+          localize(ios, src.strip)
+        end
+      end
 
       # Returns the next expected pattern for a given state.
       def expect_pattern(state)

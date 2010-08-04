@@ -35,7 +35,7 @@ module Tanuki
               ct_dir = File.dirname(ct_path)
               FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
               File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
-                TemplateCompiler.compile(ct_file, st_file.read, owner, sym)
+                TemplateCompiler.compile_template(ct_file, st_file.read, owner, sym)
               end
               FileUtils.mv(tmp_ct_path, ct_path)
             end
