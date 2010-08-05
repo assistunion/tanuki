@@ -15,11 +15,12 @@ module Tanuki
     def method_missing(sym, arg=nil)
       match = sym.to_s.match(/^([^=]+)(=)?$/)
       self.class.instance_eval do
-        unless instance_methods(false).include? match[1]
+        method_sym = match[1].to_sym
+        unless instance_methods(false).include? method_sym
           if arg.is_a? Proc
-            define_method(match[1], &arg)
+            define_method(method_sym, &arg)
           else
-            define_method(match[1]) { arg }
+            define_method(method_sym) { arg }
           end
           return arg
         else

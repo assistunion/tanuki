@@ -3,6 +3,10 @@ require 'tanuki'
 module Tanuki
   describe Application do
 
+    before :all do
+      @root_context = Tanuki::Context.new
+    end
+
     before :each do
       Application.set :app_root, 'app'
       Application.set :cache_root, 'cache'
@@ -26,21 +30,21 @@ module Tanuki
     end
 
     it 'should remember templates it ran at least once for each request' do
-      ctx = Context.new
+      ctx = @root_context.child
       ctx.templates = {}
       Application.run_template(ctx.templates, Tanuki_Controller.dispatch(ctx, Tanuki_Controller, '/'), :default)
       Application.should have_template(ctx.templates, Tanuki_Controller, :default)
-      ctx = Context.new
+      ctx = @root_context.child
       ctx.templates = {}
       Application.should_not have_template(ctx.templates, Tanuki_Controller, :default)
     end
 
     it 'should compile and run templates' do
-      ctrl = Tanuki_Controller.dispatch(Context.new, Tanuki_Controller, '/')
+      ctrl = Tanuki_Controller.dispatch(@root_context.child, Tanuki_Controller, '/')
       ctrl.should_receive(:default_view)
       FileUtils.rm Application.instance_eval { compiled_template_path(Tanuki_Controller, :default) }, :force => true
       Application.run_template({}, ctrl, :default)
-      ctrl = Tanuki_Controller.dispatch(Context.new, Tanuki_Missing, '/')
+      ctrl = Tanuki_Controller.dispatch(@root_context.child, Tanuki_Missing, '/')
       ctrl.should_receive(:index_view)
       FileUtils.rm Application.instance_eval { compiled_template_path(Tanuki_Missing, :index) }, :force => true
       Application.run_template({}, ctrl, :index)
@@ -68,9 +72,9 @@ module Tanuki
     end
 
     it 'should build a response body' do
-      ctrl = Tanuki_Controller.dispatch(Context.new, Tanuki_Controller, '/')
       ctx = Application.instance_eval { @context.child }
       ctx.templates = {}
+      ctrl = Tanuki_Controller.dispatch(ctx, Tanuki_Controller, '/')
       Application.visitor :array do arr = []; proc {|out| arr << out } end
       Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
     end
@@ -107,6 +111,7 @@ module Tanuki
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
       result[2].public_methods.should include :each
+      Application.instance_eval { @context = Tanuki::Context.new.child }
       Application.set :i18n, true
       Application.set :language, :ru
       Application.set :languages, [:ru]
@@ -119,7 +124,7 @@ module Tanuki
 
     after :each do
       Application.instance_eval do
-        @context = Tanuki::Context.new
+        @context = Tanuki::Context.new.child
         @rack_middleware = {}
       end
     end
