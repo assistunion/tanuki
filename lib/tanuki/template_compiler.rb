@@ -114,7 +114,7 @@ module Tanuki
         while index = src.index(/<[a-z]{2}>/, index)
           lngs << (lng = src[index + 1, 2].to_sym)
           if end_index = src.index(/<\/#{lng}>/, index += 4)
-            code << "\nwhen #{lng.inspect} then "
+            code << "\nwhen #{lng.inspect} then"
             compile(code, src[index...end_index])
             index = end_index + 5
           end
