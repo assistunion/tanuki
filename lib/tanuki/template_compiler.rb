@@ -35,14 +35,12 @@ module Tanuki
               s[0] = '' if s[0] == "\n"
               trim_newline = false
             end
-            unless s.empty?
-              if skip
-                ios << "\n_.call(#{(s << '<%').inspect},ctx)" unless s.empty?
-                index = new_index + 3
-                next
-              else
-                ios << "\n_.call(#{s.inspect},ctx)" unless s.empty?
-              end
+            if skip
+              ios << "\n_.call(#{(s << '<%').inspect},ctx)"
+              index = new_index + 3
+              next
+            elsif not s.empty?
+              ios << "\n_.call(#{s.inspect},ctx)"
             end
           end
           if new_index
