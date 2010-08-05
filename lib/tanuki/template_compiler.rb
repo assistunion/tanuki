@@ -21,8 +21,9 @@ module Tanuki
         index = 0
         trim_newline = false
         begin
-          if new_index = src.index(expect_pattern(state), index)
-            match = src[index..-1].match(expect_pattern(state))[0]
+          if new_index = src[index..-1].index(pattern = expect_pattern(state))
+            new_index += index
+            match = src[index..-1].match(pattern)[0]
             new_state = next_state(state, match)
           else
             new_state = nil
@@ -83,7 +84,7 @@ module Tanuki
       # Returns the next expected pattern for a given state.
       def expect_pattern(state)
         case state
-        when :outer then %r{(?:^(?=\s*)%|<%(?:=|!|_|#|%|))|<l10n>}
+        when :outer then %r{^\s*%|<%(?:=|!|_|#|%|)|<l10n>}
         when :code_line then %r{\n|\Z}
         when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{-?%>}
         when :l10n then %r{<\/l10n>}
@@ -95,7 +96,7 @@ module Tanuki
         case state
         when :outer then
           case match
-          when '%' then :code_line
+          when /\A\s*%/ then :code_line
           when '<%' then :code_span
           when '<%=' then :code_print
           when '<%!' then :code_template
