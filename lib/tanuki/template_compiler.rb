@@ -30,14 +30,10 @@ module Tanuki
           end
           skip = new_state == :code_skip
           if state == :outer || skip
-            if new_index
-              s = src[index, new_index - index]
-              if trim_newline
-                s[0] = '' if s[0] == "\n"
-                trim_newline = false
-              end
-            else
-              s = src[index..-1]
+            s = new_index ? src[index, new_index - index] : src[index..-1]
+            if trim_newline && !s.empty?
+              s[0] = '' if s[0] == "\n"
+              trim_newline = false
             end
             unless s.empty?
               if skip
