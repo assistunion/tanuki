@@ -4,7 +4,7 @@ require File.join('lib', 'tanuki', 'version.rb')
 
 Spec::Rake::SpecTask.new do |t|
   t.libs = ['lib']
-  t.pattern = 'spec/**/*.rb'
+  t.pattern = 'spec/**/*_spec.rb'
   t.spec_opts = ['--format', 'specdoc']
 end
 
