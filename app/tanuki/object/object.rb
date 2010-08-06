@@ -13,9 +13,8 @@ class Tanuki_Object
 
   def method_missing(sym, *args, &block)
     if matches = sym.to_s.match(/^(.*)_view$/)
-      Tanuki::Application.run_template({}, self, matches[1].to_sym, *args, &block)
-    else
-      super
+      return Tanuki::Application.run_template({}, self, matches[1].to_sym, *args, &block)
     end
+    super
   end
 end
