@@ -3,22 +3,13 @@ require 'tanuki'
 module Tanuki
   describe Application do
 
-    before :all do
-      @root_context = Tanuki::Context.new
-    end
-
     before :each do
+      Application.instance_eval do
+        @context = Tanuki::Loader.context = Tanuki::Context.new.child
+        @rack_middleware = {}
+      end
       Application.set :app_root, 'app'
       Application.set :cache_root, 'cache'
-    end
-
-    it 'should find the path to missing application classes' do
-      Application.class_path(:'').should == File.join('app', '.rb')
-      Application.class_path(:Aa).should == File.join('app', 'aa', 'aa.rb')
-      Application.class_path(:AaBb).should == File.join('app', 'aa_bb', 'aa_bb.rb')
-      Application.class_path(:Aa_Bb).should == File.join('app', 'aa', 'bb', 'bb.rb')
-      Application.class_path(:Aa_BbCc).should == File.join('app', 'aa', 'bb_cc', 'bb_cc.rb')
-      Application.class_path(:AaBb_CcDd).should == File.join('app', 'aa_bb', 'cc_dd', 'cc_dd.rb')
     end
 
     it 'should add and remove Rack middleware' do
@@ -27,27 +18,6 @@ module Tanuki
       middleware.should include Rack::Reloader
       Application.discard Rack::Reloader
       middleware.should_not include Rack::Reloader
-    end
-
-    it 'should remember templates it ran at least once for each request' do
-      ctx = @root_context.child
-      ctx.templates = {}
-      Application.run_template(ctx.templates, Tanuki_Controller.dispatch(ctx, Tanuki_Controller, '/'), :default)
-      Application.should have_template(ctx.templates, Tanuki_Controller, :default)
-      ctx = @root_context.child
-      ctx.templates = {}
-      Application.should_not have_template(ctx.templates, Tanuki_Controller, :default)
-    end
-
-    it 'should compile and run templates' do
-      ctrl = Tanuki_Controller.dispatch(@root_context.child, Tanuki_Controller, '/')
-      ctrl.should_receive(:default_view)
-      FileUtils.rm Application.instance_eval { compiled_template_path(Tanuki_Controller, :default) }, :force => true
-      Application.run_template({}, ctrl, :default)
-      ctrl = Tanuki_Controller.dispatch(@root_context.child, Tanuki_Missing, '/')
-      ctrl.should_receive(:index_view)
-      FileUtils.rm Application.instance_eval { compiled_template_path(Tanuki_Missing, :index) }, :force => true
-      Application.run_template({}, ctrl, :index)
     end
 
     it 'should add visitors to framework objects' do
@@ -77,13 +47,6 @@ module Tanuki
       ctrl = Tanuki_Controller.dispatch(ctx, Tanuki_Controller, '/')
       Application.visitor :array do arr = []; proc {|out| arr << out } end
       Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
-    end
-
-    it 'should find the path to compiled templates' do
-      Application.instance_eval { compiled_template_path(Tanuki_Missing, :default) }.should ==
-        File.join('cache', 'tanuki.missing', 'default.rb')
-      Application.instance_eval { compiled_template_path(Tanuki_Missing, :index) }.should ==
-        File.join('cache', 'tanuki.controller', 'index.rb')
     end
 
     it 'should construct a Rack app block' do
@@ -120,13 +83,6 @@ module Tanuki
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
       result[1]['Location'].should == '/ru'
-    end
-
-    after :each do
-      Application.instance_eval do
-        @context = Tanuki::Context.new.child
-        @rack_middleware = {}
-      end
     end
 
   end # end describe Application
