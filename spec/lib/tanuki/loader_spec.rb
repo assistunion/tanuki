@@ -40,16 +40,16 @@ module Tanuki
       ctrl.should_receive(:default_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Controller, :default) }, :force => true
       Loader.run_template({}, ctrl, :default)
-      ctrl = ControllerBehavior.dispatch(@root_context.child, ::Tanuki_Missing, '/')[:controller]
+      ctrl = ControllerBehavior.dispatch(@root_context.child, ::Tanuki_Page_Missing, '/')[:controller]
       ctrl.should_receive(:index_view)
-      FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Missing, :index) }, :force => true
+      FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :index) }, :force => true
       Loader.run_template({}, ctrl, :index)
     end
 
     it 'should find the path to compiled templates' do
-      Loader.instance_eval { compiled_template_path(::Tanuki_Missing, :default) }.should ==
-        File.join('cache', 'tanuki.missing', 'default.rb')
-      Loader.instance_eval { compiled_template_path(::Tanuki_Missing, :index) }.should ==
+      Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :default) }.should ==
+        File.join('cache', 'tanuki.page.missing', 'default.rb')
+      Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :index) }.should ==
         File.join('cache', 'tanuki.controller', 'index.rb')
     end
 
