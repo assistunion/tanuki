@@ -50,7 +50,7 @@ module Tanuki
       #  <%_escape escaped_view %>
       #  <%_printf('<div>%s</div>') formatted_view %>
       def visitor(sym, &block)
-        ObjectBase.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
+        ObjectBehavior.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
       end
 
       private
@@ -90,7 +90,7 @@ module Tanuki
             [301, {'Location' => loc, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           else
             request_ctx.env = env
-            result = ::Tanuki::ControllerBase.dispatch(request_ctx, ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
+            result = ::Tanuki::ControllerBehavior.dispatch(request_ctx, ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
               Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
             case result[:type]
             when :redirect then

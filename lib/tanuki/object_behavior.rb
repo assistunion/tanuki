@@ -1,8 +1,8 @@
 module Tanuki
 
-  # Tanuki::ControllerBase contains basic methods for a framework object.
+  # Tanuki::ControllerBehavior contains basic methods for a framework object.
   # In is included in the base framework object class.
-  module ObjectBase
+  module ObjectBehavior
 
     # Shortcut to Tanuki::Loader.has_template?. Used internally by templates.
     def _has_tpl(ctx, klass, sym)
@@ -27,6 +27,6 @@ module Tanuki
       super
     end
 
-  end # end ObjectBase
+  end # end ObjectBehavior
 
 end # end Tanuki

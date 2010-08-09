@@ -1,3 +1,3 @@
 class Tanuki_Object
-  include Tanuki::ObjectBase
+  include Tanuki::ObjectBehavior
 end

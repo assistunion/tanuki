@@ -1,8 +1,8 @@
 module Tanuki
 
-  # Tanuki::ControllerBase contains basic methods for a framework controller.
+  # Tanuki::ControllerBehavior contains basic methods for a framework controller.
   # In is included in the base controller class.
-  module ControllerBase
+  module ControllerBehavior
 
     include Enumerable
 
@@ -221,7 +221,7 @@ module Tanuki
       @_ctx.missing_page.new(@_ctx, self, {:route => route, :args => []})
     end
 
-    # Tanuki::ControllerBase mixed-in class methods.
+    # Tanuki::ControllerBehavior mixed-in class methods.
     module ClassMethods
 
       # Returns own or superclass argument definitions.
@@ -293,7 +293,7 @@ module Tanuki
         end
       end
 
-      # Extends the including module with Tanuki::ControllerBase::ClassMethods.
+      # Extends the including module with Tanuki::ControllerBehavior::ClassMethods.
       def included(mod)
         mod.extend ClassMethods
       end
@@ -322,6 +322,6 @@ module Tanuki
 
     end # end class << self
 
-  end # end AbstractController
+  end # end ControllerBehavior
 
 end # end Tanuki
