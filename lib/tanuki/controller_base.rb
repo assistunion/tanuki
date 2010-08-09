@@ -50,7 +50,7 @@ module Tanuki
         # Search static routes
         klass = child_def[:class]
         args = klass.extract_args(args[0]) if byname
-        child = klass.new(@_ctx, self, {:route => route, :args => args}, child_def[:model])
+        child = klass.new(process_child_context(@_ctx, route), self, {:route => route, :args => args}, child_def[:model])
       else
         # Search dynamic routes
         found = false
@@ -64,7 +64,8 @@ module Tanuki
               args = klass.extract_args(args[0]) if byname
               embedded_args = klass.extract_args(md)
               args.each_index {|i| embedded_args[i] = args[i] if args[i] }
-              child = klass.new(@_ctx, self, {:route => a_route, :args => embedded_args}, child_def[:model])
+              child = klass.new(process_child_context(@_ctx, a_route), self,
+                {:route => a_route, :args => embedded_args}, child_def[:model])
               found = true
               break child
             end
@@ -183,7 +184,7 @@ module Tanuki
     end
 
     # Process context passed to child
-    def prepare_child_context(ctx, route)
+    def process_child_context(ctx, route)
       ctx
     end
 
