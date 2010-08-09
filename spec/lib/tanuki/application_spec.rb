@@ -44,7 +44,7 @@ module Tanuki
     it 'should build a response body' do
       ctx = Application.instance_eval { @context.child }
       ctx.templates = {}
-      ctrl = Tanuki_Controller.dispatch(ctx, Tanuki_Controller, '/')[:controller]
+      ctrl = ControllerBase.dispatch(ctx, Tanuki_Controller, '/')[:controller]
       Application.visitor :array do arr = []; proc {|out| arr << out } end
       Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
     end
