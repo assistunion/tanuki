@@ -89,15 +89,15 @@ module Tanuki
             [301, {'Location' => loc, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           else
             request_ctx.env = env
-            ctrl = ::Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? ::Tanuki_I18n : ctx.root_page,
+            result = ::Tanuki_Controller.dispatch(request_ctx, ctx.i18n ? ::Tanuki_I18n : ctx.root_page,
               Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
-            case ctrl.result_type
+            case result[:type]
             when :redirect then
-              [302, {'Location' => ctrl.result, 'Content-Type' => 'text/html; charset=utf-8'}, []]
+              [302, {'Location' => result[:location], 'Content-Type' => 'text/html; charset=utf-8'}, []]
             when :page then
-              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+              [200, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(result[:controller], request_ctx)]
             else
-              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(ctrl, request_ctx)]
+              [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(result[:controller], request_ctx)]
             end
           end
         end

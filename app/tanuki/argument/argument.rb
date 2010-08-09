@@ -1,5 +1,6 @@
 class Tanuki_Argument
   attr_accessor :value
+  attr_reader :default
 
   def initialize(default)
     @value = @default = default

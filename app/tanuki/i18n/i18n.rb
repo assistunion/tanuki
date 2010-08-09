@@ -1,7 +1,7 @@
 class Tanuki_I18n < Tanuki_Controller
   def configure
     root_page = @ctx.root_page
-    @ctx.languages.each {|lng| has_part root_page, lng.to_s }
+    @ctx.languages.each {|lng| has_child root_page, lng }
   end
 
   def default_route

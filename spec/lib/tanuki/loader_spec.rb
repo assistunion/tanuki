@@ -24,7 +24,10 @@ module Tanuki
     it 'should remember templates it ran at least once for each request' do
       ctx = @root_context.child
       ctx.templates = {}
-      Loader.run_template(ctx.templates, ::Tanuki_Controller.dispatch(ctx, ::Tanuki_Controller, '/'), :default)
+      result = ::Tanuki_Controller.dispatch(ctx, ::Tanuki_Controller, '/')
+      result.should be_a Hash
+      result.keys.should == [:type, :controller]
+      Loader.run_template(ctx.templates, result[:controller], :default)
       Loader.should have_template(ctx.templates, ::Tanuki_Controller, :default)
       ctx = @root_context.child
       ctx.templates = {}
@@ -32,11 +35,11 @@ module Tanuki
     end
 
     it 'should compile and run templates' do
-      ctrl = Tanuki_Controller.dispatch(@root_context.child, ::Tanuki_Controller, '/')
+      ctrl = Tanuki_Controller.dispatch(@root_context.child, ::Tanuki_Controller, '/')[:controller]
       ctrl.should_receive(:default_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Controller, :default) }, :force => true
       Loader.run_template({}, ctrl, :default)
-      ctrl = Tanuki_Controller.dispatch(@root_context.child, ::Tanuki_Missing, '/')
+      ctrl = Tanuki_Controller.dispatch(@root_context.child, ::Tanuki_Missing, '/')[:controller]
       ctrl.should_receive(:index_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Missing, :index) }, :force => true
       Loader.run_template({}, ctrl, :index)

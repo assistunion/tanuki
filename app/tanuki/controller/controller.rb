@@ -1,55 +1,31 @@
 class Tanuki_Controller < Tanuki_Object
   include Enumerable
 
-  attr_reader :model, :route, :result, :result_type, :logical_parent, :link
+  attr_reader :model, :result, :result_type, :logical_parent, :link
   attr_accessor :logical_child, :visual_child
 
-  def initialize(ctx, model, logical_parent, route_parts, index, active)
-    @ctx = process_context(ctx)
-    @model = model
-    @link = '/'
-    if index > 0
-      route_part = route_parts[index - 1]
-      @route = route_part[:route]
-      process_args(route_part[:args])
-      @link = grow_link(@logical_parent, route_part) if @logical_parent = logical_parent
-    else
-      @route = ''
-    end
-    @visual_child = nil
-    @parts = {}
-    @visible_parts_count = 0
+  def initialize(ctx, logical_parent, route_part, model=nil)
     @configured = false
-    if @active = active
-      @logical_parent.logical_child = self if @logical_parent
-      if @current = (index == route_parts.count)
-        if route_part = default_route
-          @result = grow_link(self, route_part)
-          @result_type = :redirect
-        else
-          @result = self
-          @result_type = :page
-          @result_type = result_type
-        end
-      else
-        ensure_configured
-        next_route = route_parts[index][:route]
-        if @parts.include? next_route
-          next_part = @parts[next_route]
-          @logical_child = next_part[:instance] = next_part[:class].new(process_part_context(@ctx, next_route),
-            next_part[:model], self, route_parts, index + 1, true)
-          @result = @logical_child.result
-          @result_type = @logical_child.result_type
-        else
-          @logical_child = part_missing.new(process_part_context(@ctx, @route), nil, self, route_parts, index + 1, true)
-          @result = @logical_child.result
-          @result_type = @logical_child.result_type
-        end
+    @ctx = ctx
+    @model = model
+    @args = {}
+    if @logical_parent = logical_parent
+      @route = route_part[:route]
+      self.class.arg_defs.each_pair do |arg_name, arg_def|
+        route_part[:args][arg_def[:index]] = @args[arg_name] = arg_def[:arg].to_value(route_part[:args][arg_def[:index]])
       end
+      @link = self.class.grow_link(@logical_parent, {:route => @route, :args => @args}, self.class.arg_defs)
+      initialize_route(*route_part[:args])
     else
-      @current = false
+      @link = '/'
+      @route = nil
+      initialize_route
     end
   end
+
+  def initialize_route(*)
+  end
+
 
   def _ctx(ctx)
     @ctx
@@ -59,23 +35,30 @@ class Tanuki_Controller < Tanuki_Object
     @active
   end
 
-  def current?
-    @current
-  end
-
-  def process_context(ctx)
-    ctx
-  end
-
-  def process_part_context(ctx, route)
-    ctx
+  def active=(v)
+    @active = v
   end
 
   def configure
   end
 
-  def visual_parent
-    @logical_parent
+  def current?
+    @current
+  end
+
+  def current=(v)
+    @current = v
+  end
+
+  def default_route
+    nil
+  end
+
+  def each
+    # TODO
+    ensure_configured!
+    @child_defs.each_pair {|route, child| yield self[route] unless child[:hidden] }
+    self
   end
 
   def forward_link
@@ -85,99 +68,222 @@ class Tanuki_Controller < Tanuki_Object
     uri_parts.join('/') << ((qs = @ctx.env['QUERY_STRING']).empty? ? '' : "?#{qs}")
   end
 
-  def default_route
-    nil
-  end
-
-  def part_missing
-    Tanuki_Missing
-  end
-
-  def method_missing(sym)
+  def method_missing(sym, *args)
     if match = sym.to_s.match(/^(.*)_part$/)
-      if part = @parts[match[1]]
-        instantiate_part(match[1], part)
-      else
-        raise "undefined controller part `#{match[1]}' for #{self.class}"
-      end
+      self[match[1].to_sym, *args]
     else
       super
     end
+  end
+
+  # Process context passed to child
+  def prepare_child_context(ctx, route)
+    ctx
   end
 
   def to_s
     @route
   end
 
-  def each
-    ensure_configured
-    @parts.each_pair {|route, part| yield(instantiate_part(route, part)) unless part[:hidden] }
-    self
+  def visual_parent
+    @logical_parent
   end
 
-  def count
-    @visible_parts_count
-  end
-
-  private
-
-  def has_part(klass, route, model=nil, hidden=false)
-    @parts[route] = {:class => klass, :model => model, :hidden => hidden, :instance => nil}
-    @visible_parts_count += 1 unless hidden
-    self
-  end
-
-  def instantiate_part(route, part)
-    part[:instance] ||= part[:class].new(process_part_context(@ctx, route), part[:model], self,
-      [{:route => route, :args => {}}], 1, false)
-  end
-
-  def ensure_configured
+  def ensure_configured!
     unless @configured
+      @child_defs = {}
+      @child_collection_defs = []
+      @cache={}
+      @length = 0
       configure
       @configured = true
     end
+    nil
+  end
+
+  def child_class(route)
+    ensure_configured!
+    args = []
+    key = [route, args]
+    if cached = @cache[key] # search cache
+      return cached.class
+    elsif child_def = @child_defs[route] # search static routes
+      return child_def[:class]
+    else
+      s = route.to_s
+      @child_collection_defs.each do |collection_def|
+        if md = collection_def[:parse].match(s)
+          a_route = md['route'].to_sym
+          child_def = collection_def[:fetcher].get(a_route)
+          if child_def
+            return child_def[:class]
+          end
+        end
+      end
+      return (@cache[key] = missing_route(route, *args)).class  # search ghost routes
+    end
+  end
+
+  def [](route, *args)
+    byname = (args.length == 1 and args[0].is_a? Hash)
+    ensure_configured!
+    key = [route, args.dup]
+    if cached = @cache[key] # search cache
+      return cached
+    elsif child_def = @child_defs[route] # search static routes
+      klass = child_def[:class]
+      args = klass.extract_args(args[0]) if byname
+      child = klass.new(@ctx, self, { :route=>route, :args=>args }, child_def[:model])
+    else
+      found = false # search dynamic routes
+      s = route.to_s
+      @child_collection_defs.each do |collection_def|
+        if md = collection_def[:parse].match(s)
+          a_route = md['route'].to_sym
+          child_def = collection_def[:fetcher].get(a_route)
+          if child_def
+            klass = child_def[:class]
+            args = klass.extract_args(args[0]) if byname
+            embedded_args = klass.extract_args(md)
+            args.each_index do |i|
+              embedded_args[i] = args[i] if args[i]
+            end
+            child = klass.new(@ctx, self, {:route=>a_route, :args=>embedded_args}, child_def[:model])
+            found = true
+            break child
+          end
+        end
+      end
+      child = missing_route(route, *args) unless found   # search ghost routes
+    end
+    @cache[key] = child # thread safe (possible overwrite, but within consistent state)
+  end
+
+  def length
+    if @child_collection_defs.length > 0
+      if @length_is_valid
+        @length
+      else
+        @child_collection_defs.each {|cd| @length += cd[:fetcher].length }
+        @length_is_valid = true
+      end
+    else
+      @length
+    end
+  end
+
+  alias_method :size, :length
+
+  private
+
+  def has_child(klass, route, model=nil, hidden=false)
+    @child_defs[route] = {:class => klass, :model => model, :hidden => hidden}
+    @length += 1 unless hidden
     self
   end
 
-  def process_args(args)
-    # TODO
+  def has_child_collection(parse_regexp, format_string, child_def_fetcher)
+    @child_defs[parse_regexp] = @child_collection_defs.size
+    @child_collection_defs << {:parse => parse_regexp, :format => format_string, :fetcher => child_def_fetcher}
+    @length_is_valid = false
   end
 
-  def grow_link(ctrl, route_part)
-    own_link = escape(route_part[:route], '\/:') << route_part[:args].map do |k, v|
-      ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
-    end.join
-    "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
+  def missing_route(route, *args)
+    Tanuki_Missing.new(@ctx, self, {:route => route, :args => []})
   end
 
-  def escape(s, chrs)
-    s ? Rack::Utils.escape(s.gsub(/[\$#{chrs}]/, '$\0')) : nil
-  end
+  @arg_defs = {}
 
-  def self.unescape(s)
-    s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
-  end
+  class << self
 
-  def self.dispatch(ctx, klass, request_path)
-    parts = request_path[1..-1].split(/(?<!\$)\//).map do |s|
-      arr = s.gsub('$/', '/').split(/(?<!\$):/)
-      route_part = {:route => unescape(arr[0]), :args => {}}
-      arr[1..-1].each do |argval|
-        varr = argval.split(/(?<!\$)-/)
-        route_part[:args][unescape(varr[0])] = unescape(varr[1..-1].join)
-      end
-      route_part
+    def escape(s, chrs)
+      s ? Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, '$\0')) : nil
     end
-    root_ctrl = klass.new(ctx, nil, nil, parts, 0, true)
-    if (prev = root_ctrl.result).is_a? Tanuki_Controller
-      while curr = prev.visual_parent
-        curr.visual_child = prev
-        prev = curr
+
+    def grow_link(ctrl, route_part, arg_defs)
+      own_link = escape(route_part[:route], '\/:') << route_part[:args].map do |k, v|
+        arg_defs[k][:arg].default == v ? '' : ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
+      end.join
+      "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
+    end
+
+
+    def dispatch(ctx, klass, request_path)
+      parts = parse_path(request_path)
+      curr = root_ctrl = klass.new(ctx, nil, nil, true)
+      parts.each do |part|
+        curr.active = true
+        nxt = curr[part[:route], *part[:args]]
+        curr.logical_child = nxt
+        curr = nxt
       end
-      prev
-    else
-      root_ctrl
+      curr.instance_variable_set :@active, true
+      curr.instance_variable_set :@current, true
+      if route = curr.default_route
+        klass = curr.child_class(route)
+        {:type => :redirect, :location => grow_link(curr, route, klass.arg_defs)}
+      else
+        prev = curr
+        while curr = prev.visual_parent
+          curr.visual_child = prev
+          prev = curr
+        end
+        {:type => :page, :controller => prev}
+      end
+    end
+
+    def arg_defs
+      @arg_defs ||= superclass.arg_defs.dup
+    end
+
+    def has_arg (name, arg_def)
+      # TODO Ensure thread safety
+      arg_defs[name] = {:arg => arg_def, :index => @arg_defs.size}
+    end
+
+    def extract_args(md)
+      res = []
+      arg_defs.each_pair do |name,arg|
+        res[arg[:index]] = md[name]
+      end
+      res
+    end
+
+    private
+
+    def parse_path(path)
+      path[1..-1].split(/(?<!\$)\//).map do |s|
+        arr = s.gsub('$/', '/').split(/(?<!\$):/)
+        route_part = {:route => unescape(arr[0]).to_sym}
+        args = {}
+        arr[1..-1].each do |argval|
+          varr = argval.split(/(?<!\$)-/)
+          args[unescape(varr[0])] = unescape(varr[1..-1].join)
+        end
+        route_part[:args] = extract_args(args)
+        route_part
+      end
+    end
+
+    def unescape(s)
+      s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
     end
   end
 end
+
+# class Tanuki_Manager < Tanuki_Controller
+#   has_arg :mode Tanuki_Argument_List(['a','b','c'],'a')
+#   has_arg :page Tanuki_Argument_Integer(1)
+#   has_arg :per_page Tanuki_Argument_Integer(25)
+
+#   def configure
+#   end
+# end
+
+
+
+
+
+
+
+
