@@ -73,7 +73,7 @@ describe Tanuki_Controller do
     end
     # end class declaration
     c = C.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => [1, 2, 3]})
-    c.instance_variable_get(:@args).should == {:a => 1, :b => 2, :c => 3}
+    c.instance_variable_get(:@_args).should == {:a => 1, :b => 2, :c => 3}
   end
 
   it 'should initialize default values when received arguments are invalid' do
@@ -88,7 +88,7 @@ describe Tanuki_Controller do
     end
     # end class declaration
     c = C.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => ['a', 'b', 'c']})
-    c.instance_variable_get(:@args).should == {:a => 42, :b => 69, :c => 17}
+    c.instance_variable_get(:@_args).should == {:a => 42, :b => 69, :c => 17}
   end
 
   it 'should have empty child definitions when created' do
@@ -98,22 +98,22 @@ describe Tanuki_Controller do
     # end class declaration
     c = C.new(nil, nil, nil)
     c.ensure_configured!
-    c.instance_variable_get(:@child_defs).should == {}
+    c.instance_variable_get(:@_child_defs).should == {}
   end
 
   it 'should have expected child definitions when they are declared' do
     # class declaration
     class C < Tanuki_Controller
       def configure
-        has_child C, :x, @model * 2
-        has_child C, :y, @model * 2 + 1
+        has_child C, :x, model * 2
+        has_child C, :y, model * 2 + 1
       end
     end
     # end class declaration
     c = C.new(nil, nil, nil, 1)
     c.model.should == 1
     c.ensure_configured!
-    c.instance_variable_get(:@child_defs).should == {
+    c.instance_variable_get(:@_child_defs).should == {
       :x => {:class => C, :model => 2, :hidden => false},
       :y => {:class => C, :model => 3, :hidden => false}
     }
@@ -125,8 +125,8 @@ describe Tanuki_Controller do
       has_arg :a, Tanuki_Argument_Integer.new(42)
       has_arg :b, Tanuki_Argument_Integer.new(69)
       def configure
-        has_child C, :x, @model * 2
-        has_child C, :y, @model * 2 + 1
+        has_child C, :x, model * 2
+        has_child C, :y, model * 2 + 1
       end
     end
     # end class declaration
@@ -135,7 +135,7 @@ describe Tanuki_Controller do
     b = c[:y]
     a.model.should == 2
     b.model.should == 3
-    c.instance_variable_get(:@cache).keys.should == [[:x, []], [:y, []]]
+    c.instance_variable_get(:@_cache).keys.should == [[:x, []], [:y, []]]
     c[:y, 2].should equal c[:y, 2]
     c[:x][:x][:x].model.should == 8
     c.link.should == '/'
