@@ -11,7 +11,7 @@ module Tanuki
       Class.new(self.class).new
     end
 
-    # Object#method_missing hook.
+    # Kernel#method_missing hook.
     def method_missing(sym, arg=nil)
       match = sym.to_s.match(/^([^=]+)(=)?$/)
       self.class.instance_eval do
