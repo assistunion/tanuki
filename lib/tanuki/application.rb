@@ -50,7 +50,7 @@ module Tanuki
       #  <%_escape escaped_view %>
       #  <%_printf('<div>%s</div>') formatted_view %>
       def visitor(sym, &block)
-        ::Tanuki_Object.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
+        ObjectBase.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
       end
 
       private
@@ -69,7 +69,8 @@ module Tanuki
 
       # Returns an array of template outputs for controller ctrl in context ctx.
       def build_body(ctrl, request_ctx)
-        Launcher.new(ctrl, request_ctx).each &::Tanuki_Object.new.array_visitor
+        arr = []
+        Launcher.new(ctrl, request_ctx).each &proc {|out| arr << out.to_s }
       end
 
       # Returns a Rack app block for Rack::Builder.

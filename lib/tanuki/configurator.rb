@@ -62,6 +62,7 @@ module Tanuki
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :root_page, ::User_Page_Index
+      set :missing_page, ::Tanuki_Missing
       set :i18n, false
       set :language, nil
       set :language_fallback, {}
@@ -69,7 +70,6 @@ module Tanuki
       set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
       set :best_translation, proc {|trn| language_fallback[language].each {|lng| return trn[lng] if trn.include? lng }; nil }
       visitor :string do s = ''; proc {|out| s << out.to_s } end
-      visitor :array do arr = []; proc {|out| arr << out.to_s } end
     end
     Application.instance_eval { @context = @context.child }
     Configurator.instance_eval(&block) if block_given?

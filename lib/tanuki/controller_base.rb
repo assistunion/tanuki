@@ -217,8 +217,7 @@ module Tanuki
 
     # Invoked for route with args when a route is missing.
     def missing_route(route, *args)
-      # TODO Move Tanuki_Missing to context
-      ::Tanuki_Missing.new(@ctx, self, {:route => route, :args => []})
+      @ctx.missing_page.new(@ctx, self, {:route => route, :args => []})
     end
 
     def self.included(klass)
