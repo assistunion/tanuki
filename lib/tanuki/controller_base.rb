@@ -220,42 +220,12 @@ module Tanuki
       @_ctx.missing_page.new(@_ctx, self, {:route => route, :args => []})
     end
 
-    def self.included(klass)
-      klass.instance_variable_set(:@_arg_defs, {})
-      klass.extend ClassMethods
-    end
-
     # Tanuki::ControllerBase mixed-in class methods.
     module ClassMethods
 
       # Returns own or superclass argument definitions.
       def arg_defs
         @_arg_defs ||= superclass.arg_defs.dup
-      end
-
-      # Dispathes route chain in context ctx on request_path, starting with controller klass.
-      def dispatch(ctx, klass, request_path)
-        parts = parse_path(request_path)
-        curr = root_ctrl = klass.new(ctx, nil, nil, true)
-        parts.each do |part|
-          curr.active = true
-          nxt = curr[part[:route], *part[:args]]
-          curr.logical_child = nxt
-          curr = nxt
-        end
-        curr.instance_variable_set :@_active, true
-        curr.instance_variable_set :@_current, true
-        if route = curr.default_route
-          klass = curr.child_class(route)
-          {:type => :redirect, :location => grow_link(curr, route, klass.arg_defs)}
-        else
-          prev = curr
-          while curr = prev.visual_parent
-            curr.visual_child = prev
-            prev = curr
-          end
-          {:type => :page, :controller => prev}
-        end
       end
 
       # Escapes a given string for use in links.
@@ -286,6 +256,47 @@ module Tanuki
         arg_defs[name] = {:arg => arg_def, :index => @_arg_defs.size}
       end
 
+      # Prepares the extended module.
+      def self.extended(mod)
+        mod.instance_variable_set(:@_arg_defs, {})
+      end
+
+    end # end ClassMethods
+
+    extend ClassMethods
+
+    class << self
+
+      # Dispathes route chain in context ctx on request_path, starting with controller klass.
+      def dispatch(ctx, klass, request_path)
+        parts = parse_path(request_path)
+        curr = root_ctrl = klass.new(ctx, nil, nil, true)
+        parts.each do |part|
+          curr.active = true
+          nxt = curr[part[:route], *part[:args]]
+          curr.logical_child = nxt
+          curr = nxt
+        end
+        curr.instance_variable_set :@_active, true
+        curr.instance_variable_set :@_current, true
+        if route = curr.default_route
+          klass = curr.child_class(route)
+          {:type => :redirect, :location => grow_link(curr, route, klass.arg_defs)}
+        else
+          prev = curr
+          while curr = prev.visual_parent
+            curr.visual_child = prev
+            prev = curr
+          end
+          {:type => :page, :controller => prev}
+        end
+      end
+
+      # Extends the including module with Tanuki::ControllerBase::ClassMethods.
+      def included(mod)
+        mod.extend ClassMethods
+      end
+
       private
 
       # Parses path to return route name and arguments.
@@ -308,7 +319,7 @@ module Tanuki
         s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
       end
 
-    end # end ClassMethods
+    end # end class << self
 
   end # end AbstractController
 
