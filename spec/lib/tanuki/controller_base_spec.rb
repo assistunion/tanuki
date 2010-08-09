@@ -1,4 +1,5 @@
 require 'tanuki/context'
+require 'tanuki/controller_base'
 require 'tanuki/loader'
 require 'tanuki/template_compiler'
 require 'rack/utils'
