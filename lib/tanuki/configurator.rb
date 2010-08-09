@@ -62,7 +62,7 @@ module Tanuki
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :root_page, ::User_Page_Index
-      set :missing_page, ::Tanuki_Missing
+      set :missing_page, ::Tanuki_Page_Missing
       set :i18n, false
       set :language, nil
       set :language_fallback, {}
