@@ -58,7 +58,7 @@ module Tanuki
         @_child_collection_defs.each do |collection_def|
           if md = collection_def[:parse].match(s)
             a_route = md['route'].to_sym
-            child_def = collection_def[:fetcher].get(a_route)
+            child_def = collection_def[:fetcher].fetch(a_route, collection_def[:format])
             if child_def
               klass = child_def[:class]
               args = klass.extract_args(args[0]) if byname
@@ -82,11 +82,6 @@ module Tanuki
       @_active
     end
 
-    # Sets if controller is active. Used internally.
-    def active=(value)
-      @_active = value
-    end
-
     # Retrieves child route class. Searches static, dynamic, and ghost routes (in that order).
     def child_class(route)
       ensure_configured!
@@ -104,7 +99,7 @@ module Tanuki
         @_child_collection_defs.each do |collection_def|
           if md = collection_def[:parse].match(s)
             a_route = md['route'].to_sym
-            child_def = collection_def[:fetcher].get(a_route)
+            child_def = collection_def[:fetcher].fetch(a_route, collection_def[:format])
             return child_def[:class] if child_def
           end
         end
@@ -122,20 +117,30 @@ module Tanuki
       @_current
     end
 
-    # Sets if controller is current. Used internally.
-    def current=(value)
-      @_current = value
-    end
-
     # If set, controller navigates to a given child route by default.
     def default_route
       nil
     end
 
-    def each
-      # TODO
+    def each(&block)
+      return Enumerator.new(self) unless block_given?
       ensure_configured!
-      @_child_defs.each_pair {|route, child| yield self[route] unless child[:hidden] }
+      @_child_defs.each_pair do |route, child|
+        if route.is_a? Regexp
+          cd = @_child_collection_defs[child]
+          cd[:fetcher].fetch_all(cd[:format]) do |child_def|
+            key = [child_def[:route],[]]
+            unless child = @_cache[key]
+              child = child_def[:class].new(process_child_context(@_ctx, route), self,
+                {:route => child_def[:route], :args => {}}, child_def[:model])
+              @_cache[key] = child
+            end
+            block.call child
+          end
+        else
+          yield self[route] unless child[:hidden]
+        end
+      end
       self
     end
 
@@ -273,7 +278,7 @@ module Tanuki
         parts = parse_path(request_path)
         curr = root_ctrl = klass.new(ctx, nil, nil, true)
         parts.each do |part|
-          curr.active = true
+          curr.instance_variable_set :@_active, true
           nxt = curr[part[:route], *part[:args]]
           curr.logical_child = nxt
           curr = nxt
