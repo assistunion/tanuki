@@ -1,8 +1,4 @@
-require 'tanuki/context'
-require 'tanuki/controller_behavior'
-require 'tanuki/loader'
-require 'tanuki/template_compiler'
-require 'rack/utils'
+require 'tanuki'
 
 module Tanuki
   ctx = Context.new.child

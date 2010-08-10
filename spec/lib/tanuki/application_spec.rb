@@ -14,16 +14,16 @@ module Tanuki
 
     it 'should add and remove Rack middleware' do
       middleware = Application.instance_eval { @rack_middleware }
-      Application.use Rack::Reloader, 0
-      middleware.should include Rack::Reloader
-      Application.discard Rack::Reloader
-      middleware.should_not include Rack::Reloader
+      Application.use Integer, 0
+      middleware.should include Integer
+      Application.discard Integer
+      middleware.should_not include Integer
     end
 
     it 'should add visitors to framework objects' do
       Application.visitor :string do s = ''; proc {|out| s << out } end
-      obj = ::Tanuki_Object.new
-      obj.public_methods.should include :string_visitor
+      ObjectBehavior.public_instance_methods.should include :string_visitor
+      obj = 'obj'.extend(ObjectBehavior)
       obj.string_visitor.should be_a Proc
       sv = obj.string_visitor
       sv.call('a').should == 'a'
@@ -64,6 +64,7 @@ module Tanuki
     it 'should have this block build pages' do
       Application.set :i18n, false
       Application.set :root_page, Tanuki_Controller
+      Application.set :missing_page, Tanuki_Page_Missing
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
       result[0].should == 200
       result[1].should be_a Hash
