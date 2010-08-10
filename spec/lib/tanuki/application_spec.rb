@@ -63,7 +63,7 @@ module Tanuki
       result[1]['Location'].should == '/page?q'
     end
 
-    it 'should have this block build pages with response 200' do
+    it 'should have this block build pages with response code 200' do
       Application.set :i18n, false
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
       result[0].should == 200
@@ -72,7 +72,7 @@ module Tanuki
       result[2].public_methods.should include :each
     end
 
-    it 'should have this block build pages with response 404' do
+    it 'should have this block build pages with response code 404' do
       Application.set :i18n, false
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/missing'})
       result[0].should == 404
@@ -81,7 +81,7 @@ module Tanuki
       result[2].public_methods.should include :each
     end
 
-    it 'should have this block build pages with response 404' do
+    it 'should have this block build redirects with response code 302' do
       Application.set :i18n, true
       Application.set :language, :ru
       Application.set :languages, [:ru]
