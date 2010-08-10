@@ -27,6 +27,7 @@ module Tanuki
           raise "context entry `#{match[1]}' redefined, use Context#child"
         end
       end if match[2]
+      warn "#{__FILE__}:#{__LINE__}: warning: undefined context entry `#{sym}' for #{self}"
       super
     end
 
