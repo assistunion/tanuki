@@ -10,6 +10,7 @@ module Tanuki
       @root_context = Tanuki::Context.new.child
       @root_context.app_root = 'app'
       @root_context.cache_root = 'cache'
+      @root_context.missing_page = ::Tanuki_Page_Missing
       Loader.context = @root_context
     end
 

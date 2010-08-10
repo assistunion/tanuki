@@ -10,6 +10,8 @@ module Tanuki
       end
       Application.set :app_root, 'app'
       Application.set :cache_root, 'cache'
+      Application.set :root_page, ::Tanuki_Controller
+      Application.set :missing_page, ::Tanuki_Page_Missing
     end
 
     it 'should add and remove Rack middleware' do
@@ -44,7 +46,7 @@ module Tanuki
     it 'should build a response body' do
       ctx = Application.instance_eval { @context.child }
       ctx.templates = {}
-      ctrl = ControllerBehavior.dispatch(ctx, Tanuki_Controller, '/')[:controller]
+      ctrl = ControllerBehavior.dispatch(ctx, ::Tanuki_Controller, '/')[:controller]
       Application.visitor :array do arr = []; proc {|out| arr << out } end
       Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
     end
@@ -61,21 +63,25 @@ module Tanuki
       result[1]['Location'].should == '/page?q'
     end
 
-    it 'should have this block build pages' do
+    it 'should have this block build pages with response 200' do
       Application.set :i18n, false
-      Application.set :root_page, Tanuki_Controller
-      Application.set :missing_page, Tanuki_Page_Missing
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
       result[0].should == 200
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
       result[2].public_methods.should include :each
+    end
+
+    it 'should have this block build pages with response 404' do
+      Application.set :i18n, false
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/missing'})
       result[0].should == 404
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
       result[2].public_methods.should include :each
-      Application.instance_eval { @context = Tanuki::Context.new.child }
+    end
+
+    it 'should have this block build pages with response 404' do
       Application.set :i18n, true
       Application.set :language, :ru
       Application.set :languages, [:ru]

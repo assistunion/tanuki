@@ -289,12 +289,13 @@ module Tanuki
           klass = curr.child_class(route)
           {:type => :redirect, :location => grow_link(curr, route, klass.arg_defs)}
         else
+          type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
           prev = curr
           while curr = prev.visual_parent
             curr.visual_child = prev
             prev = curr
           end
-          {:type => :page, :controller => prev}
+          {:type => type, :controller => prev}
         end
       end
 
