@@ -14,6 +14,7 @@ describe Tanuki_Controller do
     ctx.app_root = 'app'
     ctx.cache_root = 'cache'
     Tanuki::Loader.context = ctx
+    Tanuki::Argument.instance_eval { store(Fixnum, Tanuki::Argument::Integer) }
   end
 
   it 'should have empty argument definitions when created' do
@@ -28,7 +29,11 @@ describe Tanuki_Controller do
       has_arg :b, 69
     end
     # end class declaration
-    C.arg_defs.should == {:a => {:arg => 42, :index => 0}, :b => {:arg => 69, :index => 1}}
+    C.arg_defs.keys.should == [:a, :b]
+    C.arg_defs[:a].keys.should == [:arg, :index]
+    C.arg_defs[:b].keys.should == [:arg, :index]
+    C.arg_defs[:a][:index].should == 0
+    C.arg_defs[:b][:index].should == 1
   end
 
   it 'should inherit argument definitions from parent controllers' do
@@ -40,8 +45,8 @@ describe Tanuki_Controller do
       has_arg :b, 69
     end
     # end class declaration
-    C.arg_defs.should == {:a => {:arg => 42, :index => 0}}
-    D.arg_defs.should == {:a => {:arg => 42, :index => 0}, :b => {:arg => 69, :index => 1}}
+    C.arg_defs.keys.should == [:a]
+    D.arg_defs.keys.should == [:a, :b]
   end
 
   it 'should initialize default values when arguments are extracted' do
@@ -60,9 +65,9 @@ describe Tanuki_Controller do
   it 'should process arguments received in route part' do
     # class declaration
     class C < Tanuki_Controller
-      has_arg :a, Tanuki::Argument::Integer.new(42)
-      has_arg :b, Tanuki::Argument::Integer.new(69)
-      has_arg :c, Tanuki::Argument::Integer.new(17)
+      has_arg :a, 42
+      has_arg :b, 69
+      has_arg :c, 17
       def initialize_route(*args)
         args.should == [1, 2, 3]
       end
@@ -75,9 +80,9 @@ describe Tanuki_Controller do
   it 'should initialize default values when received arguments are invalid' do
     # class declaration
     class C < Tanuki_Controller
-      has_arg :a, Tanuki::Argument::Integer.new(42)
-      has_arg :b, Tanuki::Argument::Integer.new(69)
-      has_arg :c, Tanuki::Argument::Integer.new(17)
+      has_arg :a, 42
+      has_arg :b, 69
+      has_arg :c, 17
       def initialize_route(*args)
         args.should == [42, 69, 17]
       end
@@ -118,8 +123,8 @@ describe Tanuki_Controller do
   it 'should build links according to argument and child definitions' do
     # class declaration
     class C < Tanuki_Controller
-      has_arg :a, Tanuki::Argument::Integer.new(42)
-      has_arg :b, Tanuki::Argument::Integer.new(69)
+      has_arg :a, 42
+      has_arg :b, 69
       def configure
         has_child C, :x, model * 2
         has_child C, :y, model * 2 + 1

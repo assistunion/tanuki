@@ -8,22 +8,27 @@ module Tanuki
 
       private
 
-      # Invokes Tanuki::Application::set.
+      # Invokes Tanuki::Argument.store.
+      def argument(klass, arg_class)
+        Argument.store(klass, arg_class)
+      end
+
+      # Invokes Tanuki::Application.set.
       def set(option, value)
         Application.set(option, value)
       end
 
-      # Invokes Tanuki::Application::use.
+      # Invokes Tanuki::Application.use.
       def use(middleware, *args, &block)
         Application.use(middleware, *args, &block)
       end
 
-      # Invokes Tanuki::Application::discard.
+      # Invokes Tanuki::Application.discard.
       def discard(middleware)
         Application.discard(middleware)
       end
 
-      # Invokes Tanuki::Application::visitor.
+      # Invokes Tanuki::Application.visitor.
       def visitor(sym, &block)
         Application.visitor(sym, &block)
       end
@@ -70,6 +75,12 @@ module Tanuki
       set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
       set :best_translation, proc {|trn| language_fallback[language].each {|lng| return trn[lng] if trn.include? lng }; nil }
       visitor :string do s = ''; proc {|out| s << out.to_s } end
+    end
+    Argument.instance_eval do
+      store Fixnum, Argument::Integer
+      store Bignum, Argument::Integer
+      store Range, Argument::IntegerRange
+      store String, Argument::String
     end
     Application.instance_eval { @context = @context.child }
     Configurator.instance_eval(&block) if block_given?
