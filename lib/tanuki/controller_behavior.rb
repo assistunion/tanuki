@@ -129,7 +129,7 @@ module Tanuki
         if route.is_a? Regexp
           cd = @_child_collection_defs[child]
           cd[:fetcher].fetch_all(cd[:format]) do |child_def|
-            key = [child_def[:route],[]]
+            key = [child_def[:route], []]
             unless child = @_cache[key]
               child = child_def[:class].new(process_child_context(@_ctx, route), self,
                 {:route => child_def[:route], :args => {}}, child_def[:model])
@@ -242,7 +242,7 @@ module Tanuki
       # Extracts arguments, initializing default values beforehand. Searches md hash for default value overrides.
       def extract_args(md)
         res = []
-        arg_defs.each_pair do |name,arg|
+        arg_defs.each_pair do |name, arg|
           res[arg[:index]] = md[name]
         end
         res
@@ -314,7 +314,7 @@ module Tanuki
           args = {}
           arr[1..-1].each do |argval|
             varr = argval.split(/(?<!\$)-/)
-            args[unescape(varr[0])] = unescape(varr[1..-1].join)
+            args[unescape(varr[0])] = unescape(varr[1..-1].join) # TODO Predict argument
           end
           route_part[:args] = extract_args(args)
           route_part
