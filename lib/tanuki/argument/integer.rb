@@ -6,7 +6,7 @@ module Tanuki
 
       # Returns argument value from a string representation.
       def to_value(s)
-        begin Integer s rescue @default end
+        begin Kernel::Integer s rescue @default end
       end
 
     end # end Integer
