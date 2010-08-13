@@ -256,10 +256,10 @@ module Tanuki
         "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
       end
 
-      # Defines an argument with name and definition arg_def, derived from object obj.
-      def has_arg(name, obj)
+      # Defines an argument with name, derived from object obj with additional args.
+      def has_arg(name, obj, *args)
         # TODO Ensure thread safety
-        arg_defs[name] = {:arg => Argument.to_argument(obj), :index => @_arg_defs.size}
+        arg_defs[name] = {:arg => Argument.to_argument(obj, *args), :index => @_arg_defs.size}
       end
 
       # Prepares the extended module.
