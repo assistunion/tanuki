@@ -31,5 +31,5 @@ module Tanuki
       lambda { child_ctx.foo = 'bar' }.should_not raise_error
     end
 
-  end # end describe Launcher
+  end # end describe Context
 end # end Tanuki
