@@ -47,9 +47,14 @@ module Tanuki
       @ios.string.should == %Q{\ncode\n_.call("text",ctx)}
     end
 
-    it 'should treat <%% as escaped <%' do
-      TemplateCompiler.compile(@ios, '<% code %>text<%% code %><% code %>')
-      @ios.string.should == %Q{\ncode\n_.call("text<%",ctx)\n_.call(" code %>",ctx)\ncode}
+    it 'should treat <%% and %%> as escaped <% and %>' do
+      TemplateCompiler.compile(@ios, '<% code %>text<%% code %><% code %%><% code %>')
+      @ios.string.should == %Q{\ncode\n_.call("text<% code %>",ctx)\ncode %><% code}
+    end
+
+    it 'should treat %% at the beginning of lines as escaped %' do
+      TemplateCompiler.compile(@ios, "% code\n%% code\n  % code\n  %% code")
+      @ios.string.should == %Q{\ncode\n_.call("% code\\n",ctx)\ncode\n_.call("  % code",ctx)}
     end
 
     it 'should treat <l10n></l10n> as localization blocks' do

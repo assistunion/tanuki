@@ -20,6 +20,7 @@ module Tanuki
         last_state = nil
         index = 0
         trim_newline = false
+        code_buf = ''
         begin
           if new_index = src[index..-1].index(pattern = expect_pattern(state))
             new_index += index
@@ -28,27 +29,35 @@ module Tanuki
           else
             new_state = nil
           end
-          skip = new_state == :code_skip
-          if state == :outer || skip
+          if state == :outer
             s = new_index ? src[index, new_index - index] : src[index..-1]
             if trim_newline && !s.empty?
               s[0] = '' if s[0] == "\n"
               trim_newline = false
             end
-            if skip
-              ios << "\n_.call(#{(s << '<%').inspect},ctx)"
-              index = new_index + 3
+            if new_state == :code_skip
+              code_buf << s.dup << match[0..-2]
+              index = new_index + match.length
               next
             elsif not s.empty?
-              ios << "\n_.call(#{s.inspect},ctx)"
+              ios << "\n_.call(#{(code_buf << s).inspect},ctx)"
+              code_buf = ''
             end
           end
           if new_index
-            process_code_state(ios, src[index...new_index], state) if new_state == :outer
-            index = new_index + match.length
-            trim_newline = true if (match == '-%>')
-            last_state = state unless state == :code_comment
-            state = new_state
+            unless state != :outer && new_state == :code_skip
+              if new_state == :outer
+                process_code_state(ios, code_buf << src[index...new_index], state)
+                code_buf = ''
+              end
+              index = new_index + match.length
+              trim_newline = true if (match == '-%>')
+              last_state = state unless state == :code_comment
+              state = new_state
+            else
+              code_buf << src[index...new_index] << '%>'
+              index = new_index + match.length
+            end
           end
         end until new_index.nil?
         last_state
@@ -78,9 +87,9 @@ module Tanuki
       # Returns the next expected pattern for a given state.
       def expect_pattern(state)
         case state
-        when :outer then %r{^\s*%|<%(?:=|!|_|#|%|)|<l10n>}
+        when :outer then %r{^\s*%%?|<%(?:=|!|_|#|%|)|<l10n>}
         when :code_line then %r{\n|\Z}
-        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{-?%>}
+        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{(?:-|%|)%>}
         when :l10n then %r{<\/l10n>}
         end
       end
@@ -90,7 +99,8 @@ module Tanuki
         case state
         when :outer then
           case match
-          when /\A\s*%/ then :code_line
+          when /\A\s*%\Z/ then :code_line
+          when /\A\s*%%\Z/ then :code_skip
           when '<%' then :code_span
           when '<%=' then :code_print
           when '<%!' then :code_template
@@ -100,7 +110,11 @@ module Tanuki
           when '<l10n>' then :l10n
           end
         when :code_line then :outer
-        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then :outer
+        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then
+          case match
+          when '%%>' then :code_skip
+          else :outer
+          end
         when :l10n then :outer
         end
       end
