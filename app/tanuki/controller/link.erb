@@ -1,0 +1,7 @@
+% if current?
+<span class="active"><%= self %></span>
+% elsif active?
+<a class="active" href="<%= self.link %>"><%= self %></a>
+% else
+<a href="<%= self.link %>"><%= self %></a>
+% end
