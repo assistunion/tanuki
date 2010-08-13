@@ -5,8 +5,8 @@ module Tanuki
     class String < Base
 
       # Returns argument value from a string representation.
-      def to_value(s)
-        s.to_s
+      def to_value(obj)
+        obj.to_s
       end
 
     end # end String

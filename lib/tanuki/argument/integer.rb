@@ -5,8 +5,8 @@ module Tanuki
     class Integer < Base
 
       # Returns argument value from a string representation.
-      def to_value(s)
-        begin Kernel::Integer s rescue @default end
+      def to_value(obj)
+        begin Kernel::Integer obj rescue @default end
       end
 
     end # end Integer

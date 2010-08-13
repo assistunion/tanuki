@@ -11,8 +11,8 @@ module Tanuki
       end
 
       # Returns argument value from a string representation.
-      def to_value(s)
-        i = super(s)
+      def to_value(obj)
+        i = super(obj)
         @range.include?(i) ? i : @default
       end
 
