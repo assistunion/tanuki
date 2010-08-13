@@ -12,16 +12,10 @@ module Tanuki
 
     class << self
 
-      # Convert a given type object to an argument object.
-      def to_argument(obj)
-        if @assoc.include?(klass = obj.class)
-          @assoc[klass].new(obj)
-        else
-          Argument::String.new(obj.to_s)
-        end
+      # Remove argument association for a given type class.
+      def delete(klass)
+        @assoc.delete(klass)
       end
-
-      private
 
       # Associate a given type class with an argument class.
       def store(klass, arg_class)
@@ -31,9 +25,13 @@ module Tanuki
 
       alias_method :[], :store
 
-      # Remove argument association for a given type class.
-      def delete(klass)
-        @assoc.delete(klass)
+      # Convert a given type object to an argument object.
+      def to_argument(obj, *args)
+        if @assoc.include?(klass = obj.class)
+          @assoc[klass].new(obj, *args)
+        else
+          Argument::String.new(obj.to_s)
+        end
       end
 
     end # end class << self
