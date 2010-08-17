@@ -179,15 +179,6 @@ module Tanuki
       end
     end
 
-    # Kernel#method_missing hook for fetching child routes.
-    def method_missing(sym, *args)
-      if match = sym.to_s.match(/^(.*)_child$/)
-        self[match[1].to_sym, *args]
-      else
-        super
-      end
-    end
-
     # Process context passed to child
     def process_child_context(ctx, route)
       ctx
