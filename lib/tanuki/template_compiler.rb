@@ -69,18 +69,20 @@ module Tanuki
       PRINT_STATES = [:outer, :code_print]
 
       def process_code_state(ios, src, state)
+        src.strip!
+        src.gsub! /^[ \t]+/, ''
         case state
         when :code_line, :code_span then
-          ios << "\n#{src.strip}"
+          ios << "\n#{src}"
         when :code_print then
-          ios << "\n_.call((#{src.strip}),ctx)"
+          ios << "\n_.call((#{src}),ctx)"
         when :code_template then
-          ios << "\n(#{src.strip}).call(_,ctx)"
+          ios << "\n(#{src}).call(_,ctx)"
         when :code_visitor
-          inner_m = src.rstrip.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
+          inner_m = src.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
           ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
         when :l10n then
-          localize(ios, src.strip)
+          localize(ios, src)
         end
       end
 
