@@ -89,9 +89,9 @@ module Tanuki
       # Returns the next expected pattern for a given state.
       def expect_pattern(state)
         case state
-        when :outer then %r{^\s*%%?|<%(?:=|!|_|#|%|)|<l10n>}
+        when :outer then %r{^\s*%%?|<%[=!_#%]?|<l10n>}
         when :code_line then %r{\n|\Z}
-        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{(?:-|%|)%>}
+        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{[-%]?%>}
         when :l10n then %r{<\/l10n>}
         end
       end
