@@ -57,6 +57,9 @@ module Tanuki
       # Path to Tanuki::TemplateCompiler for internal use.
       COMPILER_PATH = File.join(File.expand_path('..', __FILE__), 'template_compiler.rb')
 
+      # Extension for HTML template files.
+      HTML_EXT = '.thtml'
+
       # Compiles template sym from owner class using source in st_file to ct_path.
       # Compilation is only done if destination file modification time has not changed
       # (is equal to ct_file_mtime) since file locking was initiated.
@@ -88,12 +91,12 @@ module Tanuki
 
       # Returns the path to a source file containing template method_name for class klass.
       def source_template_path(klass, method_name)
-        template_path(klass, method_name, @context.app_root, File::SEPARATOR, '.erb')
+        template_path(klass, method_name, @context.app_root, File::SEPARATOR, HTML_EXT)
       end
 
       # Finds the direct template method_name owner among ancestors of class klass.
       def template_owner(klass, method_name)
-        method_file = method_name.to_s << '.erb'
+        method_file = method_name.to_s << HTML_EXT
         klass.ancestors.each do |ancestor|
           return ancestor if File.file? File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file)
         end
