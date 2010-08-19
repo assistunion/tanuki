@@ -65,7 +65,7 @@ module Tanuki
       set :server, [:thin, :mongrel, :webrick]
       set :host, '0.0.0.0'
       set :port, 3000
-      set :root, File.dirname($0)
+      set :root, File.expand_path('..', $0)
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
       set :schema_root, proc { File.join(root, 'schema') }

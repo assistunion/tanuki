@@ -35,7 +35,7 @@ module Tanuki
           if !ct_file_exists || st_file.mtime > ct_file_mtime || File.mtime(COMPILER_PATH) > ct_file_mtime
             no_refresh = compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
           else
-            no_refresh = false
+            no_refresh = true
           end
           method_name = "#{sym}_view".to_sym
           owner.instance_eval do
@@ -81,7 +81,7 @@ module Tanuki
 
       # Returns the path to a compiled template file containing template method_name for class klass.
       def compiled_template_path(klass, method_name)
-        template_path(klass, method_name, @context.cache_root, '.', '.rb')
+        File.join(const_to_path(klass, @context.cache_root, '.'), method_name.to_s << '.rb')
       end
 
       # Transforms a given constant klass to path with a given root and separated by sep.
