@@ -9,7 +9,7 @@ module Tanuki
     internal_attr_reader :model, :logical_parent, :link
     internal_attr_accessor :logical_child, :visual_child
 
-    # Create new controller with context ctx, logical_parent controller, route_part definitions and a model.
+    # Creates new controller with context +ctx+, +logical_parent+ controller, +route_part+ definitions and a +model+.
     def initialize(ctx, logical_parent, route_part, model=nil)
       @_configured = false
       @_ctx = ctx
@@ -29,7 +29,7 @@ module Tanuki
       end
     end
 
-    # Invoked with route args when current route is initialized.
+    # Invoked with route +args+ when current route is initialized.
     def initialize_route(*args)
     end
 
@@ -38,7 +38,7 @@ module Tanuki
       @_ctx
     end
 
-    # Initializes and retrieves child route object. Searches static, dynamic, and ghost routes (in that order).
+    # Initializes and retrieves child controller on +route+. Searches static, dynamic, and ghost routes (in that order).
     def [](route, *args)
       byname = (args.length == 1 and args[0].is_a? Hash)
       ensure_configured!
@@ -77,12 +77,12 @@ module Tanuki
       @_cache[key] = child # Thread safe (possible overwrite, but within consistent state)
     end
 
-    # Return true, if controller is active.
+    # Returns true, if controller is active.
     def active?
       @_active
     end
 
-    # Retrieves child route class. Searches static, dynamic, and ghost routes (in that order).
+    # Retrieves child controller class on +route+. Searches static, dynamic, and ghost routes (in that order).
     def child_class(route)
       ensure_configured!
       args = []
@@ -108,11 +108,11 @@ module Tanuki
       end
     end
 
-    # Invoked when controller need to be configured.
+    # Invoked when controller needs to be configured.
     def configure
     end
 
-    # Return true, if controller is current.
+    # Returns true, if controller is current.
     def current?
       @_current
     end
@@ -122,6 +122,7 @@ module Tanuki
       nil
     end
 
+    # Calls +block+ once for each visible child controller on static or dynamic routes, passing it as a parameter.
     def each(&block)
       return Enumerator.new(self) unless block_given?
       ensure_configured!
@@ -157,7 +158,7 @@ module Tanuki
       nil
     end
 
-    # Returns the link to the current controller, switching the active controller on the respective path level to self.
+    # Returns the link to the current controller, switching the active controller on the respective path level to +self+.
     def forward_link
       uri_parts = @_ctx.env['REQUEST_PATH'].split(/(?<!\$)\//)
       link_parts = link.split(/(?<!\$)\//)
@@ -165,7 +166,7 @@ module Tanuki
       uri_parts.join('/') << ((qs = @_ctx.env['QUERY_STRING']).empty? ? '' : "?#{qs}")
     end
 
-    # Returns the number of children.
+    # Returns the number of visible child controllers on static and dynamic routes.
     def length
       if @_child_collection_defs.length > 0
         if @_length_is_valid
@@ -179,7 +180,7 @@ module Tanuki
       end
     end
 
-    # Process context passed to child
+    # Invoked when child controller context needs to be processed before initializing.
     def process_child_context(ctx, route)
       ctx
     end
@@ -198,21 +199,21 @@ module Tanuki
 
     private
 
-    # Defines a child of class klass on route with model, optionally hidden.
+    # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
     def has_child(klass, route, model=nil, hidden=false)
       @_child_defs[route] = {:class => klass, :model => model, :hidden => hidden}
       @_length += 1 unless hidden
       self
     end
 
-    # Defines a child collection of type parse_regexp.
+    # Defines a child collection of type +parse_regexp+, formatted back by +format_string+.
     def has_child_collection(parse_regexp, format_string, child_def_fetcher)
       @_child_defs[parse_regexp] = @_child_collection_defs.size
       @_child_collection_defs << {:parse => parse_regexp, :format => format_string, :fetcher => child_def_fetcher}
       @_length_is_valid = false
     end
 
-    # Invoked for route with args when a route is missing.
+    # Invoked for +route+ with +args+ when a route is missing. This hook can be used to make ghost routes.
     def missing_route(route, *args)
       @_ctx.missing_page.new(@_ctx, self, {:route => route, :args => []})
     end
@@ -225,12 +226,12 @@ module Tanuki
         @_arg_defs ||= superclass.arg_defs.dup
       end
 
-      # Escapes a given string for use in links.
+      # Escapes characters +chrs+ and encodes a given string +s+ for use in links.
       def escape(s, chrs)
         s ? Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, '$\0')) : nil
       end
 
-      # Extracts arguments, initializing default values beforehand. Searches md hash for default value overrides.
+      # Extracts arguments, initializing default values beforehand. Searches +md+ hash for default value overrides.
       def extract_args(md)
         res = []
         arg_defs.each_pair do |name, arg|
@@ -239,7 +240,7 @@ module Tanuki
         res
       end
 
-      # Builds link from root to self.
+      # Builds link from controller +ctrl+ to a given route.
       def grow_link(ctrl, route_part, arg_defs)
         own_link = escape(route_part[:route], '\/:') << route_part[:args].map do |k, v|
           arg_defs[k][:arg].default == v ? '' : ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
@@ -247,7 +248,7 @@ module Tanuki
         "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
       end
 
-      # Defines an argument with name, derived from object obj with additional args.
+      # Defines an argument with a +name+, derived from type +obj+ with additional +args+.
       def has_arg(name, obj, *args)
         # TODO Ensure thread safety
         arg_defs[name] = {:arg => Argument.to_argument(obj, *args), :index => @_arg_defs.size}
@@ -264,7 +265,7 @@ module Tanuki
 
     class << self
 
-      # Dispathes route chain in context ctx on request_path, starting with controller klass.
+      # Dispathes route chain in context +ctx+ on +request_path+, starting with controller +klass+.
       def dispatch(ctx, klass, request_path)
         parts = parse_path(request_path)
         curr = root_ctrl = klass.new(ctx, nil, nil, true)
@@ -297,7 +298,7 @@ module Tanuki
 
       private
 
-      # Parses path to return route name and arguments.
+      # Parses +path+ to return route name and arguments.
       def parse_path(path)
         path[1..-1].split(/(?<!\$)\//).map do |s|
           arr = s.gsub('$/', '/').split(/(?<!\$):/)
@@ -312,7 +313,7 @@ module Tanuki
         end
       end
 
-      # Unescape a given link part for internal use.
+      # Unescapes a given link part for internal use.
       def unescape(s)
         s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
       end

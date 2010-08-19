@@ -12,12 +12,12 @@ module Tanuki
 
     class << self
 
-      # Remove argument association for a given type class.
+      # Removes argument association for a given type class +klass+.
       def delete(klass)
         @assoc.delete(klass)
       end
 
-      # Associate a given type class with an argument class.
+      # Associates a given type class +klass+ with an argument class +arg_class+.
       def store(klass, arg_class)
         warn "Tanuki::Argument::Base is not an ancestor of `#{arg_class}'" unless arg_class.ancestors.include? Argument::Base
         @assoc[klass] = arg_class
@@ -25,7 +25,7 @@ module Tanuki
 
       alias_method :[], :store
 
-      # Convert a given type object to an argument object.
+      # Converts a given type object +obj+ to an argument object with optional +args+.
       def to_argument(obj, *args)
         if @assoc.include?(klass = obj.class)
           @assoc[klass].new(obj, *args)

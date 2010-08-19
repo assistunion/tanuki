@@ -6,12 +6,14 @@ module Tanuki
   # Use Tanuki::Context#child to create new contexts.
   class Context
 
-    # Create and return child context.
+    # Creates and returns child context object.
+    # This object's superclass is going to be current context class.
     def child
       Class.new(self.class).new
     end
 
-    # Kernel#method_missing hook.
+    # Allowes arbitary values to be assigned to context with a +key=+ method.
+    # A reader in context object class is created for each assigned value.
     def method_missing(sym, arg=nil)
       match = sym.to_s.match(/^([^=]+)(=)?$/)
       self.class.instance_eval do

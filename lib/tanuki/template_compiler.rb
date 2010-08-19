@@ -5,7 +5,7 @@ module Tanuki
 
     class << self
 
-      # Compiles a template from a given src string to ios for method sym in class klass.
+      # Compiles a template from a given +src+ string to +ios+ for method +sym+ in class +klass+.
       def compile_template(ios, src, klass, sym)
         ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
           "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)"
@@ -14,7 +14,7 @@ module Tanuki
         ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
       end
 
-      # Compiles code from a given src string to ios.
+      # Compiles code from a given +src+ string to +ios+.
       def compile(ios, src)
         state = :outer
         last_state = nil
@@ -68,6 +68,7 @@ module Tanuki
       # Scanner states that output the evaluated result.
       PRINT_STATES = [:outer, :code_print]
 
+      # Generates code for Ruby template bits from a given +src+ to +ios+ for a given +state+.
       def process_code_state(ios, src, state)
         src.strip!
         src.gsub! /^[ \t]+/, ''
@@ -86,7 +87,7 @@ module Tanuki
         end
       end
 
-      # Returns the next expected pattern for a given state.
+      # Returns the next expected pattern for a given +state+.
       def expect_pattern(state)
         case state
         when :outer then %r{^\s*%%?|<%[=!_#%]?|<l10n>}
@@ -96,7 +97,7 @@ module Tanuki
         end
       end
 
-      # Returns the next state for a given match and current state.
+      # Returns the next state for a given +match+ and a given +state+.
       def next_state(state, match)
         case state
         when :outer then
@@ -121,7 +122,7 @@ module Tanuki
         end
       end
 
-      # Generates localization code from src.
+      # Generates localization code from +src+ to +ios+.
       def localize(ios, src)
         index = 0
         lngs = []

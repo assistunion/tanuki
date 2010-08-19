@@ -6,7 +6,7 @@ module Tanuki
 
       attr_reader :default, :value
 
-      # Initializes the argument with a default value.
+      # Initializes the argument with a +default+ value.
       def initialize(default)
         @value = @default = default
       end
@@ -16,7 +16,7 @@ module Tanuki
         @value.to_s
       end
 
-      # Sets the value with required rules.
+      # Sets the value to +obj+ with required rules.
       def value=(obj)
         @value = to_value(obj)
       end

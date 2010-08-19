@@ -1,12 +1,12 @@
 class Module
 
-  # Creates a reader +sym+ and a writer +sym=+ for the instance variable +@_sym+.
+  # Creates a reader +sym+ and a writer +sym=+ for the instance variable @_sym.
   def internal_attr_accessor(*syms)
     internal_attr_reader(*syms)
     internal_attr_writer(*syms)
   end
 
-  # Creates a reader +sym+ for the instance variable +@_sym+.
+  # Creates a reader +sym+ for the instance variable @_sym.
   def internal_attr_reader(*syms)
     syms.each do |sym|
       ivar = "@_#{sym}".to_sym
@@ -15,7 +15,7 @@ class Module
     end
   end
 
-  # Creates a writer +sym=+ for the instance variable +@_sym+.
+  # Creates a writer +sym=+ for the instance variable @_sym.
   def internal_attr_writer(*syms)
     syms.each do |sym|
       ivar = "@_#{sym}".to_sym

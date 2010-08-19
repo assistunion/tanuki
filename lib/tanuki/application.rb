@@ -9,12 +9,12 @@ module Tanuki
 
     class << self
 
-      # Removes a given middleware from the Rack middleware pipeline
+      # Removes a given middleware from the Rack middleware pipeline.
       def discard(middleware)
         @rack_middleware.delete(middleware)
       end
 
-      # Runs the application with current settings
+      # Runs the application with current settings.
       def run
         rack_builder = Rack::Builder.new
         @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
@@ -24,17 +24,17 @@ module Tanuki
         srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
       end
 
-      # Sets an option to value in the current context.
+      # Sets an +option+ to +value+ in the current context.
       def set(option, value)
         @context.send("#{option}=".to_sym, value)
       end
 
-      # Adds a given middleware to the Rack middleware pipeline
+      # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
       def use(middleware, *args, &block)
         @rack_middleware[middleware] = [args, block]
       end
 
-      # Adds a template visitor block. This block must return a Proc.
+      # Adds a template visitor +block+. This +block+ must return a +Proc+.
       #
       #  visitor :escape do
       #    s = ''
@@ -67,7 +67,7 @@ module Tanuki
         raise "servers #{@context.server.join(', ')} not found"
       end
 
-      # Returns an array of template outputs for controller ctrl in context ctx.
+      # Returns an array of template outputs for controller +ctrl+ in context +request_ctx+.
       def build_body(ctrl, request_ctx)
         arr = []
         Launcher.new(ctrl, request_ctx).each &proc {|out| arr << out.to_s }
