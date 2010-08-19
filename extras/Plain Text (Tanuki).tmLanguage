@@ -4,22 +4,10 @@
 <dict>
 	<key>fileTypes</key>
 	<array>
-		<string>thtml</string>
+		<string>ttxt</string>
 	</array>
-	<key>foldingStartMarker</key>
-	<string>(?x)
-		(&lt;(?i:head|body|table|thead|tbody|tfoot|tr|div|select|fieldset|style|script|ul|ol|form|dl)\b.*?&gt;
-		|&lt;!--(?!.*--&gt;)
-		|\{\s*($|\?&gt;\s*$|//|/\*(.*\*/\s*$|(?!.*?\*/)))
-		)</string>
-	<key>foldingStopMarker</key>
-	<string>(?x)
-		(&lt;/(?i:head|body|table|thead|tbody|tfoot|tr|div|select|fieldset|style|script|ul|ol|form|dl)&gt;
-		|^\s*--&gt;
-		|(^|\s)\}
-		)</string>
 	<key>name</key>
-	<string>HTML (Tanuki)</string>
+	<string>Plain Text (Tanuki)</string>
 	<key>patterns</key>
 	<array>
 		<dict>
@@ -42,7 +30,7 @@
 			<key>match</key>
 			<string>^\s*%%|&lt;%%</string>
 			<key>name</key>
-			<string>text.html.basic</string>
+			<string>text.plain</string>
 		</dict>
 		<dict>
 			<key>begin</key>
@@ -58,7 +46,7 @@
 			<key>end</key>
 			<string>-?%&gt;</string>
 			<key>name</key>
-			<string>source.ruby.tanuki.embedded.html</string>
+			<string>source.ruby.tanuki.embedded.plain</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -93,7 +81,7 @@
 			<key>end</key>
 			<string>$</string>
 			<key>name</key>
-			<string>source.ruby.tanuki.embedded.html</string>
+			<string>source.ruby.tanuki.embedded.plain</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -124,12 +112,12 @@
 		</dict>
 		<dict>
 			<key>include</key>
-			<string>text.html.basic</string>
+			<string>text.plain</string>
 		</dict>
 	</array>
 	<key>scopeName</key>
-	<string>text.html.tanuki</string>
+	<string>text.plain.tanuki</string>
 	<key>uuid</key>
-	<string>11082450-51D9-4728-9E38-88798954ED88</string>
+	<string>2C70B745-C5B1-4EEB-BF91-2D62E1880C7D</string>
 </dict>
 </plist>
