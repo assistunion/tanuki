@@ -21,7 +21,4 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'escape_utils', '>= 0.1.5'
   s.add_development_dependency 'rake', '>= 0.8.7'
   s.add_development_dependency 'rspec', '>= 1.3.0'
-
-  s.post_install_message = "#{'=' * 79}\n\nHello #{Etc.getlogin}!\nYour very own Tanuki adventure awaits!\n" \
-    "Type `tanuki init yourproject' to get started.\nTyping `tanuki help' will show what you can do.\n\n#{'=' * 79}"
 end
