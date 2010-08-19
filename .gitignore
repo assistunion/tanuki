@@ -1,0 +1,9 @@
+*.swp
+*~
+.DS_Store
+*.tmproj
+/app/test/.*
+/cache/.*
+/docs/.*
+/misc/.*
+/main.*
