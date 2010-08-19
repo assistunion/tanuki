@@ -23,7 +23,7 @@ end
 
 desc 'Build gem from current sources and push to RubyGems.org'
 task :release => :build do
-  system "gem push tanuki-#{::Tanuki::VERSION}"
+  system "gem push tanuki-#{::Tanuki::VERSION}.gem"
 end
 
 desc 'Run specs, build RDoc, and build gem'

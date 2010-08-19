@@ -11,7 +11,7 @@ Gem::Specification.new do |s|
 
   s.authors = ['Anatoly Ressin', 'Dimitry Solovyov']
   s.email = 'tanuki@dimituri.com'
-  s.homepage = 'http://bitbucket.org/dimituri/tanuki'
+  s.homepage = 'http://github.com/dimituri/tanuki'
 
   s.files = Dir.glob(File.join("{#{File.join('app', 'tanuki')},bin,lib,#{File.join('schema', 'tanuki')}}", '**', '*')) \
     << 'LICENSE' << 'README.rdoc'
