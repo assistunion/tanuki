@@ -8,27 +8,27 @@ module Tanuki
 
       private
 
-      # Invokes Tanuki::Argument.store.
+      # Invokes Tanuki::Argument::store.
       def argument(klass, arg_class)
         Argument.store(klass, arg_class)
       end
 
-      # Invokes Tanuki::Application.set.
+      # Invokes Tanuki::Application::set.
       def set(option, value)
         Application.set(option, value)
       end
 
-      # Invokes Tanuki::Application.use.
+      # Invokes Tanuki::Application::use.
       def use(middleware, *args, &block)
         Application.use(middleware, *args, &block)
       end
 
-      # Invokes Tanuki::Application.discard.
+      # Invokes Tanuki::Application::discard.
       def discard(middleware)
         Application.discard(middleware)
       end
 
-      # Invokes Tanuki::Application.visitor.
+      # Invokes Tanuki::Application::visitor.
       def visitor(sym, &block)
         Application.visitor(sym, &block)
       end

@@ -4,12 +4,12 @@ module Tanuki
   # In is included in the base framework object class.
   module ObjectBehavior
 
-    # Shortcut to Tanuki::Loader.has_template?. Used internally by templates.
+    # Shortcut to Tanuki::Loader::has_template?. Used internally by templates.
     def _has_tpl(ctx, klass, sym)
       Tanuki::Loader.has_template?(ctx.templates, klass, sym)
     end
 
-    # Shortcut to Tanuki::Loader.run_template. Used internally by templates.
+    # Shortcut to Tanuki::Loader::run_template. Used internally by templates.
     def _run_tpl(ctx, obj, sym, *args, &block)
       Tanuki::Loader.run_template(ctx.templates, obj, sym, *args, &block)
     end
@@ -19,7 +19,7 @@ module Tanuki
       ctx
     end
 
-    # Kernel#method_missing hook for fetching views.
+    # Allows to return template blocks. E. g. returns +foobar+ template block when +foobar_view+ method is called.
     def method_missing(sym, *args, &block)
       if matches = sym.to_s.match(/^(.*)_view$/)
         return Tanuki::Loader.run_template({}, self, matches[1].to_sym, *args, &block)

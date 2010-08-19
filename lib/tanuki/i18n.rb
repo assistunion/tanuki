@@ -21,7 +21,7 @@ module Tanuki
       @_visual_child.default_view
     end
 
-    # Adds child language to its context.
+    # Adds child controller language to its context.
     def process_child_context(ctx, route)
       ctx = ctx.child
       ctx.language = route.to_sym

@@ -5,22 +5,25 @@ module Tanuki
 
     class << self
 
-      # Returns the path to a source file containing class klass.
+      # Returns the path to a source file containing class +klass+.
       def class_path(klass)
         path = const_to_path(klass, @context.app_root, File::SEPARATOR)
         File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
       end
 
+      # Assigns a context to Tanuki::Loader.
+      # This context should have common framework paths defined in it.
       def context=(ctx)
         @context = ctx
       end
 
-      # Checks if templates contain a compiled template sym for class klass
+      # Checks if +templates+ contain a compiled template +sym+ for class +klass+.
       def has_template?(templates, klass, sym)
         templates.include? "#{klass}##{sym}"
       end
 
-      # Runs template sym from obj.
+      # Runs template +sym+ with optional +args+ and +block+ from object +obj+.
+      #
       # Template is recompiled from source on two conditions:
       # * template source modification time is older than compiled template modification time,
       # * Tanuki::TemplateCompiler source modification time is older than compiled template modification time.
@@ -60,9 +63,9 @@ module Tanuki
       # Extension glob for template files.
       TEMPLATE_EXT = '.t{html,txt}'
 
-      # Compiles template sym from owner class using source in st_file to ct_path.
+      # Compiles template +sym+ from +owner+ class using source in +st_file+ to +ct_path+.
       # Compilation is only done if destination file modification time has not changed
-      # (is equal to ct_file_mtime) since file locking was initiated.
+      # (is equal to +ct_file_mtime+) since file locking was initiated.
       def compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
         no_refresh = true
         st_file.flock(File::LOCK_EX)
@@ -79,22 +82,22 @@ module Tanuki
         no_refresh
       end
 
-      # Returns the path to a compiled template file containing template method_name for class klass.
+      # Returns the path to a compiled template file containing template +method_name+ for class +klass+.
       def compiled_template_path(klass, method_name)
         File.join(const_to_path(klass, @context.cache_root, '.'), method_name.to_s << '.rb')
       end
 
-      # Transforms a given constant klass to path with a given root and separated by sep.
+      # Transforms a given constant +klass+ to a path with a given +root+, separated by +sep+.
       def const_to_path(klass, root, sep)
         File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep).downcase)
       end
 
-      # Returns the path to a source file containing template method_name for class klass.
+      # Returns the path to a source file containing template +method_name+ for class +klass+.
       def source_template_path(klass, method_name)
         template_path(klass, method_name, @context.app_root, File::SEPARATOR, TEMPLATE_EXT)
       end
 
-      # Finds the direct template method_name owner among ancestors of class klass.
+      # Finds the direct template +method_name+ owner among ancestors of class +klass+.
       def template_owner(klass, method_name)
         method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
@@ -105,8 +108,8 @@ module Tanuki
         nil
       end
 
-      # Returns the path to a file containing template method_name for class klass.
-      # This is done with a given root, extension ext, and separated by sep.
+      # Returns the path to a file containing template +method_name+ for class +klass+.
+      # This is done with a given +root+, extension +ext+, and separated by +sep+.
       def template_path(klass, method_name, root, sep, ext)
         if owner = template_owner(klass, method_name)
           return Dir.glob(File.join(const_to_path(owner, root, sep), method_name.to_s << ext))[0]
