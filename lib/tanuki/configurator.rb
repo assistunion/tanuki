@@ -39,6 +39,7 @@ module Tanuki
 
   # Creates default configuration for development environments.
   def self.development_application(&block)
+    Application.set :development, true
     Application.instance_eval do
       use Rack::CommonLogger
       use Rack::Lint
@@ -50,6 +51,7 @@ module Tanuki
 
   # Creates default configuration for production environments.
   def self.production_application(&block)
+    Application.set :development, false
     common_application(&block)
   end
 
@@ -66,6 +68,7 @@ module Tanuki
       set :root, File.dirname($0)
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
+      set :schema_root, proc { File.join(root, 'schema') }
       set :root_page, ::User_Page_Index
       set :missing_page, ::Tanuki_Page_Missing
       set :i18n, false
