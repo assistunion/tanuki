@@ -2,8 +2,8 @@
 *~
 .DS_Store
 *.tmproj
-/app/test/.*
-/cache/.*
-/docs/.*
-/misc/.*
+/app/test/*
+/cache/*
+/docs/*
+/misc/*
 /main.*
