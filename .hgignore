@@ -5,7 +5,7 @@ syntax: glob
 *.tmproj
 
 syntax: re
-app/user/.*
+app/test/.*
 cache/.*
 docs/.*
 misc/.*
