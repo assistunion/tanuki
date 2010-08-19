@@ -110,10 +110,6 @@
 				</dict>
 			</array>
 		</dict>
-		<dict>
-			<key>include</key>
-			<string>text.plain</string>
-		</dict>
 	</array>
 	<key>scopeName</key>
 	<string>text.plain.tanuki</string>
