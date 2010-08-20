@@ -4,7 +4,7 @@ module Tanuki
   # It contains core application functionality like configuration, request handling and view management.
   class Application
 
-    @context = Loader.context = Context.new
+    @context = Loader.context = Context
     @rack_middleware = {}
 
     class << self

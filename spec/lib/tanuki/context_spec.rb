@@ -4,7 +4,7 @@ module Tanuki
   describe Context do
 
     before :each do
-      @ctx = Context.new.child
+      @ctx = Context.child
     end
 
     it 'should register missing entries' do
@@ -19,7 +19,7 @@ module Tanuki
 
     it 'should allow to make independent child contexts' do
       child_ctx = @ctx.child
-      child_ctx.should be_a Context
+      child_ctx.superclass.should == @ctx
       child_ctx.should_not equal @ctx
       child_ctx.should_not equal @ctx.child
     end
@@ -29,6 +29,15 @@ module Tanuki
       child_ctx.foo = 'bar'
       child_ctx = @ctx.child
       lambda { child_ctx.foo = 'bar' }.should_not raise_error
+    end
+
+    it 'should not allow instantiation' do
+      lambda { @ctx.new }.should raise_error
+    end
+
+    it "should not allow to redefine `child' and `method_missing' methods" do
+      lambda { @ctx.child = nil }.should raise_error
+      lambda { @ctx.method_missing = nil }.should raise_error
     end
 
   end # end describe Context
