@@ -4,7 +4,7 @@ module Tanuki
   describe Context do
 
     before :each do
-      @ctx = Context.new.child
+      @ctx = Context.child
     end
 
     it 'should register missing entries' do
@@ -19,7 +19,7 @@ module Tanuki
 
     it 'should allow to make independent child contexts' do
       child_ctx = @ctx.child
-      child_ctx.should be_a Context
+      child_ctx.superclass.should == @ctx
       child_ctx.should_not equal @ctx
       child_ctx.should_not equal @ctx.child
     end
