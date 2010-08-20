@@ -35,5 +35,10 @@ module Tanuki
       lambda { @ctx.new }.should raise_error
     end
 
+    it "should not allow to redefine `child' and `method_missing' methods" do
+      lambda { @ctx.child = nil }.should raise_error
+      lambda { @ctx.method_missing = nil }.should raise_error
+    end
+
   end # end describe Context
 end # end Tanuki

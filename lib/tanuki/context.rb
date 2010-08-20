@@ -15,7 +15,8 @@ module Tanuki
     # Allowes arbitary values to be assigned to context with a +key=+ method.
     # A reader in context object class is created for each assigned value.
     def self.method_missing(sym, arg=nil)
-      match = sym.to_s.match(/^([^=]+)(=)?$/)
+      match = sym.to_s.match(/\A(?!(?:child|method_missing)=\Z)([^=]+)(=)?\Z/)
+      raise "`#{sym}' method cannot be called for Context and its descendants" unless match
       class << self; self; end.instance_eval do
         method_sym = match[1].to_sym
         unless instance_methods(false).include? method_sym
