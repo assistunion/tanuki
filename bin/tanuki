@@ -3,7 +3,7 @@ module Tanuki
   class << self
     def create(name)
       require 'fileutils'
-      version
+      version unless @in_repl
       puts "\n creating #{name = name.downcase}"
       FileUtils.mkdir name
       puts " copying app/tanuki"
@@ -21,8 +21,20 @@ module Tanuki
       File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.development_application" }
     end
 
+    def execute(args)
+      case args[0]
+      when 'create' then create(args[1])
+      when 'exit' then @in_repl ? (return false) : help
+      when 'help' then help
+      when 'version' then version
+      when nil then start_repl unless @in_repl
+      else help
+      end
+      true
+    end
+
     def help
-      version
+      version unless @in_repl
       puts "\nbasic commands:\n"
       {
         'help'    => 'show help (this text)',
@@ -32,12 +44,14 @@ module Tanuki
     end
 
     def init
-      case ARGV[0]
-      when /\Ac(r(e(a(te?)?)?)?)?\Z/, '--create', '-c' then create(ARGV[1])
-      when /\Ah(e(lp?)?)?\Z/, '--help', '-h', nil then help
-      when /\Av(e(r(s(i(on?)?)?)?)?)?\Z/, '--version', '-v' then version
-      else create(ARGV[0])
-      end
+      @in_repl = false
+      execute ARGV
+    end
+
+    def start_repl
+      @in_repl = true
+      print 'tanuki>'
+      print "\ntanuki>" while gets && execute($_.scan /(?<=")\w[\w\s]*(?=")|\w+/)
     end
 
     def version
