@@ -1,4 +1,4 @@
-class User_Model_<%= class_name %>_Base < Tanuki_Object
+class <%= class_name_for :model_base %> < Tanuki_Object
   extend Tanuki::ModelBehavior
 
   class << self
@@ -12,4 +12,4 @@ class User_Model_<%= class_name %>_Base < Tanuki_Object
 
   end # end class << self
 
-end # end User_Model_<%= class_name %>_Base
+end # end <%= class_name_for :model_base %>

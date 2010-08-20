@@ -1,2 +1,2 @@
-class User_Model_<%= class_name %> < User_Model_<%= class_name %>_Base
+class <%= class_name_for :model %> < <%= class_name_for :model_base %>
 end
