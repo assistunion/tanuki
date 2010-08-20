@@ -3,13 +3,12 @@ namespaces:
     default: Tanuki
 source:
     table: tanuki_pages
-    alias: tp
-key: tp.id
-to_s: [tp.long_title, tp.title]
+key: id
+to_s: [long_title, title]
 order:
     by:
-        tp.parent_id: asc
-        tp.order: asc
+        parent_id: asc
+        order: asc
     reorder: tp.order
 attributes:
     parent: { type: Object, required: true }
@@ -28,9 +27,9 @@ relations:
         type: one-to-many
         inverse: children
         join:
-            alias: tpp
+            alias: tp
             on:
-                tpp.id: tp.parent_id
+                tp.id: parent_id
     controller:
         class: Controller
         type: one-to-many
@@ -38,7 +37,7 @@ relations:
         join:
             alias: tc
             on:
-                tc.id: tp.parent_id
+                tc.id: parent_id
 list:
     parent: ~
     title: { link: true }
