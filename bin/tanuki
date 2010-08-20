@@ -51,7 +51,7 @@ module Tanuki
     def start_repl
       @in_repl = true
       print 'tanuki>'
-      print "\ntanuki>" while gets && execute($_.scan /(?<=")\w[\w\s]*(?=")|\w+/)
+      print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")\w[\w\s]*(?=")|\w+/)
     end
 
     def version
