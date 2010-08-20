@@ -46,19 +46,21 @@ module Tanuki
       use Rack::Reloader, 0
       use Rack::ShowExceptions
     end
-    common_application(&block)
+    common_application
+    user_application(&block)
   end
 
   # Creates default configuration for production environments.
   def self.production_application(&block)
     Application.set :development, false
-    common_application(&block)
+    common_application
+    user_application(&block)
   end
 
   private
 
   # Creates default configuration for common environments.
-  def self.common_application(&block)
+  def self.common_application
     Application.instance_eval do
       use Rack::Head
       use Rack::ShowStatus
@@ -68,6 +70,7 @@ module Tanuki
       set :root, File.expand_path('..', $0)
       set :app_root, proc { File.join(root, 'app') }
       set :cache_root, proc { File.join(root, 'cache') }
+      set :config_root, proc { File.join(root, 'config') }
       set :schema_root, proc { File.join(root, 'schema') }
       set :root_page, ::User_Page_Index
       set :missing_page, ::Tanuki_Page_Missing
@@ -86,6 +89,10 @@ module Tanuki
       store String, Argument::String
     end
     Application.instance_eval { @context = @context.child }
+  end
+
+  # Processes user application configuration.
+  def self.user_application(&block)
     Configurator.instance_eval(&block) if block_given?
     Application.run
   end
