@@ -31,5 +31,9 @@ module Tanuki
       lambda { child_ctx.foo = 'bar' }.should_not raise_error
     end
 
+    it 'should not allow instantiation' do
+      lambda { @ctx.new }.should raise_error
+    end
+
   end # end describe Context
 end # end Tanuki

@@ -33,6 +33,11 @@ module Tanuki
       super
     end
 
+    # Disallow context instantiation
+    def self.new
+      raise "contexts cannot be instantiated"
+    end
+
   end # end Context
 
 end # end Tanuki
