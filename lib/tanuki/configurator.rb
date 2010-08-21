@@ -80,6 +80,8 @@ module Tanuki
       set :languages, proc { language_fallback.keys }
       set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
       set :best_translation, proc {|trn| language_fallback[language].each {|lng| return trn[lng] if trn.include? lng }; nil }
+      set :connections, {}
+      set :namespace_contexts, {}
       visitor :string do s = ''; proc {|out| s << out.to_s } end
     end
     Argument.instance_eval do
