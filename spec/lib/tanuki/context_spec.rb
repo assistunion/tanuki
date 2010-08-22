@@ -25,10 +25,8 @@ module Tanuki
     end
 
     it 'should allow reassignment in child contexts' do
-      child_ctx = @ctx.child
-      child_ctx.foo = 'bar'
-      child_ctx = @ctx.child
-      lambda { child_ctx.foo = 'bar' }.should_not raise_error
+      @ctx.foo = 'bar'
+      lambda { @ctx.child.foo = 'bar' }.should_not raise_error
     end
 
     it 'should not allow instantiation' do
