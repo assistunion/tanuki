@@ -1,17 +1,20 @@
+require 'tanuki/extensions/module_extensions'
+require 'tanuki/extensions/object_extensions'
 require 'tanuki/context'
 require 'tanuki/controller_behavior'
 require 'tanuki/loader'
+require 'tanuki/object_behavior'
 require 'tanuki/template_compiler'
 
 module Tanuki
   describe Loader do
 
     before :all do
-      @root_context = Tanuki::Context.new.child
+      @root_context = Tanuki::Context.child
       @root_context.app_root = 'app'
       @root_context.cache_root = 'cache'
-      @root_context.missing_page = ::Tanuki_Page_Missing
       Loader.context = @root_context
+      @root_context.missing_page = ::Tanuki_Page_Missing
     end
 
     it 'should find the path to missing application classes' do
@@ -21,6 +24,18 @@ module Tanuki
       Loader.class_path(:Aa_Bb).should == File.join('app', 'aa', 'bb', 'bb.rb')
       Loader.class_path(:Aa_BbCc).should == File.join('app', 'aa', 'bb_cc', 'bb_cc.rb')
       Loader.class_path(:AaBb_CcDd).should == File.join('app', 'aa_bb', 'cc_dd', 'cc_dd.rb')
+    end
+
+    it 'should find template sources through receiver ancestors' do
+      Loader.instance_eval { template_owner(::Tanuki_Controller, :default) }.should ==
+        [::Tanuki_Controller, File.join('app', 'tanuki', 'controller', 'default.thtml')]
+      Loader.instance_eval { template_owner(::Tanuki_Page_Missing, :index) }.should ==
+        [::Tanuki_Controller, File.join('app', 'tanuki', 'controller', 'index.thtml')]
+    end
+
+    it 'should assemble the path to compiled templates' do
+      Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :default) }.should ==
+        File.join('cache', 'tanuki.page.missing', 'default.rb')
     end
 
     it 'should remember templates it ran at least once for each request' do
@@ -45,13 +60,6 @@ module Tanuki
       ctrl.should_receive(:index_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :index) }, :force => true
       Loader.run_template({}, ctrl, :index)
-    end
-
-    it 'should find the path to compiled templates' do
-      Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :default) }.should ==
-        File.join('cache', 'tanuki.page.missing', 'default.rb')
-      Loader.instance_eval { compiled_template_path(::Tanuki_Page_Missing, :index) }.should ==
-        File.join('cache', 'tanuki.controller', 'index.rb')
     end
 
   end # end describe Loader

@@ -28,10 +28,9 @@ module Tanuki
       # * template source modification time is older than compiled template modification time,
       # * Tanuki::TemplateCompiler source modification time is older than compiled template modification time.
       def run_template(templates, obj, sym, *args, &block)
-        st_path = source_template_path(obj.class, sym)
+        owner, st_path = *template_owner(obj.class, sym)
         if st_path
-          owner = template_owner(obj.class, sym)
-          ct_path = compiled_template_path(obj.class, sym)
+          ct_path = compiled_template_path(owner, sym)
           ct_file_exists = File.file?(ct_path)
           ct_file_mtime = ct_file_exists ? File.mtime(ct_path) : nil
           st_file = File.new(st_path, 'r:UTF-8')
@@ -92,29 +91,14 @@ module Tanuki
         File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep).downcase)
       end
 
-      # Returns the path to a source file containing template +method_name+ for class +klass+.
-      def source_template_path(klass, method_name)
-        template_path(klass, method_name, @context.app_root, File::SEPARATOR, TEMPLATE_EXT)
-      end
-
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.
       def template_owner(klass, method_name)
         method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
-          unless Dir.glob(File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file)).empty?
-            return ancestor
-          end
+          files = Dir.glob(File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file))
+          return ancestor, files[0] unless files.empty?
         end
-        nil
-      end
-
-      # Returns the path to a file containing template +method_name+ for class +klass+.
-      # This is done with a given +root+, extension +ext+, and separated by +sep+.
-      def template_path(klass, method_name, root, sep, ext)
-        if owner = template_owner(klass, method_name)
-          return Dir.glob(File.join(const_to_path(owner, root, sep), method_name.to_s << ext))[0]
-        end
-        nil
+        [nil, nil]
       end
 
     end # end class << self
