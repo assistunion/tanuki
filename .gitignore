@@ -12,7 +12,7 @@
 !/app/tanuki/model/page/*.thtml
 /app/test
 /cache
-/config
+/config/data_sources.yml
 /docs
 /misc
 /main.*
