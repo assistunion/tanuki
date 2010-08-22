@@ -5,13 +5,13 @@ module Tanuki
 
     before :each do
       Application.instance_eval do
-        @context = Tanuki::Loader.context = Tanuki::Context.new.child
+        @context = Tanuki::Loader.context = Tanuki::Context.child
+        @context.app_root = 'app'
+        @context.cache_root = 'cache'
+        @context.root_page = ::Tanuki_Controller
+        @context.missing_page = ::Tanuki_Page_Missing
         @rack_middleware = {}
       end
-      Application.set :app_root, 'app'
-      Application.set :cache_root, 'cache'
-      Application.set :root_page, ::Tanuki_Controller
-      Application.set :missing_page, ::Tanuki_Page_Missing
     end
 
     it 'should add and remove Rack middleware' do
@@ -34,7 +34,7 @@ module Tanuki
 
     it 'should find the best available server' do
       random_servers = (0..3).map { (0...8).map { (65 + rand(25)).chr }.join.to_sym }
-      Application.set :server, random_servers
+      Application.instance_eval { @context.server = random_servers }
       Rack::Handler.should_receive(:get).exactly(4).times.and_raise([LoadError, NameError].shuffle[0])
       lambda { Application.instance_eval { available_server } }.should raise_error
       Rack::Handler.should_receive(:get).with(random_servers[0].downcase).and_raise(LoadError)
@@ -64,7 +64,7 @@ module Tanuki
     end
 
     it 'should have this block build pages with response code 200' do
-      Application.set :i18n, false
+      Application.instance_eval { @context.i18n = false }
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
       result[0].should == 200
       result[1].should be_a Hash
@@ -73,7 +73,7 @@ module Tanuki
     end
 
     it 'should have this block build pages with response code 404' do
-      Application.set :i18n, false
+      Application.instance_eval { @context.i18n = false }
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/missing'})
       result[0].should == 404
       result[1].should be_a Hash
@@ -82,9 +82,11 @@ module Tanuki
     end
 
     it 'should have this block build redirects with response code 302' do
-      Application.set :i18n, true
-      Application.set :language, :ru
-      Application.set :languages, [:ru]
+      Application.instance_eval do
+        @context.i18n = true
+        @context.language = :ru
+        @context.languages = [:ru]
+      end
       result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
       result[0].should == 302
       result[1].should be_a Hash
