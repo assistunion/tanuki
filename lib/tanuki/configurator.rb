@@ -4,97 +4,45 @@ module Tanuki
   # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
-    class << self
+    # Creates a new configurator.
+    def initialize(ctx)
+      @context = ctx
+      set :root, File.expand_path('..', $0)
+      @config_root = File.join(@context.root, 'config');
+    end
 
-      private
+    # Loads and executes a given configuraion file with symbolic name +config+.
+    def load_config(config)
+      instance_eval File.read(File.join(@config_root, config.to_s) << '.rb')
+    end
 
-      # Invokes Tanuki::Argument::store.
-      def argument(klass, arg_class)
-        Argument.store(klass, arg_class)
-      end
+    private
 
-      # Invokes Tanuki::Application::set.
-      def set(option, value)
-        Application.set(option, value)
-      end
+    # Invokes Tanuki::Argument::store.
+    def argument(klass, arg_class)
+      Argument.store(klass, arg_class)
+    end
 
-      # Invokes Tanuki::Application::use.
-      def use(middleware, *args, &block)
-        Application.use(middleware, *args, &block)
-      end
+    # Sets an +option+ to +value+ in the current context.
+    def set(option, value)
+      @context.send("#{option}=".to_sym, value)
+    end
 
-      # Invokes Tanuki::Application::discard.
-      def discard(middleware)
-        Application.discard(middleware)
-      end
+    # Invokes Tanuki::Application::use.
+    def use(middleware, *args, &block)
+      Application.use(middleware, *args, &block)
+    end
 
-      # Invokes Tanuki::Application::visitor.
-      def visitor(sym, &block)
-        Application.visitor(sym, &block)
-      end
+    # Invokes Tanuki::Application::discard.
+    def discard(middleware)
+      Application.discard(middleware)
+    end
 
-    end # end class << self
+    # Invokes Tanuki::Application::visitor.
+    def visitor(sym, &block)
+      Application.visitor(sym, &block)
+    end
 
   end # end Configurator
-
-  # Creates default configuration for development environments.
-  def self.development_application(&block)
-    Application.set :development, true
-    Application.instance_eval do
-      use Rack::CommonLogger
-      use Rack::Lint
-      use Rack::Reloader, 0
-      use Rack::ShowExceptions
-    end
-    common_application
-    user_application(&block)
-  end
-
-  # Creates default configuration for production environments.
-  def self.production_application(&block)
-    Application.set :development, false
-    common_application
-    user_application(&block)
-  end
-
-  private
-
-  # Creates default configuration for common environments.
-  def self.common_application
-    Application.instance_eval do
-      use Rack::Head
-      use Rack::ShowStatus
-      set :server, [:thin, :mongrel, :webrick]
-      set :host, '0.0.0.0'
-      set :port, 3000
-      set :root, File.expand_path('..', $0)
-      set :app_root, proc { File.join(root, 'app') }
-      set :cache_root, proc { File.join(root, 'cache') }
-      set :config_root, proc { File.join(root, 'config') }
-      set :schema_root, proc { File.join(root, 'schema') }
-      set :root_page, ::User_Page_Index
-      set :missing_page, ::Tanuki_Page_Missing
-      set :i18n, false
-      set :language, nil
-      set :language_fallback, {}
-      set :languages, proc { language_fallback.keys }
-      set :best_language, proc {|lngs| language_fallback[language].each {|lng| return lng if lngs.include? lng }; nil }
-      set :best_translation, proc {|trn| language_fallback[language].each {|lng| return trn[lng] if trn.include? lng }; nil }
-      visitor :string do s = ''; proc {|out| s << out.to_s } end
-    end
-    Argument.instance_eval do
-      store Fixnum, Argument::Integer
-      store Bignum, Argument::Integer
-      store Range, Argument::IntegerRange
-      store String, Argument::String
-    end
-    Application.instance_eval { @context = @context.child }
-  end
-
-  # Processes user application configuration.
-  def self.user_application(&block)
-    Configurator.instance_eval(&block) if block_given?
-    Application.run
-  end
 
 end # end Tanuki

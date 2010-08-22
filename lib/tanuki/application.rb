@@ -4,7 +4,7 @@ module Tanuki
   # It contains core application functionality like configuration, request handling and view management.
   class Application
 
-    @context = Loader.context = Context
+    @context = (Loader.context = Context).child
     @rack_middleware = {}
 
     class << self
@@ -22,11 +22,6 @@ module Tanuki
         srv = available_server
         puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
         srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
-      end
-
-      # Sets an +option+ to +value+ in the current context.
-      def set(option, value)
-        @context.send("#{option}=".to_sym, value)
       end
 
       # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
