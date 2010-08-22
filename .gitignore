@@ -4,6 +4,7 @@
 *.tmproj
 /app/test
 /cache
+/config/data_sources.yml
 /docs
 /misc
 /main.*
