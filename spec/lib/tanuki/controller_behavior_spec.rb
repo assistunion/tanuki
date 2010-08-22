@@ -1,7 +1,7 @@
 require 'tanuki'
 
 module Tanuki
-  ctx = Context.new.child
+  ctx = Context.child
   ctx.app_root = 'app'
   ctx.cache_root = 'cache'
   Loader.context = ctx
@@ -10,7 +10,7 @@ end
 describe Tanuki_Controller do
 
   before :all do
-    ctx = Tanuki::Context.new.child
+    ctx = Tanuki::Context.child
     ctx.app_root = 'app'
     ctx.cache_root = 'cache'
     Tanuki::Loader.context = ctx
