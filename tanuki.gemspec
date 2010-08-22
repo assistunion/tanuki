@@ -13,8 +13,8 @@ Gem::Specification.new do |s|
   s.email = 'tanuki@dimituri.com'
   s.homepage = 'http://github.com/dimituri/tanuki'
 
-  s.files = Dir.glob(File.join("{#{File.join('app', '{tanuki,user}')},bin,lib,#{File.join('schema', 'tanuki')}}", '**', '*')) \
-    << 'LICENSE' << 'README.rdoc'
+  s.files = Dir.glob(File.join("{#{File.join('app', '{tanuki,user}')},bin,config,lib,#{File.join('schema', 'tanuki')}}",
+    '**', '*')) << 'LICENSE' << 'README.rdoc'
   s.executables = %w{tanuki}
 
   s.add_runtime_dependency 'rack', '>= 1.0'

@@ -1,69 +1,81 @@
 #!/usr/bin/env ruby
 module Tanuki
-  class << self
-    def create(name)
-      require 'fileutils'
-      version unless @in_repl
-      puts "\n creating #{name = name.downcase}"
-      FileUtils.mkdir name
-      puts " copying app/tanuki"
-      FileUtils.mkdir_p File.join(name, 'app', 'tanuki')
-      FileUtils.cp_r File.expand_path(File.join('..', '..', 'app', 'tanuki'), __FILE__), File.join(name, 'app')
-      puts " copying app/user"
-      FileUtils.mkdir_p File.join(name, 'app', 'user')
-      FileUtils.cp_r File.expand_path(File.join('..', '..', 'app', 'user'), __FILE__), File.join(name, 'app')
-      puts " creating cache"
-      FileUtils.mkdir(File.join(name, 'cache'))
-      puts " copying schema"
-      FileUtils.mkdir(File.join(name, 'schema'))
-      FileUtils.cp_r File.expand_path(File.join('..', '..', 'schema'), __FILE__), name
-      puts " writing main"
-      File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.development_application" }
-    end
 
-    def execute(args)
-      case args[0]
-      when 'create' then create(args[1])
-      when 'exit' then @in_repl ? (return false) : help
-      when 'help' then help
-      when 'version' then version
-      when nil then start_repl unless @in_repl
-      else help
+  module Utility
+
+    class << self
+
+      def create(name)
+        require 'fileutils'
+        version unless @in_repl
+        puts "\n creating #{name = name.downcase}"
+        FileUtils.mkdir name
+        file_source = File.expand_path(File.join('..', '..'), __FILE__)
+        puts ' creating app/tanuki'
+        FileUtils.mkdir_p File.join(name, 'app', 'tanuki')
+        FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(name, 'app')
+        puts ' creating app/user'
+        FileUtils.mkdir_p File.join(name, 'app', 'user')
+        FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(name, 'app')
+        puts ' creating cache'
+        FileUtils.mkdir(File.join(name, 'cache'))
+        puts ' creating config'
+        FileUtils.mkdir(File.join(name, 'config'))
+        FileUtils.cp_r File.join(file_source, 'config'), name
+        puts ' creating schema'
+        FileUtils.mkdir(File.join(name, 'schema'))
+        FileUtils.cp_r File.join(file_source, 'schema'), name
+        puts ' creating main'
+        File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
       end
-      true
-    end
 
-    def help
-      version unless @in_repl
-      puts "\nbasic commands:\n"
-      {
-        'help'    => 'show help (this text)',
-        'create'  => 'create a new app with the given name',
-        'version' => 'show framework version'
-      }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
-    end
-
-    def init
-      @in_repl = false
-      execute ARGV
-    end
-
-    def start_repl
-      @in_repl = true
-      print 'tanuki>'
-      print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")\w[\w\s]*(?=")|\w+/)
-    end
-
-    def version
-      begin
-        require 'tanuki/version'
-      rescue LoadError
-        $:.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
-        require 'tanuki/version'
+      def execute(args)
+        case args[0]
+        when 'create' then create(args[1])
+        when 'exit' then @in_repl ? (return false) : help
+        when 'help' then help
+        when 'version' then version
+        when nil then start_repl unless @in_repl
+        else help
+        end
+        true
       end
-      puts "Tanuki version #{VERSION}"
-    end
-  end
-end
 
-Tanuki.init if File.basename(__FILE__) == File.basename($0)
+      def help
+        version unless @in_repl
+        puts "\nbasic commands:\n"
+        {
+          'help'    => 'show help (this text)',
+          'create'  => 'create a new app with the given name',
+          'version' => 'show framework version'
+        }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
+      end
+
+      def init
+        @in_repl = false
+        execute ARGV
+      end
+
+      def start_repl
+        @in_repl = true
+        print 'tanuki>'
+        print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")\w[\w\s]*(?=")|\w+/)
+      end
+
+      def version
+        begin
+          require 'tanuki/version'
+        rescue LoadError
+          $:.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
+          require 'tanuki/version'
+        end
+        puts "Tanuki version #{VERSION}"
+      end
+
+    end # end class << self
+
+  end # end Utility
+
+end # end Tanuki
+
+Tanuki::Utility.init if File.basename(__FILE__) == File.basename($0)
