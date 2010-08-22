@@ -45,6 +45,4 @@ module Tanuki
 
   end # end Configurator
 
-      set :connections, {}
-      set :namespace_contexts, {}
 end # end Tanuki
