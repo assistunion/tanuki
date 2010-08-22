@@ -18,6 +18,7 @@ Gem::Specification.new do |s|
   s.executables = %w{tanuki}
 
   s.add_runtime_dependency 'rack', '>= 1.0'
+  s.add_runtime_dependency 'sequel', '>= 3.14.0'
   s.add_runtime_dependency 'escape_utils', '>= 0.1.5'
   s.add_development_dependency 'rake', '>= 0.8.7'
   s.add_development_dependency 'rspec', '>= 1.3.0'

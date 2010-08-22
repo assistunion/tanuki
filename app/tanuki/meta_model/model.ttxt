@@ -1,0 +1,2 @@
+class <%= class_name_for :model %> < <%= class_name_for :model_base %>
+end

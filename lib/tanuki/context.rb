@@ -6,10 +6,14 @@ module Tanuki
   # Use Tanuki::Context::child to create new contexts.
   class Context
 
+    @_defined = {}
+
     # Creates and returns child context object.
     # This object's superclass is going to be current context class.
     def self.child
-      Class.new(self)
+      child = Class.new(self)
+      child.instance_variable_set(:@_defined, {})
+      child
     end
 
     # Allowes arbitary values to be assigned to context with a +key=+ method.
@@ -17,9 +21,11 @@ module Tanuki
     def self.method_missing(sym, arg=nil)
       match = sym.to_s.match(/\A(?!(?:child|method_missing)=\Z)([^=]+)(=)?\Z/)
       raise "`#{sym}' method cannot be called for Context and its descendants" unless match
+      defined = @_defined
       class << self; self; end.instance_eval do
         method_sym = match[1].to_sym
-        unless instance_methods(false).include? method_sym
+        unless defined.include? method_sym
+          defined[method_sym] = nil
           if arg.is_a? Proc
             define_method(method_sym, &arg)
           else

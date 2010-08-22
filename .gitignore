@@ -2,6 +2,14 @@
 *~
 .DS_Store
 *.tmproj
+/app/tanuki/manager/**
+!/app/tanuki/manager/manager.rb
+!/app/tanuki/manager/*.thtml
+/app/tanuki/model/**
+!/app/tanuki/model/model.rb
+!/app/tanuki/model/*.thtml
+!/app/tanuki/model/controller/*.thtml
+!/app/tanuki/model/page/*.thtml
 /app/test
 /cache
 /config/data_sources.yml

@@ -3,6 +3,7 @@ $:.unshift(libdir) unless $:.include?(libdir)
 
 require 'rack'
 require 'fileutils'
+require 'sequel'
 require 'yaml'
 require 'escape_utils'
 require 'escape_utils/url/rack'

@@ -1,0 +1,15 @@
+class <%= class_name_for :model_base %> < Tanuki_Object
+  extend Tanuki::ModelBehavior
+
+  class << self
+
+    def extract_key(data)
+        [<% key.each do |field_name| %>data[:<%= field_name.inspect %>], <% end %>]
+    end
+
+    def get(ctx,*args)
+    end
+
+  end # end class << self
+
+end # end <%= class_name_for :model_base %>

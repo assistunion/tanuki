@@ -1,0 +1,2 @@
+class <%= class_name_for :manager %> < <%= class_name_for :manager_base %>
+end
