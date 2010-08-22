@@ -71,7 +71,7 @@ module Tanuki
       # Generates code for Ruby template bits from a given +src+ to +ios+ for a given +state+.
       def process_code_state(ios, src, state)
         src.strip!
-        src.gsub! /^[ \t]+/, ''
+        src.gsub!(/^[ \t]+/, '')
         case state
         when :code_line, :code_span then
           ios << "\n#{src}"
@@ -80,7 +80,7 @@ module Tanuki
         when :code_template then
           ios << "\n(#{src}).call(_,ctx)"
         when :code_visitor
-          inner_m = src.match /^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/
+          inner_m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
           ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
         when :l10n then
           localize(ios, src)
