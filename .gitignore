@@ -13,6 +13,7 @@
 /app/test
 /cache
 /config/data_sources.yml
+/config/test_application.rb
 /docs
 /misc
 /main.*
