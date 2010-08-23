@@ -12,11 +12,6 @@ module Tanuki
       @ctx.foo.should == 'bar'
     end
 
-    it 'should raise an error on reassignment' do
-      @ctx.foo = 'bar'
-      lambda { @ctx.foo = 'baz' }.should raise_error
-    end
-
     it 'should allow to make independent child contexts' do
       child_ctx = @ctx.child
       child_ctx.superclass.should == @ctx
@@ -30,18 +25,11 @@ module Tanuki
       child_ctx.foo.should == 'bar'
     end
 
-    it 'should allow reassignment in child contexts' do
+    it 'should not modify parent contexts on reassignment' do
       @ctx.foo = 'bar'
-      lambda { @ctx.child.foo = 'bar' }.should_not raise_error
-    end
-
-    it 'should not allow instantiation' do
-      lambda { @ctx.new }.should raise_error
-    end
-
-    it "should not allow to redefine `child' and `method_missing' methods" do
-      lambda { @ctx.child = nil }.should raise_error
-      lambda { @ctx.method_missing = nil }.should raise_error
+      child_ctx = @ctx.child
+      child_ctx.foo = 'baz'
+      child_ctx.foo.should_not == @ctx.foo
     end
 
     it 'should not allow instantiation' do
