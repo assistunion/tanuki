@@ -20,21 +20,21 @@ module Tanuki
         puts "\n creating #{name = name.downcase}"
         FileUtils.mkdir project_dir
         file_source = File.expand_path(File.join('..', '..'), __FILE__)
-        puts " creating #{name}/app/tanuki"
+        puts " creating #{File.join(name, 'app', 'tanuki')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'tanuki')
         FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(project_dir, 'app')
-        puts " creating #{name}/app/user"
+        puts " creating #{File.join(name, 'app/user')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
         FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
-        puts " creating #{name}/cache"
+        puts " creating #{File.join(name, 'cache')}"
         FileUtils.mkdir(File.join(project_dir, 'cache'))
-        puts " creating #{name}/config"
+        puts " creating #{File.join(name, 'config')}"
         FileUtils.mkdir(File.join(project_dir, 'config'))
         FileUtils.cp_r File.join(file_source, 'config'), project_dir
-        puts " creating #{name}/schema"
+        puts " creating #{File.join(name, 'schema')}"
         FileUtils.mkdir(File.join(project_dir, 'schema'))
         FileUtils.cp_r File.join(file_source, 'schema'), project_dir
-        puts " creating #{name}/main"
+        puts " creating #{File.join(name, 'main')}"
         File.open(File.join(project_dir, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
       end
 

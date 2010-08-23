@@ -1,7 +1,7 @@
-require 'tanuki/argument/base'
-require 'tanuki/argument/integer'
-require 'tanuki/argument/integer_range'
-require 'tanuki/argument/string'
+require File.join('tanuki', 'argument', 'base')
+require File.join('tanuki', 'argument', 'integer')
+require File.join('tanuki', 'argument', 'integer_range')
+require File.join('tanuki', 'argument', 'string')
 
 module Tanuki
 
