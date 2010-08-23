@@ -4,10 +4,11 @@ module Tanuki
   # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
-    # Creates a new configurator.
-    def initialize(ctx)
+    # Creates a new configurator in context +ctx+ and +root+ directory.
+    # If +root+ is +nil+, +$0+ directory is used.
+    def initialize(ctx, root=nil)
       @context = ctx
-      set :root, File.expand_path('..', $0)
+      set :root, root ? root : File.expand_path('..', $0)
       @config_root = File.join(@context.root, 'config');
     end
 
