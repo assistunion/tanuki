@@ -24,6 +24,12 @@ module Tanuki
       child_ctx.should_not equal @ctx.child
     end
 
+    it 'should inherit entries from parent contexts' do
+      @ctx.foo = 'bar'
+      child_ctx = @ctx.child
+      child_ctx.foo.should == 'bar'
+    end
+
     it 'should allow reassignment in child contexts' do
       @ctx.foo = 'bar'
       lambda { @ctx.child.foo = 'bar' }.should_not raise_error
