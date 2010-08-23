@@ -38,10 +38,32 @@ module Tanuki
         File.open(File.join(project_dir, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
       end
 
+      def generate(cwd)
+        version unless @in_repl
+        unless cwd
+          cwd = File.expand_path('.')
+          puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
+        end
+        unless File.directory? File.join(cwd, 'config')
+          puts "Directory `config' not found. Are you sure there's a Tanuki here?"
+          return
+        end
+        require 'yaml'
+        require 'fileutils'
+        require File.join('tanuki', 'extensions', 'object_extensions')
+        require File.join('tanuki', 'configurator')
+        require File.join('tanuki', 'context')
+        require File.join('tanuki', 'loader')
+        require File.join('tanuki', 'object_behavior')
+        require File.join('tanuki', 'template_compiler')
+        # TODO: move models generator here
+      end
+
       def execute(args)
         case args[0]
         when 'create' then create(args[1])
         when 'exit' then @in_repl ? (return false) : help
+        when 'generate' then generate(args[1])
         when 'help' then help
         when 'version' then version
         when nil then start_repl unless @in_repl
@@ -67,16 +89,17 @@ module Tanuki
 
       def start_repl
         @in_repl = true
+        version
         print 'tanuki>'
         print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")\w[\w\s]*(?=")|\w+/)
       end
 
       def version
         begin
-          require 'tanuki/version'
+          require File.join('tanuki', 'version')
         rescue LoadError
           $:.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
-          require 'tanuki/version'
+          require File.join('tanuki', 'version')
         end
         puts "Tanuki version #{VERSION}"
       end
