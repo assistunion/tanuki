@@ -56,7 +56,51 @@ module Tanuki
         require File.join('tanuki', 'loader')
         require File.join('tanuki', 'object_behavior')
         require File.join('tanuki', 'template_compiler')
-        # TODO: move models generator here
+        # begin models generator
+        puts "\n configuring environment"
+        Loader.context = ctx = Context
+        Configurator.new(Context, cwd).load_config(:common)
+        Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
+          namespace = namespace_path.capitalize
+          Dir.glob(File.join(ctx.schema_root, namespace_path, 'models', '*.yml')) do |file_path|
+            model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
+            puts " generating for model: #{namespace}.#{model_name}"
+            meta_model = Tanuki_MetaModel.new(namespace, model_name, YAML.load_file(file_path))
+            generated = []
+            skipped = []
+            failed = []
+            {
+              :model => false,
+              :model_base => true,
+              :manager => false,
+              :manager_base => true
+            }.each do |class_type, overwrite|
+              class_name = meta_model.class_name_for class_type
+              path = Tanuki::Loader.class_path(class_name)
+              if overwrite || !(File.exists? path)
+                begin
+                  dirname = File.dirname(path)
+                  FileUtils.mkdir_p dirname unless File.directory? dirname
+                  File.open path, 'w' do |file|
+                    writer = proc {|out| file.print out.to_s }
+                    Loader.run_template({}, meta_model, class_type).call(writer, ctx)
+                  end
+                  generated << class_name
+                rescue
+                  failed << class_name
+                end
+              else
+                skipped << class_name
+              end
+            end
+            [:generated, :skipped, :failed].each do |ary_name|
+              ary = eval ary_name.to_s
+              puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty?
+            end
+          end
+        end
+        # end models generator
+        # TODO: refactor!!
       end
 
       def execute(args)

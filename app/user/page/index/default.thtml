@@ -104,7 +104,7 @@
             <p>Here's a few suggestions to get things going:</p>
             <ol>
                 <li><span>To use a database, describe its contents in <code>schema/user</code>.</span></li>
-                <li><span>To generate models from your schema, type <code>rake tanuki:models</code>.</span></li>
+                <li><span>To generate models from your schema, run <code>tanuki generate</code>.</span></li>
                 <li><span>To add or edit controllers, navigate to <code>app/user</code>.</span></li>
             </ol>
         </div>
