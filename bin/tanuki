@@ -6,27 +6,36 @@ module Tanuki
     class << self
 
       def create(name)
+        unless name
+          puts "To use this command: `create <name>'"
+          return
+        end
         require 'fileutils'
+        project_dir = File.expand_path(name)
+        if File.exists? project_dir
+          puts "Directory `#{name}' already exists!"
+          return
+        end
         version unless @in_repl
         puts "\n creating #{name = name.downcase}"
-        FileUtils.mkdir name
+        FileUtils.mkdir project_dir
         file_source = File.expand_path(File.join('..', '..'), __FILE__)
-        puts ' creating app/tanuki'
-        FileUtils.mkdir_p File.join(name, 'app', 'tanuki')
-        FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(name, 'app')
-        puts ' creating app/user'
-        FileUtils.mkdir_p File.join(name, 'app', 'user')
-        FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(name, 'app')
-        puts ' creating cache'
-        FileUtils.mkdir(File.join(name, 'cache'))
-        puts ' creating config'
-        FileUtils.mkdir(File.join(name, 'config'))
-        FileUtils.cp_r File.join(file_source, 'config'), name
-        puts ' creating schema'
-        FileUtils.mkdir(File.join(name, 'schema'))
-        FileUtils.cp_r File.join(file_source, 'schema'), name
-        puts ' creating main'
-        File.open(File.join(name, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
+        puts " creating #{name}/app/tanuki"
+        FileUtils.mkdir_p File.join(project_dir, 'app', 'tanuki')
+        FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(project_dir, 'app')
+        puts " creating #{name}/app/user"
+        FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
+        FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
+        puts " creating #{name}/cache"
+        FileUtils.mkdir(File.join(project_dir, 'cache'))
+        puts " creating #{name}/config"
+        FileUtils.mkdir(File.join(project_dir, 'config'))
+        FileUtils.cp_r File.join(file_source, 'config'), project_dir
+        puts " creating #{name}/schema"
+        FileUtils.mkdir(File.join(project_dir, 'schema'))
+        FileUtils.cp_r File.join(file_source, 'schema'), project_dir
+        puts " creating #{name}/main"
+        File.open(File.join(project_dir, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
       end
 
       def execute(args)
