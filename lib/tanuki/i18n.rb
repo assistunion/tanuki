@@ -7,12 +7,14 @@ module Tanuki
 
     # Adds language routes of root controller class when invoked.
     def configure
+      raise 'languages are not configured' if @_ctx.languages.size == 0
       root_page = @_ctx.root_page
       @_ctx.languages.each {|lng| has_child root_page, lng }
     end
 
     # Returns default route according to default language.
     def default_route
+      raise 'default language is not configured' unless @_ctx.language
       {:route => @_ctx.language.to_s, :args => {}}
     end
 
