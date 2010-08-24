@@ -1,4 +1,4 @@
-require File.join('tanuki', 'launcher')
+require 'tanuki/launcher'
 
 module Tanuki
   describe Launcher do

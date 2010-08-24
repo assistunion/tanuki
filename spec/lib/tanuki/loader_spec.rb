@@ -1,10 +1,10 @@
-require File.join('tanuki', 'extensions', 'module_extensions')
-require File.join('tanuki', 'extensions', 'object_extensions')
-require File.join('tanuki', 'context')
-require File.join('tanuki', 'controller_behavior')
-require File.join('tanuki', 'loader')
-require File.join('tanuki', 'object_behavior')
-require File.join('tanuki', 'template_compiler')
+require 'tanuki/extensions/module_extensions'
+require 'tanuki/extensions/object_extensions'
+require 'tanuki/context'
+require 'tanuki/controller_behavior'
+require 'tanuki/loader'
+require 'tanuki/object_behavior'
+require 'tanuki/template_compiler'
 
 module Tanuki
   describe Loader do

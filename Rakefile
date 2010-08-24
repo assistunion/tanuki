@@ -1,7 +1,7 @@
-require File.join('rake', 'rdoctask')
-require File.join('spec', 'rake', 'spectask')
+require 'rake/rdoctask'
+require 'spec/rake/spectask'
 libdir = File.join(File.expand_path('..', __FILE__), 'lib')
-require File.join(libdir, 'tanuki', 'version')
+require File.join(libdir, 'tanuki/version')
 
 Spec::Rake::SpecTask.new do |t|
   t.libs = [libdir]

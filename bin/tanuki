@@ -23,7 +23,7 @@ module Tanuki
         puts " creating #{File.join(name, 'app', 'tanuki')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'tanuki')
         FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'app/user')}"
+        puts " creating #{File.join(name, 'app', 'user')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
         FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
         puts " creating #{File.join(name, 'cache')}"
@@ -50,12 +50,12 @@ module Tanuki
         end
         require 'yaml'
         require 'fileutils'
-        require File.join('tanuki', 'extensions', 'object_extensions')
-        require File.join('tanuki', 'configurator')
-        require File.join('tanuki', 'context')
-        require File.join('tanuki', 'loader')
-        require File.join('tanuki', 'object_behavior')
-        require File.join('tanuki', 'template_compiler')
+        require 'tanuki/extensions/object_extensions'
+        require 'tanuki/configurator'
+        require 'tanuki/context'
+        require 'tanuki/loader'
+        require 'tanuki/object_behavior'
+        require 'tanuki/template_compiler'
         # begin models generator
         puts "\n configuring environment"
         Loader.context = ctx = Context
@@ -140,10 +140,10 @@ module Tanuki
 
       def version
         begin
-          require File.join('tanuki', 'version')
+          require 'tanuki/version'
         rescue LoadError
           $:.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
-          require File.join('tanuki', 'version')
+          require 'tanuki/version'
         end
         puts "Tanuki version #{VERSION}"
       end

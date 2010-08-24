@@ -1,5 +1,5 @@
 require 'etc'
-require File.join(File.expand_path('..', __FILE__), 'lib', 'tanuki', 'version')
+require File.expand_path('../lib/tanuki/version', __FILE__)
 Gem::Specification.new do |s|
   s.name = 'tanuki'
   s.version = ::Tanuki::VERSION

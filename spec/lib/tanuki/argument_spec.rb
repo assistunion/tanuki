@@ -1,4 +1,4 @@
-require File.join('tanuki', 'argument')
+require 'tanuki/argument'
 
 module Tanuki
 

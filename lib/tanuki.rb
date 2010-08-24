@@ -6,20 +6,20 @@ require 'fileutils'
 require 'sequel'
 require 'yaml'
 require 'escape_utils'
-require File.join('escape_utils', 'url', 'rack')
-require File.join('tanuki', 'version')
-require File.join('tanuki', 'extensions', 'module_extensions')
-require File.join('tanuki', 'extensions', 'object_extensions')
-require File.join('tanuki', 'argument')
-require File.join('tanuki', 'configurator')
-require File.join('tanuki', 'context')
-require File.join('tanuki', 'controller_behavior')
-require File.join('tanuki', 'launcher')
-require File.join('tanuki', 'loader')
-require File.join('tanuki', 'i18n')
-require File.join('tanuki', 'object_behavior')
-require File.join('tanuki', 'template_compiler')
-require File.join('tanuki', 'application')
+require 'escape_utils/url/rack'
+require 'tanuki/version'
+require 'tanuki/extensions/module_extensions'
+require 'tanuki/extensions/object_extensions'
+require 'tanuki/argument'
+require 'tanuki/configurator'
+require 'tanuki/context'
+require 'tanuki/controller_behavior'
+require 'tanuki/launcher'
+require 'tanuki/loader'
+require 'tanuki/i18n'
+require 'tanuki/object_behavior'
+require 'tanuki/template_compiler'
+require 'tanuki/application'
 
 module Tanuki
 
