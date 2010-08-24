@@ -21,7 +21,11 @@ module Tanuki
         rack_builder.run(rack_app)
         srv = available_server
         puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
-        srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
+        begin
+          srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
+        rescue Interrupt
+          puts 'Tanuki ran away!'
+        end
       end
 
       # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
