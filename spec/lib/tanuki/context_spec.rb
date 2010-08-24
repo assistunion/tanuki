@@ -1,4 +1,4 @@
-require 'tanuki/context'
+require File.join('tanuki', 'context')
 
 module Tanuki
   describe Context do

@@ -1,4 +1,4 @@
-require 'tanuki/template_compiler'
+require File.join('tanuki', 'template_compiler')
 
 module Tanuki
   describe TemplateCompiler do

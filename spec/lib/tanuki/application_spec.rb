@@ -6,8 +6,9 @@ module Tanuki
     before :each do
       Application.instance_eval do
         @context = Tanuki::Loader.context = Tanuki::Context.child
-        @context.app_root = 'app'
-        @context.cache_root = 'cache'
+        root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+        @context.app_root = File.join(root, 'app')
+        @context.cache_root = File.join(root, 'cache')
         @context.root_page = ::Tanuki_Controller
         @context.missing_page = ::Tanuki_Page_Missing
         @rack_middleware = {}

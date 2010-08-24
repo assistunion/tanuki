@@ -1,148 +1,124 @@
 require 'tanuki'
 
 module Tanuki
-  ctx = Context.child
-  ctx.app_root = 'app'
-  ctx.cache_root = 'cache'
-  Loader.context = ctx
+  @context = Context.child
+  root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+  @context.app_root = File.join(root, 'app')
+  @context.cache_root = File.join(root, 'cache')
+  Loader.context = @context
 end
 
 describe Tanuki_Controller do
 
   before :all do
-    ctx = Tanuki::Context.child
-    ctx.app_root = 'app'
-    ctx.cache_root = 'cache'
-    Tanuki::Loader.context = ctx
+    @context = Tanuki::Context.child
+    root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+    @context.app_root = File.join(root, 'app')
+    @context.cache_root = File.join(root, 'cache')
+    Tanuki::Loader.context = @context
     Tanuki::Argument.instance_eval { store(Fixnum, Tanuki::Argument::Integer) }
   end
 
   it 'should have empty argument definitions when created' do
-    C = Class.new(Tanuki_Controller)
-    C.arg_defs.should == {}
+    c = Class.new(Tanuki_Controller)
+    c.arg_defs.should == {}
   end
 
   it 'should have expected argument definitions when they are declared' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-      has_arg :b, 69
-    end
-    # end class declaration
-    C.arg_defs.keys.should == [:a, :b]
-    C.arg_defs[:a].keys.should == [:arg, :index]
-    C.arg_defs[:b].keys.should == [:arg, :index]
-    C.arg_defs[:a][:index].should == 0
-    C.arg_defs[:b][:index].should == 1
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    c.has_arg :b, 69
+    c.arg_defs.keys.should == [:a, :b]
+    c.arg_defs[:a].keys.should == [:arg, :index]
+    c.arg_defs[:b].keys.should == [:arg, :index]
+    c.arg_defs[:a][:index].should == 0
+    c.arg_defs[:b][:index].should == 1
   end
 
   it 'should inherit argument definitions from parent controllers' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-    end
-    class D < C
-      has_arg :b, 69
-    end
-    # end class declaration
-    C.arg_defs.keys.should == [:a]
-    D.arg_defs.keys.should == [:a, :b]
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    d = Class.new(c)
+    d.has_arg :b, 69
+    c.arg_defs.keys.should == [:a]
+    d.arg_defs.keys.should == [:a, :b]
   end
 
   it 'should initialize default values when arguments are extracted' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-      has_arg :b, 69
-      has_arg :c, 17
-    end
-    # end class declaration
-    C.extract_args({}).should == [nil, nil, nil]
-    C.extract_args({:c => 3, :a => 1}).should == [1, nil, 3]
-    C.extract_args({:b => 2, :a => 1, :c => 3, :d => 4}).should == [1, 2, 3]
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    c.has_arg :b, 69
+    c.has_arg :c, 17
+    c.extract_args({}).should == [nil, nil, nil]
+    c.extract_args({:c => 3, :a => 1}).should == [1, nil, 3]
+    c.extract_args({:b => 2, :a => 1, :c => 3, :d => 4}).should == [1, 2, 3]
   end
 
   it 'should process arguments received in route part' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-      has_arg :b, 69
-      has_arg :c, 17
-      def initialize_route(*args)
-        args.should == [1, 2, 3]
-      end
-    end
-    # end class declaration
-    c = C.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => [1, 2, 3]})
-    c.instance_variable_get(:@_args).should == {:a => 1, :b => 2, :c => 3}
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    c.has_arg :b, 69
+    c.has_arg :c, 17
+    c.instance_eval { define_method(:initialize_route) {|*args| args.should == [1, 2, 3] } }
+    c_obj = c.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => [1, 2, 3]})
+    c_obj.instance_variable_get(:@_args).should == {:a => 1, :b => 2, :c => 3}
   end
 
   it 'should initialize default values when received arguments are invalid' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-      has_arg :b, 69
-      has_arg :c, 17
-      def initialize_route(*args)
-        args.should == [42, 69, 17]
-      end
-    end
-    # end class declaration
-    c = C.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => ['a', 'b', 'c']})
-    c.instance_variable_get(:@_args).should == {:a => 42, :b => 69, :c => 17}
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    c.has_arg :b, 69
+    c.has_arg :c, 17
+    c.instance_eval { define_method(:initialize_route) {|*args| args.should == [42, 69, 17] } }
+    c_obj = c.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => ['a', 'b', 'c']})
+    c_obj.instance_variable_get(:@_args).should == {:a => 42, :b => 69, :c => 17}
   end
 
   it 'should have empty child definitions when created' do
-    # class declaration
-    class C < Tanuki_Controller
-    end
-    # end class declaration
-    c = C.new(nil, nil, nil)
-    c.ensure_configured!
-    c.instance_variable_get(:@_child_defs).should == {}
+    c_obj = Class.new(Tanuki_Controller).new(nil, nil, nil)
+    c_obj.ensure_configured!
+    c_obj.instance_variable_get(:@_child_defs).should == {}
   end
 
   it 'should have expected child definitions when they are declared' do
-    # class declaration
-    class C < Tanuki_Controller
-      def configure
-        has_child C, :x, model * 2
-        has_child C, :y, model * 2 + 1
+    c = Class.new(Tanuki_Controller)
+    c.instance_eval do
+      define_method(:configure) do
+        has_child c, :x, model * 2
+        has_child c, :y, model * 2 + 1
       end
     end
-    # end class declaration
-    c = C.new(nil, nil, nil, 1)
-    c.model.should == 1
-    c.ensure_configured!
-    c.instance_variable_get(:@_child_defs).should == {
-      :x => {:class => C, :model => 2, :hidden => false},
-      :y => {:class => C, :model => 3, :hidden => false}
+    c_obj = c.new(nil, nil, nil, 1)
+    c_obj.model.should == 1
+    c_obj.ensure_configured!
+    c_obj.instance_variable_get(:@_child_defs).should == {
+      :x => {:class => c, :model => 2, :hidden => false},
+      :y => {:class => c, :model => 3, :hidden => false}
     }
   end
 
   it 'should build links according to argument and child definitions' do
-    # class declaration
-    class C < Tanuki_Controller
-      has_arg :a, 42
-      has_arg :b, 69
-      def configure
-        has_child C, :x, model * 2
-        has_child C, :y, model * 2 + 1
+    c = Class.new(Tanuki_Controller)
+    c.has_arg :a, 42
+    c.has_arg :b, 69
+    c.instance_eval do
+      define_method(:configure) do
+        has_child c, :x, model * 2
+        has_child c, :y, model * 2 + 1
       end
     end
-    # end class declaration
-    c = C.new(nil, nil, nil, 1)
-    a = c[:x]
-    b = c[:y]
-    a.model.should == 2
-    b.model.should == 3
-    c.instance_variable_get(:@_cache).keys.should == [[:x, []], [:y, []]]
-    c[:y, 2].should equal c[:y, 2]
-    c[:x][:x][:x].model.should == 8
-    c.link.should == '/'
-    c[:x][:y][:x].link.should == '/x/y/x'
-    c[:x, 1][:y, 'a', 3].link.should == '/x:a-1/y:b-3'
-    c[:x, :b => 2].link.should == '/x:b-2'
+    c_obj = c.new(nil, nil, nil, 1)
+    a_obj = c_obj[:x]
+    b_obj = c_obj[:y]
+    a_obj.model.should == 2
+    b_obj.model.should == 3
+    c_obj.instance_variable_get(:@_cache).keys.should == [[:x, []], [:y, []]]
+    c_obj[:y, 2].should equal c_obj[:y, 2]
+    c_obj[:x][:x][:x].model.should == 8
+    c_obj.link.should == '/'
+    c_obj[:x][:y][:x].link.should == '/x/y/x'
+    c_obj[:x, 1][:y, 'a', 3].link.should == '/x:a-1/y:b-3'
+    c_obj[:x, :b => 2].link.should == '/x:b-2'
   end
 
 end
