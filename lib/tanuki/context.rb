@@ -35,7 +35,6 @@ module Tanuki
         end
         return arg
       end if match[2]
-      warn "#{__FILE__}:#{__LINE__}: warning: undefined context entry `#{sym}' for #{self}"
       super
     end
 

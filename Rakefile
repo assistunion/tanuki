@@ -1,9 +1,10 @@
-require 'rake/rdoctask'
-require 'spec/rake/spectask'
-require File.join('lib', 'tanuki', 'version.rb')
+require File.join('rake', 'rdoctask')
+require File.join('spec', 'rake', 'spectask')
+libdir = File.join(File.expand_path('..', __FILE__), 'lib')
+require File.join(libdir, 'tanuki', 'version')
 
 Spec::Rake::SpecTask.new do |t|
-  t.libs = ['lib']
+  t.libs = [libdir]
   t.pattern = 'spec/**/*_spec.rb'
   t.spec_opts = ['--format', 'specdoc']
 end
