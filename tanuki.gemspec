@@ -1,12 +1,12 @@
 require 'etc'
-require File.join(File.expand_path('..', __FILE__), 'lib', 'tanuki', 'version.rb')
+require File.join(File.expand_path('..', __FILE__), 'lib', 'tanuki', 'version')
 Gem::Specification.new do |s|
   s.name = 'tanuki'
   s.version = ::Tanuki::VERSION
   s.summary = 'Web framework with balls!'
   s.description = 'Tanuki is an MVVM-inspired web framework that fancies idiomatic Ruby, DRY and extensibility by its design.'
 
-  s.required_ruby_version = '>= 1.9.1'
+  s.required_ruby_version = '>= 1.9.2'
   s.required_rubygems_version = '>= 1.3.6'
 
   s.authors = ['Anatoly Ressin', 'Dimitry Solovyov']
@@ -20,6 +20,5 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'rack', '>= 1.0'
   s.add_runtime_dependency 'sequel', '>= 3.14.0'
   s.add_runtime_dependency 'escape_utils', '>= 0.1.5'
-  s.add_development_dependency 'rake', '>= 0.8.7'
   s.add_development_dependency 'rspec', '>= 1.3.0'
 end
