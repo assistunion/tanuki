@@ -1,9 +1,9 @@
 require 'tanuki/extensions/module_extensions'
 require 'tanuki/extensions/object_extensions'
+require 'tanuki/behavior/controller_behavior'
+require 'tanuki/behavior/object_behavior'
 require 'tanuki/context'
-require 'tanuki/controller_behavior'
 require 'tanuki/loader'
-require 'tanuki/object_behavior'
 require 'tanuki/template_compiler'
 
 module Tanuki

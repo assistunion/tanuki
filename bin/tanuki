@@ -49,10 +49,10 @@ module Tanuki
         require 'yaml'
         require 'fileutils'
         require 'tanuki/extensions/object_extensions'
+        require 'tanuki/behavior/object_behavior'
         require 'tanuki/configurator'
         require 'tanuki/context'
         require 'tanuki/loader'
-        require 'tanuki/object_behavior'
         require 'tanuki/template_compiler'
         # begin models generator
         puts "\n configuring environment"
