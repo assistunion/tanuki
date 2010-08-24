@@ -40,10 +40,8 @@ module Tanuki
 
       def generate(cwd)
         version unless @in_repl
-        unless cwd
-          cwd = File.expand_path('.')
-          puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
-        end
+        cwd = File.expand_path(cwd ? cwd : '.')
+        puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
         unless File.directory? File.join(cwd, 'config')
           puts "Directory `config' not found. Are you sure there's a Tanuki here?"
           return
