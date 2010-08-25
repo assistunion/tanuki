@@ -1,2 +1,50 @@
-<h1>Oh no!</h1>
-<p>Tanuki broke free at <%= ctx.env['REQUEST_URI'] %>!</p>
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>404 Not Found</title>
+    <style type="text/css" media="screen">
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: 'Trebuchet MS', Helvetica, sans-serif;
+        font-size: 11pt;
+        background-color: #f5f4ef;
+        color: #000305;
+    }
+
+    h1 {
+        margin: 30px 40px 20px 40px;
+        padding: 0;
+        font-size: 22pt;
+    }
+
+    div {
+        background-color: #fff;
+        margin: 20px 30px 30px 30px;
+        padding: 15px 20px;
+        border-radius: 10px;
+        -moz-border-radius: 10px;
+        -webkit-border-radius: 10px;
+    }
+
+    code {
+        font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+        font-size: 10pt;
+        background-color: #fffccc;
+        padding: 1px 3px;
+    }
+    </style>
+</head>
+<body>
+    <h1>Page not found!</h1>
+    <div>
+        <p>It seems that the page <code><%= ctx.env['REQUEST_URI'] %></code> at <a href="/"><%= ctx.env['HTTP_HOST'] %></a></p>
+        <ul>
+            <li>has moved,</li>
+            <li>no longer exists,</li>
+            <li>or never existed.</li>
+        </ul>
+    </div>
+</body>
+</html>
