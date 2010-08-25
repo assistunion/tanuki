@@ -1,6 +1,5 @@
 # Rack middleware
 use Rack::Head
-use Rack::ShowStatus
 
 # Server
 set :server, [:thin, :mongrel, :webrick]
