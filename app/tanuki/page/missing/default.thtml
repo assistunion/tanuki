@@ -45,6 +45,17 @@
             <li>no longer exists,</li>
             <li>or never existed.</li>
         </ul>
+        % if ctx.development
+            Controller chain: <ul>
+        %   ctrl = self
+        %   traceback = []
+        %   traceback << ctrl while ctrl = ctrl.logical_parent
+        %   traceback.reverse_each do |ctrl|
+              <li><code><%= ctrl.class %> @ <%= ctrl.link %></code></li>
+        %   end
+              <li><code><%= self.class %> @ <%= self.link %></code></li>
+            </ul>
+        % end
     </div>
 </body>
 </html>
