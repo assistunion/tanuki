@@ -4,12 +4,12 @@ module Tanuki
 
     def initialize(data = {}, lazy = false)
       @_data = data
-      @_loaded = not lazy
+      @_loaded = !lazy
     end
 
     def [](attribute)
       ensure_loaded!
-      self.class[attribute].get @_data
+      self.class[attribute].get(@_data)
     end
 
     def []=(attribute, value)
@@ -17,28 +17,27 @@ module Tanuki
       @_original ||= {}
       begin
         @_original[attribute] = self[attribute] unless @_original.include? attribute
-        self.class[attribute].set @_data, value
-        @_errors.delete attribute
+        self.class[attribute].set(@_data, value)
+        @_errors.delete(attribute)
       rescue
         @_errors[attribute] = {:value => value, :error => $!}
       end
     end
 
-
     def internals_get(attribute)
-      self.class[attribute].internals_get @_data
+      self.class[attribute].internals_get(@_data)
     end
 
     def internals_set(attribute, internal_value)
-      @_errors ||={}
-      self.class[attribute], internals_set @_data
+      @_errors ||= {}
+      internals_set(self.class[attribute], @_data)
     end
 
     def get_updates
       @_original ||= {}
       original_data = {}
-      class.attributes.each_pair do |name, attr|
-        attr.set original_data, @_original[name]
+      self.class.attributes.each_pair do |name, attrib|
+        attrib.set(original_data, @_original[name])
       end
       updates = {}
       original_data.each_pair do |field, value|
@@ -78,11 +77,11 @@ module Tanuki
         end
       end
 
-
       def has_attribute(attribute, attr_def)
         @_attributes ||= superclass.instance_variable_get(:@_attributes).dup
         @_attributes[attribute] = attr_def
       end
+
       def [](attribute)
         @_attributes[attribute]
       end
