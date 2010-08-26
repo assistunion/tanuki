@@ -1,3 +1,5 @@
+load_config :common
+
 # Rack middleware
 use Rack::Head
 use Rack::Static, :urls => ['/css/', '/images/', '/js/', '/favicon.ico'], :root => 'public'

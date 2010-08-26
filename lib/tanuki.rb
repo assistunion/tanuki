@@ -27,11 +27,12 @@ module Tanuki
 
   class << self
 
-    # Runs application in a given +environment+.
-    def run(environment)
-      @cfg = Configurator.new(Context)
-      @cfg.load_config :common
-      @cfg.load_config :"#{environment}_application"
+    # Runs application in a given environment +env+.
+    def run(env)
+      @cfg = Configurator.new(Context, nil, File.expand_path(File.join('..', '..', 'config'), __FILE__))
+      @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
+      @cfg.config_root = File.expand_path(File.join('..', 'config'), $0)
+      @cfg.load_config :"#{env}_application", true
       Application.run
     end
 
