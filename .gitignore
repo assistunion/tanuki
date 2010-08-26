@@ -17,4 +17,5 @@
 /docs
 /misc
 /main.*
+/public
 /*.gem

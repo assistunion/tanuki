@@ -31,6 +31,8 @@ module Tanuki
         puts " creating #{File.join(name, 'config')}"
         FileUtils.mkdir(File.join(project_dir, 'config'))
         FileUtils.cp_r File.join(file_source, 'config'), project_dir
+        puts " creating #{File.join(name, 'public')}"
+        FileUtils.mkdir(File.join(project_dir, 'public'))
         puts " creating #{File.join(name, 'schema')}"
         FileUtils.mkdir(File.join(project_dir, 'schema'))
         FileUtils.cp_r File.join(file_source, 'schema'), project_dir

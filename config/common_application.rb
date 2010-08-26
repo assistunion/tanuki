@@ -1,5 +1,6 @@
 # Rack middleware
 use Rack::Head
+use Rack::Static, :urls => ['/css/', '/images/', '/js/', '/favicon.ico'], :root => 'public'
 
 # Server
 set :server, [:thin, :mongrel, :webrick]
