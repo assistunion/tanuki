@@ -18,12 +18,12 @@ module Tanuki
       end
 
       def key
-        if data['key'].nil?
+        if @data['key'].nil?
           []
-        elsif data['key'].is_a? Array
-          data['key'].map {|item| qualified_name(item) }
-        elsif data['key'].is_a? String
-          [qualified_name(data['key'])]
+        elsif @data['key'].is_a? Array
+          @data['key'].map {|item| qualified_name(item) }
+        elsif @data['key'].is_a? String
+          [qualified_name(@data['key'])]
         else
           raise "key for model #{@namespace}.#{@name} is invalid"
         end
