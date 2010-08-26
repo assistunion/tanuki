@@ -29,9 +29,6 @@ module Tanuki
         puts " creating #{File.join(name, 'cache')}"
         FileUtils.mkdir(cache_dir = File.join(project_dir, 'cache'))
         FileUtils.chmod(0777, cache_dir)
-        puts " creating #{File.join(name, 'config')}"
-        FileUtils.mkdir(File.join(project_dir, 'config'))
-        FileUtils.cp_r File.join(file_source, 'config'), project_dir
         puts " creating #{File.join(name, 'public')}"
         FileUtils.mkdir(File.join(project_dir, 'public'))
         puts " creating #{File.join(name, 'schema')}"
@@ -45,10 +42,6 @@ module Tanuki
         version unless @in_repl
         cwd = File.expand_path(cwd ? cwd : '.')
         puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
-        unless File.directory? File.join(cwd, 'config')
-          puts "Directory `config' not found. Are you sure there's a Tanuki here?"
-          return
-        end
         require 'yaml'
         require 'fileutils'
         require 'tanuki/extensions/object_extensions'
@@ -60,14 +53,21 @@ module Tanuki
         require 'tanuki/loader'
         require 'tanuki/template_compiler'
         # begin models generator
-        puts "\n configuring environment"
         Loader.context = ctx = Context
-        Configurator.new(Context, cwd).load_config(:common)
+        cfg = Configurator.new(Context, cwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
+        cfg.load_config :common
+        cfg.config_root = File.join(cwd, 'config')
+        cfg.load_config :common, true
+        unless File.directory? ctx.schema_root
+          puts "Schema root not found. Are you sure there's a Tanuki here?"
+          return
+        end
+        puts "\n looking for models"
         Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
           namespace = namespace_path.capitalize
           Dir.glob(File.join(ctx.schema_root, namespace_path, 'models', '*.yml')) do |file_path|
             model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
-            puts " generating for model: #{namespace}.#{model_name}"
+            puts "\n found: #{namespace}.#{model_name}"
             meta_model = Tanuki_MetaModel.new(namespace, model_name, YAML.load_file(file_path))
             generated = []
             skipped = []
