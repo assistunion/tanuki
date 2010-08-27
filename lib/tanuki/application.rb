@@ -83,14 +83,14 @@ module Tanuki
         proc do |env|
           request_ctx = ctx.child
           request_ctx.templates = {}
-          if match = env['REQUEST_PATH'].match(/^(.+)(?<!\$)\/$/)
+          if match = env['PATH_INFO'].match(/^(.+)(?<!\$)\/$/)
             loc = match[1]
             loc << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
             [301, {'Location' => loc, 'Content-Type' => 'text/html; charset=utf-8'}, []]
           else
             request_ctx.env = env
             result = ::Tanuki::ControllerBehavior.dispatch(request_ctx, ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
-              Rack::Utils.unescape(env['REQUEST_PATH']).force_encoding('UTF-8'))
+              Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8'))
             case result[:type]
             when :redirect then
               [302, {'Location' => result[:location], 'Content-Type' => 'text/html; charset=utf-8'}, []]
