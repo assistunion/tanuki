@@ -51,7 +51,7 @@ module Tanuki
         end
         require 'yaml'
         require 'fileutils'
-        require 'tanuki/extensions/object_extensions'
+        require 'tanuki/extensions/object'
         require 'tanuki/behavior/meta_model_behavior'
         require 'tanuki/behavior/model_behavior'
         require 'tanuki/behavior/object_behavior'
