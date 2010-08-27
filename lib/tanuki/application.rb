@@ -5,19 +5,19 @@ module Tanuki
   class Application
 
     @context = (Loader.context = Context).child
-    @rack_middleware = {}
+    @rack_middleware = []
 
     class << self
 
-      # Removes a given middleware from the Rack middleware pipeline.
+      # Removes all occurences of a given +middleware+ from the Rack middleware pipeline.
       def discard(middleware)
-        @rack_middleware.delete(middleware)
+        @rack_middleware.delete_if {|item| item[0] == middleware }
       end
 
       # Runs the application with current settings.
       def run
         rack_builder = Rack::Builder.new
-        @rack_middleware.each {|middleware, params| rack_builder.use(middleware, *params[0], &params[1]) }
+        @rack_middleware.each {|item| rack_builder.use(item[0], *item[1], &item[2]) }
         rack_builder.run(rack_app)
         srv = available_server
         puts "A wild Tanuki appears!", "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
@@ -30,7 +30,7 @@ module Tanuki
 
       # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
       def use(middleware, *args, &block)
-        @rack_middleware[middleware] = [args, block]
+        @rack_middleware << [middleware, args, block]
       end
 
       # Adds a template visitor +block+. This +block+ must return a +Proc+.
