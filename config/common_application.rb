@@ -2,7 +2,7 @@ load_config :common
 
 # Rack middleware
 use Rack::Head
-use Rack::Static, :urls => ['/css/', '/images/', '/js/', '/favicon.ico'], :root => 'public'
+use Rack::StaticDir, 'public'
 
 # Server
 set :server, [:thin, :mongrel, :webrick]
