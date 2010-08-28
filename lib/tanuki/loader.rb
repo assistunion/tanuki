@@ -5,10 +5,24 @@ module Tanuki
 
     class << self
 
-      # Returns the path to a source file containing class +klass+.
-      def class_path(klass)
-        path = const_to_path(klass, @context.app_root, File::SEPARATOR)
+      # Returns the path to a source file in +root+ containing class +klass+.
+      def class_path(klass, root)
+        path = const_to_path(klass, root)
         File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
+      end
+
+      # Returns the path to a source file containing class +klass+.
+      # Seatches across all common roots.
+      def combined_class_path(klass)
+        class_path(klass, @app_root ||= combined_app_root)
+      end
+
+      # Returns a glob pattern of all common roots.
+      def combined_app_root
+        local_app_root = File.expand_path(File.join('..', '..', '..', 'app'), __FILE__)
+        app_root = "{#{context_app_root = @context.app_root},#{@context.gen_root}"
+        app_root << ",#{local_app_root}" if local_app_root != context_app_root
+        app_root << '}'
       end
 
       # Assigns a context to Tanuki::Loader.
@@ -57,7 +71,7 @@ module Tanuki
       private
 
       # Path to Tanuki::TemplateCompiler for internal use.
-      COMPILER_PATH = File.join(File.expand_path('..', __FILE__), 'template_compiler.rb')
+      COMPILER_PATH = File.expand_path(File.join('..', 'template_compiler.rb'), __FILE__)
 
       # Extension glob for template files.
       TEMPLATE_EXT = '.t{html,txt}'
@@ -83,19 +97,19 @@ module Tanuki
 
       # Returns the path to a compiled template file containing template +method_name+ for class +klass+.
       def compiled_template_path(klass, method_name)
-        File.join(const_to_path(klass, @context.cache_root, '.'), method_name.to_s << '.rb')
+        File.join(const_to_path(klass, @context.gen_root), method_name.to_s << '.tpl.rb')
       end
 
-      # Transforms a given constant +klass+ to a path with a given +root+, separated by +sep+.
-      def const_to_path(klass, root, sep)
-        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep).downcase)
+      # Transforms a given constant +klass+ to a path with a given +root+.
+      def const_to_path(klass, root)
+        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
       end
 
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.
       def template_owner(klass, method_name)
         method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
-          files = Dir.glob(File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file))
+          files = Dir.glob(File.join(const_to_path(ancestor, @app_root ||= combined_app_root), method_file))
           return ancestor, files[0] unless files.empty?
         end
         [nil, nil]

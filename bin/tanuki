@@ -13,42 +13,31 @@ module Tanuki
         require 'fileutils'
         project_dir = File.expand_path(name)
         if File.exists? project_dir
-          puts "Directory `#{name}' already exists!"
+          puts "File or directory `#{name}' already exists!"
           return
         end
         version unless @in_repl
         puts "\n creating #{name = name.downcase}"
         FileUtils.mkdir project_dir
         file_source = File.expand_path(File.join('..', '..'), __FILE__)
-        puts " creating #{File.join(name, 'app', 'tanuki')}"
-        FileUtils.mkdir_p File.join(project_dir, 'app', 'tanuki')
-        FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'app', 'user')}"
+        puts " creating #{File.join(name, 'app')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
         FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'cache')}"
-        FileUtils.mkdir(cache_dir = File.join(project_dir, 'cache'))
-        FileUtils.chmod(0777, cache_dir)
-        puts " creating #{File.join(name, 'config')}"
-        FileUtils.mkdir(File.join(project_dir, 'config'))
-        FileUtils.cp_r File.join(file_source, 'config'), project_dir
+        puts " creating #{File.join(name, 'gen')}"
+        FileUtils.mkdir(gen_dir = File.join(project_dir, 'gen'))
+        FileUtils.chmod(0777, gen_dir)
         puts " creating #{File.join(name, 'public')}"
         FileUtils.mkdir(File.join(project_dir, 'public'))
         puts " creating #{File.join(name, 'schema')}"
         FileUtils.mkdir(File.join(project_dir, 'schema'))
         FileUtils.cp_r File.join(file_source, 'schema'), project_dir
-        puts " creating #{File.join(name, 'main')}"
-        File.open(File.join(project_dir, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
+        Dir.chdir(project_dir) if @in_repl
       end
 
       def generate(cwd)
         version unless @in_repl
         cwd = File.expand_path(cwd ? cwd : '.')
         puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
-        unless File.directory? File.join(cwd, 'config')
-          puts "Directory `config' not found. Are you sure there's a Tanuki here?"
-          return
-        end
         require 'yaml'
         require 'fileutils'
         require 'tanuki/extensions/object'
@@ -60,14 +49,21 @@ module Tanuki
         require 'tanuki/loader'
         require 'tanuki/template_compiler'
         # begin models generator
-        puts "\n configuring environment"
         Loader.context = ctx = Context
-        Configurator.new(Context, cwd).load_config(:common)
+        cfg = Configurator.new(Context, cwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
+        cfg.load_config :common
+        cfg.config_root = File.join(cwd, 'config')
+        cfg.load_config :common, true
+        unless File.directory? ctx.schema_root
+          puts "Schema root not found. Are you sure there's a Tanuki here?"
+          return
+        end
+        puts "\n looking for models"
         Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
           namespace = namespace_path.capitalize
           Dir.glob(File.join(ctx.schema_root, namespace_path, 'models', '*.yml')) do |file_path|
             model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
-            puts " generating for model: #{namespace}.#{model_name}"
+            puts "\n found: #{namespace}.#{model_name}"
             meta_model = Tanuki_MetaModel.new(namespace, model_name, YAML.load_file(file_path))
             generated = []
             skipped = []
@@ -77,10 +73,10 @@ module Tanuki
               :model_base => true,
               :manager => false,
               :manager_base => true
-            }.each do |class_type, overwrite|
+            }.each do |class_type, base|
               class_name = meta_model.class_name_for class_type
-              path = Tanuki::Loader.class_path(class_name)
-              if overwrite || !(File.exists? path)
+              path = Tanuki::Loader.class_path(class_name, base ? ctx.gen_root : ctx.app_root)
+              if base || !(File.exists? path)
                 begin
                   dirname = File.dirname(path)
                   FileUtils.mkdir_p dirname unless File.directory? dirname
@@ -109,9 +105,10 @@ module Tanuki
       def execute(args)
         case args[0]
         when 'create' then create(args[1])
-        when 'exit' then @in_repl ? (return false) : help
+        when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
         when 'generate' then generate(args[1])
         when 'help' then help
+        when 'server' then server(args[1])
         when 'version' then version
         when nil then start_repl unless @in_repl
         else help
@@ -122,16 +119,41 @@ module Tanuki
       def help
         version unless @in_repl
         puts "\nbasic commands:\n"
-        {
-          'help'    => 'show help (this text)',
-          'create'  => 'create a new app with the given name',
-          'version' => 'show framework version'
-        }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
+        commands = {}
+        commands['create']   = 'create a new app with the given name'
+        commands['exit']     = 'exit this utility' if @in_repl
+        commands['generate'] = 'generate models for application schema'
+        commands['help']     = 'show help (this text)'
+        commands['server']   = 'run application'
+        commands['version']  = 'show framework version'
+        commands.each_pair {|k, v| puts ' %-8s   %s' % [k, v] }
       end
 
       def init
         @in_repl = false
         execute ARGV
+      end
+
+      def server(env=nil)
+        env = env ? env.to_sym : :development
+        puts %{Calling for a Tanuki in "#{pwd = Dir.pwd}"}
+        version unless @in_repl
+        require 'tanuki'
+        allow_run = false
+        begin
+          @cfg = Configurator.new(Context, pwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
+          @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
+          @cfg.config_root = File.join(pwd, 'config')
+          @cfg.load_config :"#{env}_application", true
+          allow_run = true
+        rescue NameError => e
+          puts "Tanuki wanted `#{e.name}', but you didn't have any."
+        end
+        begin
+          Application.run
+        rescue Interrupt
+          puts 'Tanuki ran away!'
+        end if allow_run
       end
 
       def start_repl

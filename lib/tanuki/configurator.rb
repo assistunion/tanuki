@@ -4,17 +4,23 @@ module Tanuki
   # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
+    attr_writer :config_root
+
     # Creates a new configurator in context +ctx+ and +root+ directory.
-    # If +root+ is +nil+, +$0+ directory is used.
-    def initialize(ctx, root=nil)
+    # Configuration root +config_root+ defaults to _config_ directory in +root+.
+    def initialize(ctx, root, config_root=nil)
       @context = ctx
-      set :root, root ? root : File.expand_path('..', $0)
-      @config_root = File.join(@context.root, 'config');
+      set :root, root ? root : Dir.pwd
+      @config_root = config_root ? config_root : File.join(@context.root, 'config')
     end
 
     # Loads and executes a given configuraion file with symbolic name +config+.
-    def load_config(config)
-      instance_eval File.read(File.join(@config_root, config.to_s) << '.rb')
+    # If +silent+ is +true+, exception is not raised on missing file.
+    def load_config(config, silent=false)
+      file = File.join(@config_root, config.to_s) << '.rb'
+      return if silent && !(File.file? file)
+      instance_eval File.read(file)
+      true
     end
 
     private

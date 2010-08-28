@@ -25,17 +25,4 @@ require 'tanuki/template_compiler'
 require 'tanuki/application'
 
 module Tanuki
-
-  class << self
-
-    # Runs application in a given +environment+.
-    def run(environment)
-      @cfg = Configurator.new(Context)
-      @cfg.load_config :common
-      @cfg.load_config :"#{environment}_application"
-      Application.run
-    end
-
-  end # end class << self
-
 end

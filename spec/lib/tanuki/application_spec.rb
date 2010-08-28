@@ -8,9 +8,10 @@ module Tanuki
         @context = Tanuki::Loader.context = Tanuki::Context.child
         root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
         @context.app_root = File.join(root, 'app')
-        @context.cache_root = File.join(root, 'cache')
+        @context.gen_root = File.join(root, 'gen')
         @context.root_page = ::Tanuki_Controller
         @context.missing_page = ::Tanuki_Page_Missing
+        @context.development = true
         @rack_middleware = {}
       end
     end

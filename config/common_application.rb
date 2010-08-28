@@ -1,3 +1,5 @@
+load_config :common
+
 # Rack middleware
 use Rack::Head
 use Rack::StaticDir, 'public'
