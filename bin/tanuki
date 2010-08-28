@@ -122,11 +122,14 @@ module Tanuki
       def help
         version unless @in_repl
         puts "\nbasic commands:\n"
-        {
-          'help'    => 'show help (this text)',
-          'create'  => 'create a new app with the given name',
-          'version' => 'show framework version'
-        }.each_pair {|k, v| puts ' %-7s   %s' % [k, v] }
+        commands = {}
+        commands['create']   = 'create a new app with the given name'
+        commands['exit']     = 'exit this utility' if @in_repl
+        commands['generate'] = 'generate models for application schema'
+        commands['help']     = 'show help (this text)'
+        commands['server']   = 'run application'
+        commands['version']  = 'show framework version'
+        commands.each_pair {|k, v| puts ' %-8s   %s' % [k, v] }
       end
 
       def init
