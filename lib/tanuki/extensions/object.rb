@@ -2,8 +2,8 @@ class Object
 
   # Runs Tanuki::Loader for every missing constant in main namespace.
   def self.const_missing(sym)
-    if File.file?(path = Tanuki::Loader.class_path(sym))
-      require path
+    unless (paths = Dir.glob(Tanuki::Loader.combined_class_path(sym))).empty?
+      paths.reverse_each {|path| require path }
       return const_get(sym)
     end
     super

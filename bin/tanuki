@@ -20,10 +20,7 @@ module Tanuki
         puts "\n creating #{name = name.downcase}"
         FileUtils.mkdir project_dir
         file_source = File.expand_path(File.join('..', '..'), __FILE__)
-        puts " creating #{File.join(name, 'app', 'tanuki')}"
-        FileUtils.mkdir_p File.join(project_dir, 'app', 'tanuki')
-        FileUtils.cp_r File.join(file_source, 'app', 'tanuki'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'app', 'user')}"
+        puts " creating #{File.join(name, 'app')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
         FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
         puts " creating #{File.join(name, 'gen')}"
@@ -76,10 +73,10 @@ module Tanuki
               :model_base => true,
               :manager => false,
               :manager_base => true
-            }.each do |class_type, overwrite|
+            }.each do |class_type, base|
               class_name = meta_model.class_name_for class_type
-              path = Tanuki::Loader.class_path(class_name)
-              if overwrite || !(File.exists? path)
+              path = Tanuki::Loader.class_path(class_name, base ? ctx.gen_root : ctx.app_root)
+              if base || !(File.exists? path)
                 begin
                   dirname = File.dirname(path)
                   FileUtils.mkdir_p dirname unless File.directory? dirname

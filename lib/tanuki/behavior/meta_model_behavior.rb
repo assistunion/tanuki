@@ -10,10 +10,8 @@ module Tanuki
 
       def class_name_for(class_type)
         case class_type
-        when :model then "#{@namespace}_Model_#{@name}"
-        when :model_base then "#{@namespace}_Model_#{@name}_#{@name}Base"
-        when :manager then "#{@namespace}_Manager_#{@name}"
-        when :manager_base then "#{@namespace}_Manager_#{@name}_#{@name}Base"
+        when :model, :model_base then "#{@namespace}_Model_#{@name}"
+        when :manager, :manager_base then "#{@namespace}_Manager_#{@name}"
         end
       end
 

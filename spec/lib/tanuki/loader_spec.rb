@@ -19,12 +19,12 @@ module Tanuki
     end
 
     it 'should find the path to missing application classes' do
-      Loader.class_path(:'').should == File.join(@context.app_root, '.rb')
-      Loader.class_path(:Aa).should == File.join(@context.app_root, 'aa', 'aa.rb')
-      Loader.class_path(:AaBb).should == File.join(@context.app_root, 'aa_bb', 'aa_bb.rb')
-      Loader.class_path(:Aa_Bb).should == File.join(@context.app_root, 'aa', 'bb', 'bb.rb')
-      Loader.class_path(:Aa_BbCc).should == File.join(@context.app_root, 'aa', 'bb_cc', 'bb_cc.rb')
-      Loader.class_path(:AaBb_CcDd).should == File.join(@context.app_root, 'aa_bb', 'cc_dd', 'cc_dd.rb')
+      Loader.class_path(:'', @context.app_root).should == File.join(@context.app_root, '.rb')
+      Loader.class_path(:Aa, @context.app_root).should == File.join(@context.app_root, 'aa', 'aa.rb')
+      Loader.class_path(:AaBb, @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'aa_bb.rb')
+      Loader.class_path(:Aa_Bb, @context.app_root).should == File.join(@context.app_root, 'aa', 'bb', 'bb.rb')
+      Loader.class_path(:Aa_BbCc, @context.app_root).should == File.join(@context.app_root, 'aa', 'bb_cc', 'bb_cc.rb')
+      Loader.class_path(:AaBb_CcDd, @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'cc_dd', 'cc_dd.rb')
     end
 
     it 'should find template sources through receiver ancestors' do
