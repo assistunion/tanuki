@@ -7,7 +7,7 @@ module Tanuki
 
       # Returns the path to a source file containing class +klass+.
       def class_path(klass)
-        path = const_to_path(klass, @context.app_root, File::SEPARATOR)
+        path = const_to_path(klass, @context.app_root)
         File.join(path, path.match("#{File::SEPARATOR}([^#{File::SEPARATOR}]*)$")[1] << '.rb')
       end
 
@@ -83,19 +83,19 @@ module Tanuki
 
       # Returns the path to a compiled template file containing template +method_name+ for class +klass+.
       def compiled_template_path(klass, method_name)
-        File.join(const_to_path(klass, @context.cache_root, '.'), method_name.to_s << '.rb')
+        File.join(const_to_path(klass, @context.gen_root), method_name.to_s << '.tpl.rb')
       end
 
-      # Transforms a given constant +klass+ to a path with a given +root+, separated by +sep+.
-      def const_to_path(klass, root, sep)
-        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(sep).downcase)
+      # Transforms a given constant +klass+ to a path with a given +root+.
+      def const_to_path(klass, root)
+        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
       end
 
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.
       def template_owner(klass, method_name)
         method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
-          files = Dir.glob(File.join(const_to_path(ancestor, @context.app_root, File::SEPARATOR), method_file))
+          files = Dir.glob(File.join(const_to_path(ancestor, @context.app_root), method_file))
           return ancestor, files[0] unless files.empty?
         end
         [nil, nil]

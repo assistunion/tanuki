@@ -26,9 +26,9 @@ module Tanuki
         puts " creating #{File.join(name, 'app', 'user')}"
         FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
         FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'cache')}"
-        FileUtils.mkdir(cache_dir = File.join(project_dir, 'cache'))
-        FileUtils.chmod(0777, cache_dir)
+        puts " creating #{File.join(name, 'gen')}"
+        FileUtils.mkdir(gen_dir = File.join(project_dir, 'gen'))
+        FileUtils.chmod(0777, gen_dir)
         puts " creating #{File.join(name, 'public')}"
         FileUtils.mkdir(File.join(project_dir, 'public'))
         puts " creating #{File.join(name, 'schema')}"

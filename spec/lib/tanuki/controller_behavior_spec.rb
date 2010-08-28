@@ -4,7 +4,7 @@ module Tanuki
   @context = Context.child
   root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
   @context.app_root = File.join(root, 'app')
-  @context.cache_root = File.join(root, 'cache')
+  @context.gen_root = File.join(root, 'gen')
   Loader.context = @context
 end
 
@@ -14,7 +14,7 @@ describe Tanuki_Controller do
     @context = Tanuki::Context.child
     root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
     @context.app_root = File.join(root, 'app')
-    @context.cache_root = File.join(root, 'cache')
+    @context.gen_root = File.join(root, 'gen')
     Tanuki::Loader.context = @context
     Tanuki::Argument.instance_eval { store(Fixnum, Tanuki::Argument::Integer) }
   end
