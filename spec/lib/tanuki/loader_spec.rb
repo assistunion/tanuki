@@ -1,5 +1,5 @@
-require 'tanuki/extensions/module_extensions'
-require 'tanuki/extensions/object_extensions'
+require 'tanuki/extensions/module'
+require 'tanuki/extensions/object'
 require 'tanuki/behavior/controller_behavior'
 require 'tanuki/behavior/object_behavior'
 require 'tanuki/context'
