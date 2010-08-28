@@ -12,16 +12,18 @@ module Tanuki
         @context.root_page = ::Tanuki_Controller
         @context.missing_page = ::Tanuki_Page_Missing
         @context.development = true
-        @rack_middleware = {}
+        @rack_middleware = []
       end
     end
 
     it 'should add and remove Rack middleware' do
       middleware = Application.instance_eval { @rack_middleware }
       Application.use Integer, 0
-      middleware.should include Integer
+      Application.use Integer, 1
+      middleware.find {|item| item[0] == Integer }.should_not be_nil
       Application.discard Integer
-      middleware.should_not include Integer
+      puts 3
+      middleware.find {|item| item[0] == Integer }.should be_nil
     end
 
     it 'should add visitors to framework objects' do
@@ -58,7 +60,7 @@ module Tanuki
     end
 
     it 'should have this block handle trailing slashes in request path' do
-      result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/page/', 'QUERY_STRING' => 'q'})
+      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/page/', 'QUERY_STRING' => 'q'})
       result[0].should == 301
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
@@ -67,7 +69,7 @@ module Tanuki
 
     it 'should have this block build pages with response code 200' do
       Application.instance_eval { @context.i18n = false }
-      result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
+      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
       result[0].should == 200
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
@@ -76,7 +78,7 @@ module Tanuki
 
     it 'should have this block build pages with response code 404' do
       Application.instance_eval { @context.i18n = false }
-      result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/missing'})
+      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/missing'})
       result[0].should == 404
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
@@ -89,7 +91,7 @@ module Tanuki
         @context.language = :ru
         @context.languages = [:ru]
       end
-      result = Application.instance_eval { rack_app }.call({'REQUEST_PATH' => '/'})
+      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
       result[0].should == 302
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
