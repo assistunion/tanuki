@@ -8,10 +8,9 @@ module Tanuki
 
     # Creates a new configurator in context +ctx+ and +root+ directory.
     # Configuration root +config_root+ defaults to _config_ directory in +root+.
-    # If +root+ is +nil+, +$0+ directory is used.
-    def initialize(ctx, root=nil, config_root=nil)
+    def initialize(ctx, root, config_root=nil)
       @context = ctx
-      set :root, root ? root : File.expand_path('..', $0)
+      set :root, root ? root : Dir.pwd
       @config_root = config_root ? config_root : File.join(@context.root, 'config')
     end
 

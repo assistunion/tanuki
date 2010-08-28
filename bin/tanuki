@@ -13,7 +13,7 @@ module Tanuki
         require 'fileutils'
         project_dir = File.expand_path(name)
         if File.exists? project_dir
-          puts "Directory `#{name}' already exists!"
+          puts "File or directory `#{name}' already exists!"
           return
         end
         version unless @in_repl
@@ -34,8 +34,7 @@ module Tanuki
         puts " creating #{File.join(name, 'schema')}"
         FileUtils.mkdir(File.join(project_dir, 'schema'))
         FileUtils.cp_r File.join(file_source, 'schema'), project_dir
-        puts " creating #{File.join(name, 'main')}"
-        File.open(File.join(project_dir, 'main.rb'), 'w') {|file| file.write "require 'tanuki'\nTanuki.run :development" }
+        Dir.chdir(project_dir) if @in_repl
       end
 
       def generate(cwd)
@@ -109,9 +108,10 @@ module Tanuki
       def execute(args)
         case args[0]
         when 'create' then create(args[1])
-        when 'exit' then @in_repl ? (return false) : help
+        when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
         when 'generate' then generate(args[1])
         when 'help' then help
+        when 'server' then server(args[1])
         when 'version' then version
         when nil then start_repl unless @in_repl
         else help
@@ -132,6 +132,28 @@ module Tanuki
       def init
         @in_repl = false
         execute ARGV
+      end
+
+      def server(env=nil)
+        env = env ? env.to_sym : :development
+        puts %{Calling for a Tanuki in "#{pwd = Dir.pwd}"}
+        version unless @in_repl
+        require 'tanuki'
+        allow_run = false
+        begin
+          @cfg = Configurator.new(Context, pwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
+          @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
+          @cfg.config_root = File.join(pwd, 'config')
+          @cfg.load_config :"#{env}_application", true
+          allow_run = true
+        rescue NameError => e
+          puts "Tanuki wanted `#{e.name}', but you didn't have any."
+        end
+        begin
+          Application.run
+        rescue Interrupt
+          puts 'Tanuki ran away!'
+        end if allow_run
       end
 
       def start_repl
