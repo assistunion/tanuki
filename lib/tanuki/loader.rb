@@ -57,7 +57,7 @@ module Tanuki
       private
 
       # Path to Tanuki::TemplateCompiler for internal use.
-      COMPILER_PATH = File.join(File.expand_path('..', __FILE__), 'template_compiler.rb')
+      COMPILER_PATH = File.expand_path(File.join('..', 'template_compiler.rb'), __FILE__)
 
       # Extension glob for template files.
       TEMPLATE_EXT = '.t{html,txt}'
@@ -93,9 +93,14 @@ module Tanuki
 
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.
       def template_owner(klass, method_name)
+        unless @app_root
+          local_app_root = File.expand_path(File.join('..', '..', '..', 'app'), __FILE__)
+          @app_root = @context.app_root
+          @app_root = "{#{@app_root},#{local_app_root}}" if local_app_root != @app_root
+        end
         method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
-          files = Dir.glob(File.join(const_to_path(ancestor, @context.app_root), method_file))
+          files = Dir.glob(File.join(const_to_path(ancestor, @app_root), method_file))
           return ancestor, files[0] unless files.empty?
         end
         [nil, nil]
