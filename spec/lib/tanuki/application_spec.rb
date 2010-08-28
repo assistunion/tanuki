@@ -11,6 +11,7 @@ module Tanuki
         @context.gen_root = File.join(root, 'gen')
         @context.root_page = ::Tanuki_Controller
         @context.missing_page = ::Tanuki_Page_Missing
+        @context.development = true
         @rack_middleware = {}
       end
     end
