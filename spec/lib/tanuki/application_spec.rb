@@ -28,8 +28,8 @@ module Tanuki
 
     it 'should add visitors to framework objects' do
       Application.visitor :string do s = ''; proc {|out| s << out } end
-      ObjectBehavior.public_instance_methods.should include :string_visitor
-      obj = 'obj'.extend(ObjectBehavior)
+      BaseBehavior.public_instance_methods.should include :string_visitor
+      obj = 'obj'.extend(BaseBehavior)
       obj.string_visitor.should be_a Proc
       sv = obj.string_visitor
       sv.call('a').should == 'a'
