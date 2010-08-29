@@ -1,7 +1,7 @@
 module Rack
   class StaticDir
 
-    # Initializes a +Rack::File+ server at +root+ or ++.
+    # Initializes a +Rack::File+ server at +root+ or +Dir.pwd+.
     def initialize(app, root=nil)
       @app = app
       @file_server = Rack::File.new(root || Dir.pwd)

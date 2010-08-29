@@ -4,6 +4,7 @@ module Tanuki
   # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
+    # Configuration root.
     attr_writer :config_root
 
     # Creates a new configurator in context +ctx+ and +root+ directory.
