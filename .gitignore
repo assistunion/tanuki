@@ -15,6 +15,7 @@
 /config/test_application.rb
 /docs
 /gen
+/main.*
 /misc
 /public
 /*.gem
