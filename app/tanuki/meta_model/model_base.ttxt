@@ -1,4 +1,4 @@
-class <%= class_name_for :model_base %> < Tanuki_Object
+class <%= class_name_for :model_base %> < Tanuki_Base
   extend Tanuki::ModelBehavior
 
   class << self

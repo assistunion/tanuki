@@ -46,7 +46,7 @@ module Tanuki
       #  <%_escape escaped_view %>
       #  <%_printf('<div>%s</div>') formatted_view %>
       def visitor(sym, &block)
-        ObjectBehavior.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
+        BaseBehavior.instance_eval { define_method "#{sym}_visitor".to_sym, &block }
       end
 
       private
