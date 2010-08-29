@@ -108,7 +108,7 @@ module Tanuki
         when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
         when 'generate' then generate(args[1])
         when 'help' then help
-        when 'server' then server(args[1])
+        when 'server' then return server(args[1])
         when 'version' then version
         when nil then start_repl unless @in_repl
         else help
@@ -151,8 +151,13 @@ module Tanuki
         end
         begin
           Application.run
+          false
         rescue Interrupt
           puts 'Tanuki ran away!'
+          false
+        rescue SystemCallError
+          puts 'Tanuki ran away! Someone else is playing here.'
+          true
         end if allow_run
       end
 
