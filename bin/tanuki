@@ -30,7 +30,6 @@ module Tanuki
         FileUtils.mkdir(File.join(project_dir, 'public'))
         puts " creating #{File.join(name, 'schema')}"
         FileUtils.mkdir(File.join(project_dir, 'schema'))
-        FileUtils.cp_r File.join(file_source, 'schema'), project_dir
         Dir.chdir(project_dir) if @in_repl
       end
 
@@ -48,26 +47,33 @@ module Tanuki
         require 'tanuki/context'
         require 'tanuki/loader'
         require 'tanuki/template_compiler'
-        # begin models generator
         Loader.context = ctx = Context
         cfg = Configurator.new(Context, cwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
         cfg.load_config :common
         cfg.config_root = File.join(cwd, 'config')
         cfg.load_config :common, true
-        unless File.directory? ctx.schema_root
-          puts "Schema root not found. Are you sure there's a Tanuki here?"
-          return
-        end
         puts "\n looking for models"
-        Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
+        @tried = {}
+        local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
+        generate_in(ctx.schema_root, ctx)
+        generate_in(local_schema_root, ctx) if ctx.schema_root != local_schema_root
+        @tried.each_pair do |name, arys|
+          puts "\n found: #{name}"
+          arys.each_pair {|ary_name, ary| puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty? }
+        end
+      end
+
+      def generate_in(schema_root, ctx)
+        Dir.entries(schema_root)[2..-1].each do |namespace_path|
           namespace = namespace_path.capitalize
-          Dir.glob(File.join(ctx.schema_root, namespace_path, 'models', '*.yml')) do |file_path|
+          Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
             model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
-            puts "\n found: #{namespace}.#{model_name}"
+            if @tried.include? namespace_model_name = "#{namespace}.#{model_name}"
+              next
+            else
+              @tried[namespace_model_name] = {:generated => [], :failed => [], :skipped => []}
+            end
             meta_model = Tanuki_MetaModel.new(namespace, model_name, YAML.load_file(file_path))
-            generated = []
-            skipped = []
-            failed = []
             {
               :model => false,
               :model_base => true,
@@ -84,22 +90,16 @@ module Tanuki
                     writer = proc {|out| file.print out.to_s }
                     Loader.run_template({}, meta_model, class_type).call(writer, ctx)
                   end
-                  generated << class_name
+                  @tried[namespace_model_name][:generated] << class_name unless base
                 rescue
-                  failed << class_name
+                  @tried[namespace_model_name][:failed] << class_name unless base
                 end
               else
-                skipped << class_name
+                @tried[namespace_model_name][:skipped] << class_name unless base
               end
-            end
-            [:generated, :skipped, :failed].each do |ary_name|
-              ary = eval ary_name.to_s
-              puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty?
             end
           end
         end
-        # end models generator
-        # TODO: refactor!!
       end
 
       def execute(args)
