@@ -46,7 +46,7 @@
 			<key>end</key>
 			<string>-?%&gt;</string>
 			<key>name</key>
-			<string>source.ruby.tanuki.embedded.plain</string>
+			<string>source.ruby.tanuki.embedded.text</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -81,7 +81,7 @@
 			<key>end</key>
 			<string>$</string>
 			<key>name</key>
-			<string>source.ruby.tanuki.embedded.plain</string>
+			<string>source.ruby.tanuki.embedded.text</string>
 			<key>patterns</key>
 			<array>
 				<dict>
@@ -112,7 +112,7 @@
 		</dict>
 	</array>
 	<key>scopeName</key>
-	<string>text.plain.tanuki</string>
+	<string>text.tanuki</string>
 	<key>uuid</key>
 	<string>2C70B745-C5B1-4EEB-BF91-2D62E1880C7D</string>
 </dict>
