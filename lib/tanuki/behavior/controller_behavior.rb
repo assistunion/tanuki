@@ -77,7 +77,7 @@ module Tanuki
       @_cache[key] = child # Thread safe (possible overwrite, but within consistent state)
     end
 
-    # Returns true, if controller is active.
+    # Returns +true+, if controller is active.
     def active?
       @_active
     end
@@ -112,7 +112,7 @@ module Tanuki
     def configure
     end
 
-    # Returns true, if controller is current.
+    # Returns +true+, if controller is current.
     def current?
       @_current
     end
