@@ -29,7 +29,7 @@ module Tanuki
         @_errors[attribute] = {:value => value, :error => $!}
       end
     end
-    
+
     # Returns the modification errors hash.
     def errors
       @_errors ||= {}
@@ -62,7 +62,7 @@ module Tanuki
       end
       updates
     end
-    
+
     # Returns +true+ if there are any modification errors.
     def has_errors?
       @_errors ||= {}
