@@ -35,7 +35,7 @@ module Tanuki
 
       def generate(cwd)
         version unless @in_repl
-        cwd = File.expand_path(cwd ? cwd : '.')
+        cwd = cwd ? File.expand_path(cwd) : Dir.pwd
         puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
         require 'yaml'
         require 'fileutils'
