@@ -10,7 +10,45 @@ module Tanuki
         @namespace = namespace
         @name = name
         @data = data
-        @first_source = @data['source'] || guess_first_source
+        @joins = {}
+
+        # Configuring source
+        @source = @data['source'] || guess_table
+        if @source.is_a? String
+          @first_source = @source.to_sym
+          joins = {}
+          key = 'id'
+        else
+          @first_source = (@source['table'] || guess_table).to_sym
+          joins = @source['joins'] || {}
+          key = @source['key'] || 'id'
+        end
+
+        key = [key] if key.is_a? String
+        @joins[@first_source] = nil
+
+        joins = [joins] if joins.is_a? String
+        joins = Hash[*joins.collect {|v| [v, nil] }.flatten] if joins.is_a? Array
+
+        if joins.is_a? Hash
+          joins.each_pair do |table_alias, join|
+            table_alias = table_alias.to_sym
+            raise "#{table_alias} is already in use" if @joins.include? table_alias
+
+            if joins && joins['on'].is_a Hash
+              table_name = joins['table'] || table_alias
+            else
+               on = joins
+               table_name = table_alias
+            end
+          end
+          j  = {}
+          joins[table_alias] = j
+        else
+          raise "Something went wrong!"
+        end
+
+
       end
 
       # Returns class name for a given class type.
@@ -21,8 +59,8 @@ module Tanuki
         end
       end
 
-      # Returns default first source name, if none specified.
-      def guess_first_source
+      # Returns default source, if none specified.
+      def guess_table
         @name.pluralize
       end
 
