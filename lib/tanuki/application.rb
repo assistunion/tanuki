@@ -40,10 +40,10 @@ module Tanuki
       def run
         configure_middleware(rack_builder = Rack::Builder.new)
         rack_builder.run(rack_app)
-        srv = available_server
+        @context.running_server = available_server
         puts "A wild Tanuki appears! Press Ctrl-C to set it free.",
-          "You used #{srv.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
-        srv.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
+          "You used #{@context.running_server.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
+        @context.running_server.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
       end
 
       # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
@@ -99,6 +99,7 @@ module Tanuki
       def rack_app
         ctx = @context
         proc do |env|
+          p ctx.running_server, ctx.port
           request_ctx = ctx.child
           request_ctx.templates = {}
           if match = env['PATH_INFO'].match(/^(.+)(?<!\$)\/$/)
