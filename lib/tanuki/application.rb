@@ -14,10 +14,11 @@ module Tanuki
       # Returns true, if configuration is successful.
       def configure(env)
         begin
-          @cfg = Configurator.new(Context, pwd = Dir.pwd, File.expand_path(File.join('..', '..', '..', 'config'), __FILE__))
+          default_root = File.expand_path(File.join('..', '..', '..'), __FILE__);
+          @cfg = Configurator.new(Context, pwd = Dir.pwd, File.join(default_root, 'config'))
           @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
           @cfg.config_root = File.join(pwd, 'config')
-          @cfg.load_config :"#{env}_application", true
+          @cfg.load_config :"#{env}_application", true if pwd != default_root
           return true
         rescue NameError => e
           raise NameError, "missing class or module for constant `#{e.name}'", e.backtrace
