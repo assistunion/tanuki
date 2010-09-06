@@ -99,7 +99,6 @@ module Tanuki
       def rack_app
         ctx = @context
         proc do |env|
-          p ctx.running_server, ctx.port
           request_ctx = ctx.child
           request_ctx.templates = {}
           if match = env['PATH_INFO'].match(/^(.+)(?<!\$)\/$/)
