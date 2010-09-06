@@ -25,6 +25,11 @@ module Tanuki
         false
       end
 
+      # Add utilized middleware to a given Rack::Builder instance +rack_builder+.
+      def configure_middleware(rack_builder)
+        @rack_middleware.each {|item| rack_builder.use(item[0], *item[1], &item[2]) }
+      end
+
       # Removes all occurences of a given +middleware+ from the Rack middleware pipeline.
       def discard(middleware)
         @rack_middleware.delete_if {|item| item[0] == middleware }
@@ -32,8 +37,7 @@ module Tanuki
 
       # Runs the application with current settings.
       def run
-        rack_builder = Rack::Builder.new
-        @rack_middleware.each {|item| rack_builder.use(item[0], *item[1], &item[2]) }
+        configure_middleware(rack_builder = Rack::Builder.new)
         rack_builder.run(rack_app)
         srv = available_server
         puts "A wild Tanuki appears! Press Ctrl-C to set it free.",
