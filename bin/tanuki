@@ -136,19 +136,9 @@ module Tanuki
 
       def server(env=nil)
         env = env ? env.to_sym : :development
-        puts %{Calling for a Tanuki in "#{pwd = Dir.pwd}"}
+        puts %{Calling for a Tanuki in "#{Dir.pwd}"}
         version unless @in_repl
         require 'tanuki'
-        allow_run = false
-        begin
-          @cfg = Configurator.new(Context, pwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
-          @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
-          @cfg.config_root = File.join(pwd, 'config')
-          @cfg.load_config :"#{env}_application", true
-          allow_run = true
-        rescue NameError => e
-          puts "Tanuki wanted `#{e.name}', but you didn't have any."
-        end
         begin
           Application.run
           false
@@ -158,7 +148,7 @@ module Tanuki
         rescue SystemCallError
           puts 'Tanuki ran away! Someone else is playing here.'
           true
-        end if allow_run
+        end if Application.configure(env)
       end
 
       def start_repl

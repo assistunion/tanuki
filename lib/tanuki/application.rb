@@ -9,6 +9,22 @@ module Tanuki
 
     class << self
 
+      # Initializes application settings using configuration for environment +env+.
+      # These include settings for server, context, and middleware.
+      # Returns true, if configuration is successful.
+      def configure(env)
+        begin
+          @cfg = Configurator.new(Context, pwd = Dir.pwd, File.expand_path(File.join('..', '..', '..', 'config'), __FILE__))
+          @cfg.load_config(([:development, :production].include? env) ? :"#{env}_application" : :common_application)
+          @cfg.config_root = File.join(pwd, 'config')
+          @cfg.load_config :"#{env}_application", true
+          return true
+        rescue NameError => e
+          raise NameError, "missing class or module for constant `#{e.name}'", e.backtrace
+        end
+        false
+      end
+
       # Removes all occurences of a given +middleware+ from the Rack middleware pipeline.
       def discard(middleware)
         @rack_middleware.delete_if {|item| item[0] == middleware }
