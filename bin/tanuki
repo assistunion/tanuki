@@ -54,6 +54,7 @@ module Tanuki
         cfg.load_config :common, true
         puts "\n looking for models"
         @tried = {}
+        @models = {}
         local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
         generate_in(ctx.schema_root, ctx)
         generate_in(local_schema_root, ctx) if ctx.schema_root != local_schema_root
@@ -65,15 +66,34 @@ module Tanuki
 
       def generate_in(schema_root, ctx)
         Dir.entries(schema_root)[2..-1].each do |namespace_path|
-          namespace = namespace_path.capitalize
+          namespace_name = namespace_path.split('_').map {|s| s.capitalize }.join
+          namespace = @models[namespace_name] = {}
           Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
             model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
+            meta_model = namespace[model_name] = Tanuki_MetaModel.new(
+              namespace_name,
+              model_name,
+              YAML.load_file(file_path),
+              @models
+            )
+            meta_model.process!
             if @tried.include? namespace_model_name = "#{namespace}.#{model_name}"
               next
             else
               @tried[namespace_model_name] = {:generated => [], :failed => [], :skipped => []}
             end
-            meta_model = Tanuki_MetaModel.new(namespace, model_name, YAML.load_file(file_path))
+          end
+        end
+
+        models.each do |namespace_name, namespace |
+          namespace.each do |model_name, meta_model|
+            meta_model.process_relations!
+          end
+        end
+
+        models.each do |namespace_name, namespace |
+          namespace.each do |model_name, meta_model|
+            namespace_model_name = "#{namespace}.#{model_name}"
             {
               :model => false,
               :model_base => true,
@@ -101,7 +121,6 @@ module Tanuki
           end
         end
       end
-
       def execute(args)
         case args[0]
         when 'create' then create(args[1])

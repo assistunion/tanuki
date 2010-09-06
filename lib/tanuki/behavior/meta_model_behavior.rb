@@ -6,49 +6,12 @@ module Tanuki
 
       # Creates new meta-model +name+ in +namespace+.
       # Model schema is passed as +data+.
-      def initialize(namespace, name, data)
+      # Stucture +models+ contains all models being generated.
+      def initialize(namespace, name, data, models)
         @namespace = namespace
         @name = name
         @data = data
-        @joins = {}
-
-        # Configuring source
-        @source = @data['source'] || guess_table
-        if @source.is_a? String
-          @first_source = @source.to_sym
-          joins = {}
-          key = 'id'
-        else
-          @first_source = (@source['table'] || guess_table).to_sym
-          joins = @source['joins'] || {}
-          key = @source['key'] || 'id'
-        end
-
-        key = [key] if key.is_a? String
-        @joins[@first_source] = nil
-
-        joins = [joins] if joins.is_a? String
-        joins = Hash[*joins.collect {|v| [v, nil] }.flatten] if joins.is_a? Array
-
-        if joins.is_a? Hash
-          joins.each_pair do |table_alias, join|
-            table_alias = table_alias.to_sym
-            raise "#{table_alias} is already in use" if @joins.include? table_alias
-
-            if joins && joins['on'].is_a Hash
-              table_name = joins['table'] || table_alias
-            else
-               on = joins
-               table_name = table_alias
-            end
-          end
-          j  = {}
-          joins[table_alias] = j
-        else
-          raise "Something went wrong!"
-        end
-
-
+        @models = models
       end
 
       # Returns class name for a given class type.
@@ -59,26 +22,83 @@ module Tanuki
         end
       end
 
-      # Returns default source, if none specified.
-      def guess_table
-        @name.pluralize
-      end
-
-      # Returns default key, if none specified.
-      def guess_key
-        ["%w{:#{@first_source} :id}"]
-      end
-
       # Returns an array of code for alias-column name pair.
       def key
-        if @data['key'].nil?
-          guess_key
-        elsif @data['key'].is_a? Array
-          @data['key'].map {|item| qualified_name(item) }
-        elsif @data['key'].is_a? String
-          [qualified_name(@data['key'])]
+        @key.inspect
+      end
+
+      # Prepares data for template generation.
+      # Processes own keys, fields, etc.
+      def process!
+        process_source!
+        process_key!
+      end
+
+      def process_key!
+        @key = @source['key'] || 'id'
+        @key = [key] if key.is_a? String
+        raise "invalid key" unless @key.is_a? Array
+        @key.map! do |k|
+          parts = k.split('.').map {|p| p.to_sym }
+          raise "invalid key field #{k}" if parts.count > 2
+          if parts.count = 2
+            raise "all key fields should belong to the first-source" if parts[0] != @first_source.to_s
+            parts
+          else
+            [@first_source,parts[0]]
+          end
+        end
+      end
+
+      # Extracts the model firts-source information form the YAML @data
+      # and performs
+      def process_source!
+        guess_table = @name.pluralize
+        @source = @data['source'] || guess_table
+        @source = {'table' => @source} if @source.is_a? String
+        @first_source = (@source['table'] || guess_table).to_sym
+      end
+
+      def process_joins!
+        @joins = {}
+        @joins[@first_source] = nil
+      end
+
+      # Prepares data for template generation.
+      # Processes foreign keys, fields, etc.
+      def process_relations!
+
+        joins = @source['joins'] || {}
+        joins = [joins] if joins.is_a? String
+        joins = Hash[*joins.collect {|v| [v, nil] }.flatten] if joins.is_a? Array
+        if joins.is_a? Hash
+          joins.each_pair do |table_alias, join|
+            table_alias = table_alias.to_sym
+            raise "#{table_alias} is already in use" if @joins.include? table_alias
+            if join
+              if join['on'].is_a Hash
+                table_name = join['table'] || table_alias
+                on = join['on']
+              else
+                on = join
+                table_name = table_alias
+              end
+            else
+               on = nil
+               table_name = table_alias
+            end
+            if on
+            else
+              on = {}
+              @key.each do |k|
+                on[[table_alias, @first_source.to_s.singularize.to_sym]] = [] # TODO choose a right priciple
+              end
+            end
+          end
+          j  = {}
+          joins[table_alias] = j
         else
-          raise "key for model #{@namespace}.#{@name} is invalid"
+          raise "`joins' should be either nil or string or array or hash"
         end
       end
 
