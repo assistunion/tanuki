@@ -15,7 +15,7 @@ module Tanuki
     # Returns default route according to default language.
     def default_route
       raise 'default language is not configured' unless @_ctx.language
-      {:route => @_ctx.language.to_s, :args => {}}
+      {:route => @_ctx.language, :args => {}}
     end
 
     # Calls default view of visual child.
