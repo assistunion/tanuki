@@ -118,6 +118,10 @@ module Tanuki
     end
 
     # If set, controller navigates to a given child route by default.
+    # Returned object should be either +nil+ (don't navigate), or a +Hash+ with keys:
+    # * +:route+ is the +Symbol+ for the route
+    # * +:args+ contain route arguments +Hash+
+    # * +:redirect+ makes a 302 redirect to this route, if true (optional)
     def default_route
       nil
     end
@@ -267,28 +271,33 @@ module Tanuki
 
       # Dispathes route chain in context +ctx+ on +request_path+, starting with controller +klass+.
       def dispatch(ctx, klass, request_path)
-        parts = parse_path(request_path)
+        route_parts = parse_path(request_path)
         curr = root_ctrl = klass.new(ctx, nil, nil, true)
-        parts.each do |part|
+        route_parts.each do |route_part|
           curr.instance_variable_set :@_active, true
-          nxt = curr[part[:route], *part[:args]]
+          nxt = curr[route_part[:route], *route_part[:args]]
+          curr.logical_child = nxt
+          curr = nxt
+        end
+        while route_part = curr.default_route
+          if route_part[:redirect]
+            klass = curr.child_class(route_part)
+            return {:type => :redirect, :location => grow_link(curr, route_part, klass.arg_defs)}
+          end
+          curr.instance_variable_set :@_active, true
+          nxt = curr[route_part[:route], *route_part[:args]]
           curr.logical_child = nxt
           curr = nxt
         end
         curr.instance_variable_set :@_active, true
         curr.instance_variable_set :@_current, true
-        if route = curr.default_route
-          klass = curr.child_class(route)
-          {:type => :redirect, :location => grow_link(curr, route, klass.arg_defs)}
-        else
-          type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
+        type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
+        prev = curr
+        while curr = prev.visual_parent
+          curr.visual_child = prev
           prev = curr
-          while curr = prev.visual_parent
-            curr.visual_child = prev
-            prev = curr
-          end
-          {:type => type, :controller => prev}
         end
+        {:type => type, :controller => prev}
       end
 
       # Extends the including module with Tanuki::ControllerBehavior::ClassMethods.

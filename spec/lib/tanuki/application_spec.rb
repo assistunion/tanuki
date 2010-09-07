@@ -88,6 +88,7 @@ module Tanuki
     it 'should have this block build redirects with response code 302' do
       Application.instance_eval do
         @context.i18n = true
+        @context.i18n_redirect = true
         @context.language = :ru
         @context.languages = [:ru]
       end

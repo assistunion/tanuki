@@ -16,6 +16,7 @@ set :missing_page, ::Tanuki_Page_Missing
 
 # Internationalization
 set :i18n, false
+set :i18n_redirect, false
 set :language, nil
 set :language_fallback, {}
 set :languages, proc { language_fallback.keys }
