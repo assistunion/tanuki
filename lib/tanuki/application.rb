@@ -21,7 +21,11 @@ module Tanuki
           @cfg.load_config :"#{env}_application", true if pwd != default_root
           return true
         rescue NameError => e
-          raise NameError, "missing class or module for constant `#{e.name}'", e.backtrace
+          if e.name =~ /\AA-Z/
+            raise NameError, "missing class or module for constant `#{e.name}'", e.backtrace
+          else
+            raise e
+          end
         end
         false
       end
