@@ -40,6 +40,7 @@ module Tanuki
         require 'yaml'
         require 'fileutils'
         require 'tanuki/extensions/object'
+        require 'tanuki/extensions/string'
         require 'tanuki/behavior/meta_model_behavior'
         require 'tanuki/behavior/model_behavior'
         require 'tanuki/behavior/object_behavior'
@@ -77,7 +78,7 @@ module Tanuki
               @models
             )
             meta_model.process!
-            if @tried.include? namespace_model_name = "#{namespace}.#{model_name}"
+            if @tried.include? namespace_model_name = "#{namespace_name}.#{model_name}"
               next
             else
               @tried[namespace_model_name] = {:generated => [], :failed => [], :skipped => []}
@@ -85,15 +86,15 @@ module Tanuki
           end
         end
 
-        models.each do |namespace_name, namespace |
+        @models.each do |namespace_name, namespace |
           namespace.each do |model_name, meta_model|
             meta_model.process_relations!
           end
         end
 
-        models.each do |namespace_name, namespace |
+        @models.each do |namespace_name, namespace |
           namespace.each do |model_name, meta_model|
-            namespace_model_name = "#{namespace}.#{model_name}"
+            namespace_model_name = "#{namespace_name}.#{model_name}"
             {
               :model => false,
               :model_base => true,
@@ -121,6 +122,7 @@ module Tanuki
           end
         end
       end
+
       def execute(args)
         case args[0]
         when 'create' then create(args[1])

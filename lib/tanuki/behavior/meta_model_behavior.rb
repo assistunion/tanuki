@@ -36,16 +36,16 @@ module Tanuki
 
       def process_key!
         @key = @source['key'] || 'id'
-        @key = [key] if key.is_a? String
-        raise "invalid key" unless @key.is_a? Array
+        @key = [@key] if @key.is_a? String
+        raise 'invalid key' unless @key.is_a? Array
         @key.map! do |k|
           parts = k.split('.').map {|p| p.to_sym }
           raise "invalid key field #{k}" if parts.count > 2
-          if parts.count = 2
-            raise "all key fields should belong to the first-source" if parts[0] != @first_source.to_s
+          if parts.count == 2
+            raise 'all key fields should belong to the first-source' if parts[0] != @first_source.to_s
             parts
           else
-            [@first_source,parts[0]]
+            [@first_source, parts[0]]
           end
         end
       end
@@ -54,9 +54,10 @@ module Tanuki
       # and performs
       def process_source!
         guess_table = @name.pluralize
+        @data ||= {}
         @source = @data['source'] || guess_table
         @source = {'table' => @source} if @source.is_a? String
-        @first_source = (@source['table'] || guess_table).to_sym
+        @first_source = (@source['table'] || guess_table).downcase.to_sym
       end
 
       def process_joins!
@@ -67,7 +68,6 @@ module Tanuki
       # Prepares data for template generation.
       # Processes foreign keys, fields, etc.
       def process_relations!
-
         joins = @source['joins'] || {}
         joins = [joins] if joins.is_a? String
         joins = Hash[*joins.collect {|v| [v, nil] }.flatten] if joins.is_a? Array
@@ -91,12 +91,11 @@ module Tanuki
             else
               on = {}
               @key.each do |k|
-                on[[table_alias, @first_source.to_s.singularize.to_sym]] = [] # TODO choose a right priciple
+                on[[table_alias, @first_source.to_s.singularize.to_sym]] = []
+                # TODO choose a right priciple
               end
             end
           end
-          j  = {}
-          joins[table_alias] = j
         else
           raise "`joins' should be either nil or string or array or hash"
         end

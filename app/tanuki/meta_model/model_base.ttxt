@@ -3,7 +3,7 @@ class <%= class_name_for :model_base %> < Tanuki_Base
 
   class << self
     def extract_key(data)
-      [<% key.each do |field_name| %>data[:<%= field_name.inspect %>], <% end %>]
+      [<% @key.each do |qualified| %>data[<%= qualified[0].inspect %>][<%= qualified[1].inspect %>], <% end %>]
     end
 
     def get(ctx, *args)
