@@ -8,6 +8,7 @@ use Rack::StaticDir, 'public'
 set :server, [:thin, :mongrel, :webrick]
 set :host, '0.0.0.0'
 set :port, 3000
+set :development, false
 
 # Default controllers
 set :root_page, ::User_Page_Index
