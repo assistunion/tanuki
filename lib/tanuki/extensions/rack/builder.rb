@@ -2,7 +2,7 @@ module Rack
   class Builder
 
     # Initializes application settings using configuration for environment +env+ and +rackup+ arguments.
-    # Application is configured for production, if no environment is specified.
+    # Application is configured for development, if no environment is specified.
     # Returns Tanuki::Application::rack_app.
     #
     # This should be invoked from Rackup configuration files (e.g. +config.ru+):
@@ -15,9 +15,9 @@ module Rack
       at_exit { puts 'Tanuki ran away!' }
       builder = self
       Tanuki::Application.instance_eval do
-        configure(env ? env.to_sym : :production)
+        configure(env = env ? env.to_sym : :development)
         configure_middleware(builder)
-        puts "A wild Tanuki appears!"
+        puts "A racked #{env} Tanuki appears!"
         rack_app
       end
     end

@@ -13,6 +13,7 @@ module Tanuki
       # These include settings for server, context, and middleware.
       # Returns true, if configuration is successful.
       def configure(env)
+        @environment = env
         begin
           default_root = File.expand_path(File.join('..', '..', '..'), __FILE__)
           @cfg = Configurator.new(Context, pwd = Dir.pwd)
@@ -43,12 +44,18 @@ module Tanuki
         @rack_middleware.delete_if {|item| item[0] == middleware }
       end
 
+      # Returns current environment +Symbol+, if application is configured.
+      # Returns +nil+ otherwise.
+      def environment
+        @environment ||= nil
+      end
+
       # Runs the application with current settings.
       def run
         configure_middleware(rack_builder = Rack::Builder.new)
         rack_builder.run(rack_app)
         @context.running_server = available_server
-        puts "A wild Tanuki appears! Press Ctrl-C to set it free.",
+        puts "A#{'n' if @environment =~ /\A[aeiou]/} #{@environment} Tanuki appears! Press Ctrl-C to set it free.",
           "You used #{@context.running_server.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
         @context.running_server.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
       end
