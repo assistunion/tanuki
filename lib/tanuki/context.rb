@@ -17,10 +17,31 @@ module Tanuki
         child
       end
 
+      # Returns a printable version of Tanuki::Context, represented as a +Hash+.
+      # Can be used during development for inspection purposes.
+      #--
+      # When changing this method, remember to update `#{__LINE__ + 12}' to `defined.inspect` line number.
+      # This is required to avoid infinite recursion.
+      def inspect
+        return to_s if caller.any? {|entry_point| entry_point =~ /\A#{__FILE__}:#{__LINE__ + 12}/}
+        defined = {}
+        ancestors.each do |ancestor|
+          ancestor.instance_variable_get(:@_defined).each_key do |key|
+            begin
+              defined[key] ||= send(key)
+            rescue ArgumentError
+              defined[key] ||= method(key)
+            end
+          end
+          break if ancestor.equal? Context
+        end
+        defined.inspect
+      end
+
       # Allowes arbitary values to be assigned to context with a +key=+ method.
       # A reader in context object class is created for each assigned value.
       def method_missing(sym, arg=nil)
-        match = sym.to_s.match(/\A(?!(?:child|method_missing)=\Z)([^=]+)(=)?\Z/)
+        match = sym.to_s.match(/\A(?!(?:child|inspect|method_missing)=\Z)([^=]+)(=)?\Z/)
         raise "`#{sym}' method cannot be called for Context and its descendants" unless match
         defined = @_defined
         class << self; self; end.instance_eval do
