@@ -1,7 +1,6 @@
 module Tanuki
 
   # Tanuki::Configurator is a scope for evaluating a Tanuki application configuration block.
-  # Use Tanuki::development_application and Tanuki::production_application to create such a block.
   class Configurator
 
     # Configuration root.
