@@ -12,7 +12,6 @@ module Tanuki
     def initialize(ctx, root, config_root=nil)
       @context = ctx
       set :root, root ? root : Dir.pwd
-      @config_root = config_root ? config_root : File.join(@context.root, 'config')
     end
 
     # Loads and executes a given configuraion file with symbolic name +config+.

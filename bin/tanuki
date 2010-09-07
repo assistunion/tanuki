@@ -49,10 +49,14 @@ module Tanuki
         require 'tanuki/loader'
         require 'tanuki/template_compiler'
         Loader.context = ctx = Context
-        cfg = Configurator.new(Context, cwd, File.expand_path(File.join('..', '..', 'config'), __FILE__))
-        cfg.load_config :common
+        default_root = File.expand_path(File.join('..', '..'), __FILE__)
+        cfg = Configurator.new(Context, cwd)
+        if cwd != default_root
+          cfg.config_root = File.join(default_root, 'config')
+          cfg.load_config :common
+        end
         cfg.config_root = File.join(cwd, 'config')
-        cfg.load_config :common, true
+        cfg.load_config :common, cwd != default_root
         puts "\n looking for models"
         @tried = {}
         @models = {}
