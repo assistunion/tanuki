@@ -10,8 +10,8 @@ module Tanuki
         ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
           "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)"
         last_state = compile(ios, src)
-        ios << "\n_.call('',ctx)" unless PRINT_STATES.include? last_state
-        ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).call(_,ctx)\nend\nend\nend\nend"
+        ios << "\n_.('',ctx)" unless PRINT_STATES.include? last_state
+        ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).(_,ctx)\nend\nend\nend\nend"
       end
 
       # Compiles code from a given +src+ string to +ios+.
@@ -40,7 +40,7 @@ module Tanuki
               index = new_index + match.length
               next
             elsif not s.empty?
-              ios << "\n_.call(#{(code_buf << s).inspect},ctx)"
+              ios << "\n_.(#{(code_buf << s).inspect},ctx)"
               code_buf = ''
             end
           end
@@ -76,12 +76,12 @@ module Tanuki
         when :code_line, :code_span then
           ios << "\n#{src}"
         when :code_print then
-          ios << "\n_.call((#{src}),ctx)"
+          ios << "\n_.((#{src}),ctx)"
         when :code_template then
-          ios << "\n(#{src}).call(_,ctx)"
+          ios << "\n(#{src}).(_,ctx)"
         when :code_visitor
           inner_m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
-          ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).call(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
+          ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
         when :l10n then
           localize(ios, src)
         end
