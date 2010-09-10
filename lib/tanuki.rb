@@ -1,6 +1,7 @@
 libdir = File.dirname(__FILE__)
 $:.unshift(libdir) unless $:.include?(libdir)
 
+require 'active_support/all'
 require 'rack'
 require 'fileutils'
 require 'sequel'
@@ -13,7 +14,6 @@ require 'tanuki/extensions/object'
 require 'tanuki/extensions/rack/builder'
 require 'tanuki/extensions/rack/server'
 require 'tanuki/extensions/rack/static_dir'
-require 'tanuki/extensions/string'
 require 'tanuki/behavior/controller_behavior'
 require 'tanuki/behavior/meta_model_behavior'
 require 'tanuki/behavior/model_behavior'

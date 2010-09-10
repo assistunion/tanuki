@@ -37,10 +37,10 @@ module Tanuki
         version unless @in_repl
         cwd = cwd ? File.expand_path(cwd) : Dir.pwd
         puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
+        require 'active_support/inflector'
         require 'yaml'
         require 'fileutils'
         require 'tanuki/extensions/object'
-        require 'tanuki/extensions/string'
         require 'tanuki/behavior/meta_model_behavior'
         require 'tanuki/behavior/model_behavior'
         require 'tanuki/behavior/object_behavior'
