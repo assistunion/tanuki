@@ -66,14 +66,11 @@ module Tanuki
         end
 
         puts "\n looking for models"
+
         local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
-        mg = ModelGenerator.new
-        mg.generate ctx
-        if ctx.schema_root != local_schema_root
-          local_ctx = ctx.child
-          local_ctx.schema_root = local_schema_root
-          mg.generate local_ctx
-        end
+        mg = ModelGenerator.new(ctx)
+        mg.generate ctx.schema_root
+        mg.generate local_schema_root unless ctx.schema_root == local_schema_root
         mg.tried.each_pair do |name, arys|
           puts "\n found: #{name}"
           arys.each_pair {|ary_name, ary| puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty? }
