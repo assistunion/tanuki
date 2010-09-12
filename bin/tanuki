@@ -48,86 +48,35 @@ module Tanuki
         require 'tanuki/context'
         require 'tanuki/loader'
         require 'tanuki/template_compiler'
-        Loader.context = ctx = Context
+        require 'tanuki/model_generator'
+
+        ctx = Loader.context = Context
+
         default_root = File.expand_path(File.join('..', '..'), __FILE__)
-        cfg = Configurator.new(Context, cwd)
+        cfg = Configurator.new(ctx, cwd)
+
+        # Load defaults
+        cfg.config_root = File.join(default_root, 'config')
+        cfg.load_config :common
+
+        # Override with user settings if needed
         if cwd != default_root
-          cfg.config_root = File.join(default_root, 'config')
-          cfg.load_config :common
+          cfg.config_root = File.join(cwd, 'config')
+          cfg.load_config :common, true
         end
-        cfg.config_root = File.join(cwd, 'config')
-        cfg.load_config :common, cwd != default_root
+
         puts "\n looking for models"
-        @tried = {}
-        @models = {}
         local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
-        generate_in(ctx)
+        mg = ModelGenerator.new
+        mg.generate ctx
         if ctx.schema_root != local_schema_root
           local_ctx = ctx.child
           local_ctx.schema_root = local_schema_root
-          generate_in(local_ctx)
+          mg.generate local_ctx
         end
-        @tried.each_pair do |name, arys|
+        mg.tried.each_pair do |name, arys|
           puts "\n found: #{name}"
           arys.each_pair {|ary_name, ary| puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty? }
-        end
-      end
-
-      def generate_in(ctx)
-        Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
-          namespace_name = namespace_path.split('_').map {|s| s.capitalize }.join
-          namespace = @models[namespace_name] = {}
-          Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
-            model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
-            meta_model = namespace[model_name] = Tanuki_MetaModel.new(
-              namespace_name,
-              model_name,
-              YAML.load_file(file_path),
-              @models
-            )
-            meta_model.process!
-            if @tried.include? namespace_model_name = "#{namespace_name}.#{model_name}"
-              next
-            else
-              @tried[namespace_model_name] = {:generated => [], :failed => [], :skipped => []}
-            end
-          end
-        end
-
-        @models.each do |namespace_name, namespace |
-          namespace.each do |model_name, meta_model|
-            meta_model.process_relations!
-          end
-        end
-
-        @models.each do |namespace_name, namespace |
-          namespace.each do |model_name, meta_model|
-            namespace_model_name = "#{namespace_name}.#{model_name}"
-            {
-              :model => false,
-              :model_base => true,
-              :manager => false,
-              :manager_base => true
-            }.each do |class_type, base|
-              class_name = meta_model.class_name_for class_type
-              path = Tanuki::Loader.class_path(class_name, base ? ctx.gen_root : ctx.app_root)
-              if base || !(File.exists? path)
-                begin
-                  dirname = File.dirname(path)
-                  FileUtils.mkdir_p dirname unless File.directory? dirname
-                  File.open path, 'w' do |file|
-                    writer = proc {|out| file.print out.to_s }
-                    Loader.run_template({}, meta_model, class_type).call(writer, ctx)
-                  end
-                  @tried[namespace_model_name][:generated] << class_name unless base
-                rescue
-                  @tried[namespace_model_name][:failed] << class_name unless base
-                end
-              else
-                @tried[namespace_model_name][:skipped] << class_name unless base
-              end
-            end
-          end
         end
       end
 
@@ -184,7 +133,7 @@ module Tanuki
         @in_repl = true
         version
         print 'tanuki>'
-        print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")\w[\w\s]*(?=")|\w+/)
+        print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")[^"]*(?=")|[^\s]+/)
       end
 
       def version
