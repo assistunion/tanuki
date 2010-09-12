@@ -32,10 +32,15 @@ module Tanuki
       def process!
         process_source!
         process_key!
+        process_joins!
       end
 
       def process_key!
-        @key = @source['key'] || 'id'
+        if @source.include? 'key' && @source['key'].nil?
+          @key = []
+        else
+          @key = @source['key'] || 'id'
+        end
         @key = [@key] if @key.is_a? String
         raise 'invalid key' unless @key.is_a? Array
         @key.map! do |k|
@@ -63,11 +68,6 @@ module Tanuki
       def process_joins!
         @joins = {}
         @joins[@first_source] = nil
-      end
-
-      # Prepares data for template generation.
-      # Processes foreign keys, fields, etc.
-      def process_relations!
         joins = @source['joins'] || {}
         joins = [joins] if joins.is_a? String
         joins = Hash[*joins.collect {|v| [v, nil] }.flatten] if joins.is_a? Array
@@ -75,30 +75,60 @@ module Tanuki
           joins.each_pair do |table_alias, join|
             table_alias = table_alias.to_sym
             raise "#{table_alias} is already in use" if @joins.include? table_alias
-            if join
-              if join['on'].is_a Hash
-                table_name = join['table'] || table_alias
-                on = join['on']
-              else
-                on = join
-                table_name = table_alias
-              end
+            if join && (join['on'].is_a? Hash)
+              table_name = join['table'] || table_alias
+              on = join['on']
+              join_type = (join['type'] || 'inner').to_sym
             else
-               on = nil
-               table_name = table_alias
+              on = join
+              table_name = table_alias
+              join_type = :inner
             end
             if on
+              on = Hash[*on.map do |lhs, rhs|
+                [[lhs,table_alias],[rhs,@first_source]].map do |side,table_alias|
+                  if side.is_a? String
+                    if m = side.match(/^\(('|")(.*)\1\)$/)
+                      m[2]
+                    else
+                      parts = side.split('.').map {|x| x.to_sym }
+                      case parts.count
+                      when 1
+                        [table_alias, parts[0]]
+                      when 2
+                        raise "Unknown alias #{parts[0]}" unless @joins.include? parts[0]
+                        parts
+                      else
+                        raise "Invalid column specification #{lhs}"
+                      end
+                    end
+                  else
+                    side
+                  end
+                end
+              end.flatten]
             else
               on = {}
               @key.each do |k|
-                on[[table_alias, @first_source.to_s.singularize.to_sym]] = []
-                # TODO choose a right priciple
+                on[[table_alias, (@first_source.to_s.singularize << '_' << k[1].to_s).to_sym]] = k
               end
             end
+            @joins[table_alias] = {
+              :type => join_type,
+              :table => table_name,
+              :alias => table_alias,
+              :on => on
+            }
           end
         else
           raise "`joins' should be either nil or string or array or hash"
         end
+      end
+
+      # Prepares data for template generation.
+      # Processes foreign keys, fields, etc.
+      def process_relations!
+
       end
 
       # Returns code for alias-column name pair for field +field_name+.
