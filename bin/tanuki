@@ -61,16 +61,20 @@ module Tanuki
         @tried = {}
         @models = {}
         local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
-        generate_in(ctx.schema_root, ctx)
-        generate_in(local_schema_root, ctx) if ctx.schema_root != local_schema_root
+        generate_in(ctx)
+        if ctx.schema_root != local_schema_root
+          local_ctx = ctx.child
+          local_ctx.schema_root = local_schema_root
+          generate_in(local_ctx)
+        end
         @tried.each_pair do |name, arys|
           puts "\n found: #{name}"
           arys.each_pair {|ary_name, ary| puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty? }
         end
       end
 
-      def generate_in(schema_root, ctx)
-        Dir.entries(schema_root)[2..-1].each do |namespace_path|
+      def generate_in(ctx)
+        Dir.entries(ctx.schema_root)[2..-1].each do |namespace_path|
           namespace_name = namespace_path.split('_').map {|s| s.capitalize }.join
           namespace = @models[namespace_name] = {}
           Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
