@@ -36,7 +36,9 @@ module Tanuki
         Dir.glob(File.expand_path(File.join('..', 'utility', '*.rb'), __FILE__)) do |file|
           if match = file.match(/\/([^\/]+).rb/)
             require file
-            @commands << match[1].to_sym
+            command = match[1].to_sym
+            @commands << command
+            @help[command] = nil unless @help.include? command
           end
         end
         execute ARGV
