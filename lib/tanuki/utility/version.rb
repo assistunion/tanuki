@@ -15,9 +15,6 @@ module Tanuki
       puts "Tanuki version #{VERSION}"
     end
 
-    def self.version_help
-    end
-
   end # end Utility
 
 end # end Tanuki
