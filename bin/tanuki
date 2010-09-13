@@ -5,142 +5,47 @@ module Tanuki
 
     class << self
 
-      def create(name)
-        unless name
-          puts "To use this command: `create <name>'"
-          return
-        end
-        require 'fileutils'
-        project_dir = File.expand_path(name)
-        if File.exists? project_dir
-          puts "File or directory `#{name}' already exists!"
-          return
-        end
-        version unless @in_repl
-        puts "\n creating #{name = name.downcase}"
-        FileUtils.mkdir project_dir
-        file_source = File.expand_path(File.join('..', '..'), __FILE__)
-        puts " creating #{File.join(name, 'app')}"
-        FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
-        FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
-        puts " creating #{File.join(name, 'gen')}"
-        FileUtils.mkdir(gen_dir = File.join(project_dir, 'gen'))
-        FileUtils.chmod(0777, gen_dir)
-        puts " creating #{File.join(name, 'public')}"
-        FileUtils.mkdir(File.join(project_dir, 'public'))
-        puts " creating #{File.join(name, 'schema')}"
-        FileUtils.mkdir(File.join(project_dir, 'schema'))
-        Dir.chdir(project_dir) if @in_repl
-      end
-
-      def generate(cwd)
-        version unless @in_repl
-        cwd = cwd ? File.expand_path(cwd) : Dir.pwd
-        puts "Working directory is: #{cwd}\nTo specify another: `generate <path>'"
-        require 'active_support/inflector'
-        require 'yaml'
-        require 'fileutils'
-        require 'tanuki/extensions/object'
-        require 'tanuki/behavior/meta_model_behavior'
-        require 'tanuki/behavior/model_behavior'
-        require 'tanuki/behavior/object_behavior'
-        require 'tanuki/configurator'
-        require 'tanuki/context'
-        require 'tanuki/loader'
-        require 'tanuki/template_compiler'
-        require 'tanuki/model_generator'
-
-        ctx = Loader.context = Context
-
-        default_root = File.expand_path(File.join('..', '..'), __FILE__)
-        cfg = Configurator.new(ctx, cwd)
-
-        # Load defaults
-        cfg.config_root = File.join(default_root, 'config')
-        cfg.load_config :common
-
-        # Override with user settings if needed
-        if cwd != default_root
-          cfg.config_root = File.join(cwd, 'config')
-          cfg.load_config :common, true
-        end
-
-        puts "\n looking for models"
-
-        local_schema_root = File.expand_path(File.join('..', '..', 'schema'), __FILE__)
-        mg = ModelGenerator.new(ctx)
-        mg.generate ctx.schema_root
-        mg.generate local_schema_root unless ctx.schema_root == local_schema_root
-        mg.tried.each_pair do |name, arys|
-          puts "\n found: #{name}"
-          arys.each_pair {|ary_name, ary| puts %{ #{ary_name}:\n - #{ary.join "\n - "}} unless ary.empty? }
-        end
-      end
-
       def execute(args)
         case args[0]
-        when 'create' then create(args[1])
         when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
-        when 'generate' then generate(args[1])
-        when 'help' then help
-        when 'server' then return server(args[1])
-        when 'version' then version
         when nil then start_repl unless @in_repl
-        else help
+        else
+          if @commands.include? args[0].to_sym
+            begin
+              method(args[0].to_sym).call(*args[1..-1])
+            rescue ArgumentError => e
+              puts e.message.capitalize
+            end
+          else
+            help
+          end
         end
         true
       end
 
-      def help
-        version unless @in_repl
-        puts "\nbasic commands:\n"
-        commands = {}
-        commands['create']   = 'create a new app with the given name'
-        commands['exit']     = 'exit this utility' if @in_repl
-        commands['generate'] = 'generate models for application schema'
-        commands['help']     = 'show help (this text)'
-        commands['server']   = 'run application'
-        commands['version']  = 'show framework version'
-        commands.each_pair {|k, v| puts ' %-8s   %s' % [k, v] }
-      end
-
       def init
         @in_repl = false
+        @commands = []
+        @help = {}
+        Dir.glob(File.expand_path(File.join('..', '..', 'lib', 'tanuki', 'utility', '*.rb'), __FILE__)) do |file|
+          if match = file.match(/\/([^\/]+).rb/)
+            require file
+            @commands << match[1].to_sym
+          end
+        end
         execute ARGV
-      end
-
-      def server(env=nil)
-        env = env ? env.to_sym : :development
-        puts %{Calling for a Tanuki in "#{Dir.pwd}"}
-        version unless @in_repl
-        require 'tanuki'
-        begin
-          Application.run
-          false
-        rescue Interrupt
-          puts 'Tanuki ran away!'
-          false
-        rescue SystemCallError
-          puts 'Tanuki ran away! Someone else is playing here.'
-          true
-        end if Application.configure(env)
       end
 
       def start_repl
         @in_repl = true
+        @help[:exit] = 'exit this utility'
         version
         print 'tanuki>'
-        print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")[^"]*(?=")|[^\s]+/)
-      end
-
-      def version
         begin
-          require 'tanuki/version'
-        rescue LoadError
-          $:.unshift File.expand_path(File.join('..', '..', 'lib'), __FILE__)
-          require 'tanuki/version'
+          print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")[^"]*(?=")|[^\s]+/)
+        rescue Interrupt
+          puts "\nBye bye!"
         end
-        puts "Tanuki version #{VERSION}"
       end
 
     end # end class << self
