@@ -1,9 +1,14 @@
 module Tanuki
 
+  # Tanuki::Utility is a collection of methods for the framework console.
+  # The actual script is located in +bin/tanuki+ in gem or source location.
+  # An executable +tanuki+ is installed with the gem.
   module Utility
 
     class << self
 
+      # Executes given +args+.
+      # The first item in +args+ is the name of a command, and the rest are arguments for the command.
       def execute(args)
         case args[0]
         when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
@@ -22,6 +27,8 @@ module Tanuki
         true
       end
 
+      # Initializes the utility state and loads command methods.
+      # Executes the utility with +ARGV+.
       def init
         @in_repl = false
         @commands = []
@@ -35,6 +42,8 @@ module Tanuki
         execute ARGV
       end
 
+      # Starts a REPL (framework console).
+      # In this console +command [args]+ call is equivalent to +tanuki command [args]+ in the terminal.
       def start_repl
         @in_repl = true
         @help[:exit] = 'exit this utility'

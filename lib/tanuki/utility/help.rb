@@ -4,6 +4,7 @@ module Tanuki
 
     @help[:help] = 'show help (this text)'
 
+    # Shows help for all available commands.
     def self.help
       version unless @in_repl
       puts "\nbasic commands:\n"

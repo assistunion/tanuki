@@ -4,6 +4,7 @@ module Tanuki
 
     @help[:version] = 'show framework version'
 
+    # Prints the running framework version.
     def self.version
       begin
         require 'tanuki/version'

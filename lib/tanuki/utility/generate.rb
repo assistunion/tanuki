@@ -4,6 +4,7 @@ module Tanuki
 
     @help[:generate] = 'generate models for application schema'
 
+    # Generates models for application schema in the current directory or +cwd+.
     def self.generate(cwd=nil)
       version unless @in_repl
       cwd = cwd ? File.expand_path(cwd) : Dir.pwd

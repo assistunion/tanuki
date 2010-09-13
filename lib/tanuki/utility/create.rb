@@ -4,6 +4,7 @@ module Tanuki
 
     @help[:create] = 'create a new app with the given name'
 
+    # Creates a new application with a given +name+.
     def self.create(name=nil)
       unless name
         puts "To use this command: `create <name>'"
