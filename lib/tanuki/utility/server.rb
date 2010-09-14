@@ -12,13 +12,9 @@ module Tanuki
       require 'tanuki'
       begin
         Application.run
-        false
-      rescue Interrupt
         puts 'Tanuki ran away!'
-        false
       rescue SystemCallError
         puts 'Tanuki ran away! Someone else is playing here.'
-        true
       end if Application.configure(env)
     end
 

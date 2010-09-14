@@ -55,9 +55,11 @@ module Tanuki
         configure_middleware(rack_builder = Rack::Builder.new)
         rack_builder.run(rack_app)
         @context.running_server = available_server
-        puts "A#{'n' if @environment =~ /\A[aeiou]/} #{@environment} Tanuki appears! Press Ctrl-C to set it free.",
-          "You used #{@context.running_server.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
-        @context.running_server.run rack_builder.to_app, :Host => @context.host, :Port => @context.port
+        @context.running_server.run rack_builder.to_app, :Host => @context.host, :Port => @context.port do |server|
+          [:INT, :TERM].each {|sig| trap(sig) { (server.respond_to? :stop!) ? server.stop! : server.stop } }
+          puts "A#{'n' if @environment =~ /\A[aeiou]/} #{@environment} Tanuki appears! Press Ctrl-C to set it free.",
+            "You used #{@context.running_server.name.gsub(/.*::/, '')} at #{@context.host}:#{@context.port}."
+        end
       end
 
       # Adds a given +middleware+ with optional +args+ and +block+ to the Rack middleware pipeline.
