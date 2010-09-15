@@ -300,7 +300,7 @@ module Tanuki
           curr = nxt
         end
 
-        # Set links for active controllers
+        # Set links for active controllers and default routes
         while route_part = curr.default_route
 
           # Do a redirect, if some controller in the chain asks for it
@@ -309,7 +309,7 @@ module Tanuki
             return {:type => :redirect, :location => grow_link(curr, route_part, klass.arg_defs)}
           end
 
-          # Erm...
+          # Add default route as logical child
           curr.instance_variable_set :@_active, true
           nxt = curr[route_part[:route], *route_part[:args]]
           curr.logical_child = nxt
