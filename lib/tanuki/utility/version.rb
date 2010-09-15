@@ -6,12 +6,7 @@ module Tanuki
 
     # Prints the running framework version.
     def self.version
-      begin
-        require 'tanuki/version'
-      rescue LoadError
-        $:.unshift File.expand_path(File.join('..', '..', '..'), __FILE__)
-        require 'tanuki/version'
-      end
+      require 'tanuki/version'
       puts "Tanuki version #{VERSION}"
     end
 
