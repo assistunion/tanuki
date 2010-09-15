@@ -16,7 +16,7 @@ module Tanuki
         @range.include?(i) ? i : @default
       end
 
-    end # end IntegerRange
+    end # IntegerRange
 
-  end # end Argument
-end # end Tanuki
+  end # Argument
+end # Tanuki

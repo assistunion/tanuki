@@ -76,8 +76,8 @@ module Tanuki
                 {:route => a_route, :args => embedded_args}, child_def[:model])
               found = true
               break child
-            end # end if
-          end # end each
+            end # if
+          end # each
 
         end
 
@@ -281,7 +281,7 @@ module Tanuki
         mod.instance_variable_set(:@_arg_defs, {})
       end
 
-    end # end ClassMethods
+    end # ClassMethods
 
     extend ClassMethods
 
@@ -351,7 +351,7 @@ module Tanuki
           end
           route_part[:args] = extract_args(args)
           route_part
-        end # end do
+        end # do
       end
 
       # Unescapes a given link part for internal use.
@@ -359,8 +359,8 @@ module Tanuki
         s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end ControllerBehavior
+  end # ControllerBehavior
 
-end # end Tanuki
+end # Tanuki

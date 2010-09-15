@@ -15,6 +15,6 @@ module Tanuki
       puts "Tanuki version #{VERSION}"
     end
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

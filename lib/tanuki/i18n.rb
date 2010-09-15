@@ -30,6 +30,6 @@ module Tanuki
       ctx
     end
 
-  end # end I18n
+  end # I18n
 
-end # end Tanuki
+end # Tanuki

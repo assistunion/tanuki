@@ -58,8 +58,8 @@ module Tanuki
         end
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

@@ -24,4 +24,4 @@ class Module
     end
   end
 
-end # end Module
+end # Module

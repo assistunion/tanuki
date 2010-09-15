@@ -9,7 +9,7 @@ module Tanuki
         obj.to_s
       end
 
-    end # end String
+    end # String
 
-  end # end Argument
-end # end Tanuki
+  end # Argument
+end # Tanuki

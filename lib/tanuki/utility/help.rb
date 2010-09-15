@@ -11,6 +11,6 @@ module Tanuki
       @help.each_pair {|k, v| puts ' %-8s   %s' % [k, v] }
     end
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

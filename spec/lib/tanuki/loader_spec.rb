@@ -63,5 +63,5 @@ module Tanuki
       Loader.run_template({}, ctrl, :index)
     end
 
-  end # end describe Loader
-end # end Tanuki
+  end # describe Loader
+end # Tanuki

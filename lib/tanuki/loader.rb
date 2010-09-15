@@ -129,8 +129,8 @@ module Tanuki
         [nil, nil]
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end Path
+  end # Path
 
-end # end Tanuki
+end # Tanuki

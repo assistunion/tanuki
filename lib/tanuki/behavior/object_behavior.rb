@@ -27,6 +27,6 @@ module Tanuki
       super
     end
 
-  end # end BaseBehavior
+  end # BaseBehavior
 
-end # end Tanuki
+end # Tanuki

@@ -146,8 +146,8 @@ module Tanuki
         ios << "#{lngs.inspect.gsub(/ /, '')}#{code.string}\nend"
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end TemplateCompiler
+  end # TemplateCompiler
 
-end # end Tanuki
+end # Tanuki

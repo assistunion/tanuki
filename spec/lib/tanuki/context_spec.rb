@@ -41,5 +41,5 @@ module Tanuki
       lambda { @ctx.method_missing = nil }.should raise_error
     end
 
-  end # end describe Context
-end # end Tanuki
+  end # describe Context
+end # Tanuki

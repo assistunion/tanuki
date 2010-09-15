@@ -9,7 +9,7 @@ module Tanuki
         begin Kernel::Integer obj rescue @default end
       end
 
-    end # end Integer
+    end # Integer
 
-  end # end Argument
-end # end Tanuki
+  end # Argument
+end # Tanuki

@@ -34,8 +34,8 @@ module Tanuki
         end
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end Argument
+  end # Argument
 
-end # end Tanuki
+end # Tanuki

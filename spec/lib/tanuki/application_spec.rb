@@ -99,5 +99,5 @@ module Tanuki
       result[1]['Location'].should == '/ru'
     end
 
-  end # end describe Application
-end # end Tanuki
+  end # describe Application
+end # Tanuki

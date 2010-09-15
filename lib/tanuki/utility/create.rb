@@ -33,6 +33,6 @@ module Tanuki
       Dir.chdir(project_dir) if @in_repl
     end
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

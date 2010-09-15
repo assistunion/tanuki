@@ -18,6 +18,6 @@ module Tanuki
       end if Application.configure(env)
     end
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

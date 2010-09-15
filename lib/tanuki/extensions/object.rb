@@ -9,4 +9,4 @@ class Object
     super
   end
 
-end # end Object
+end # Object

@@ -27,7 +27,7 @@ module Tanuki
       Argument.to_argument(1..10, 5).default == 5
     end
 
-  end # end describe Argument
+  end # describe Argument
 
 
   describe Argument::Base do
@@ -49,7 +49,7 @@ module Tanuki
         a.to_s.should == '5'
       end
 
-  end # end describe Argument::Base
+  end # describe Argument::Base
 
 
   describe Argument::Integer do
@@ -62,7 +62,7 @@ module Tanuki
       a.value.should == 5
     end
 
-  end # end describe Argument::Integer
+  end # describe Argument::Integer
 
 
   describe Argument::IntegerRange do
@@ -88,7 +88,7 @@ module Tanuki
       a.value.should == 5
     end
 
-  end # end describe Argument::IntegerRange
+  end # describe Argument::IntegerRange
 
 
   describe Argument::String do
@@ -99,6 +99,6 @@ module Tanuki
       a.value.should == 'Object'
     end
 
-  end # end describe Argument::String
+  end # describe Argument::String
 
-end # end Tanuki
+end # Tanuki

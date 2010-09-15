@@ -105,7 +105,7 @@ module Tanuki
         mod.instance_variable_set(:@_relations, {})
       end
 
-    end # end ClassMethods
+    end # ClassMethods
 
     class << self
 
@@ -114,8 +114,8 @@ module Tanuki
         mod.extend ClassMethods
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end ModelBehaviour
+  end # ModelBehaviour
 
-end # end Tanuki
+end # Tanuki

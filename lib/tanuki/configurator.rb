@@ -49,6 +49,6 @@ module Tanuki
       Application.visitor(sym, &block)
     end
 
-  end # end Configurator
+  end # Configurator
 
-end # end Tanuki
+end # Tanuki

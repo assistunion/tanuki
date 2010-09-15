@@ -143,6 +143,6 @@ module Tanuki
         end
       end
 
-  end # end MetaModelBehavior
+  end # MetaModelBehavior
 
-end # end Tanuki
+end # Tanuki

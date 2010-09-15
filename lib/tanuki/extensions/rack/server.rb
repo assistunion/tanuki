@@ -14,5 +14,5 @@ module Rack
 
     alias_method_chain :options, :tanuki
 
-  end # end
-end # end Rack
+  end #
+end # Rack

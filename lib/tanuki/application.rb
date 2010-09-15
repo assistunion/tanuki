@@ -150,13 +150,13 @@ module Tanuki
               [404, {'Content-Type' => 'text/html; charset=utf-8'}, build_body(result[:controller], request_ctx)]
             end
 
-          end # end if
+          end # if
 
         end
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end Application
+  end # Application
 
-end # end Tanuki
+end # Tanuki

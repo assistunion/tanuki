@@ -71,8 +71,8 @@ module Tanuki
         raise "contexts cannot be instantiated"
       end
 
-    end # end class << self
+    end # class << self
 
-  end # end Context
+  end # Context
 
-end # end Tanuki
+end # Tanuki

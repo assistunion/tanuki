@@ -63,5 +63,5 @@ module Tanuki
         %Q{\nwhen :en then\n_.call("en code",ctx)\nend}
     end
 
-  end # end describe TemplateCompiler
-end # end Tanuki
+  end # describe TemplateCompiler
+end # Tanuki

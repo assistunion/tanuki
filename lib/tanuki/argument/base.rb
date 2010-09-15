@@ -21,7 +21,7 @@ module Tanuki
         @value = to_value(obj)
       end
 
-    end # end Base
+    end # Base
 
-  end # end Argument
-end # end Tanuki
+  end # Argument
+end # Tanuki

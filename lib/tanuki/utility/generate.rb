@@ -47,6 +47,6 @@ module Tanuki
       end
     end
 
-  end # end Utility
+  end # Utility
 
-end # end Tanuki
+end # Tanuki

@@ -14,5 +14,5 @@ module Tanuki
       Launcher.new(ctrl, nil).each &mock_proc
     end
 
-  end # end describe Launcher
-end # end Tanuki
+  end # describe Launcher
+end # Tanuki

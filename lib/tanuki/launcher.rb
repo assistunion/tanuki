@@ -16,6 +16,6 @@ module Tanuki
       @ctrl.default_view.call(proc {|out| block.call(out.to_s) }, @ctx)
     end
 
-  end # end Launcher
+  end # Launcher
 
-end # end Tanuki
+end # Tanuki
