@@ -22,6 +22,8 @@ module Tanuki
         trim_newline = false
         code_buf = ''
         begin
+
+          # Find out state for expected pattern
           if new_index = src[index..-1].index(pattern = expect_pattern(state))
             new_index += index
             match = src[index..-1].match(pattern)[0]
@@ -29,6 +31,8 @@ module Tanuki
           else
             new_state = nil
           end
+
+          # Process outer state (e.g. HTML or plain text)
           if state == :outer
             s = new_index ? src[index, new_index - index] : src[index..-1]
             if trim_newline && !s.empty?
@@ -44,6 +48,8 @@ module Tanuki
               code_buf = ''
             end
           end
+
+          # Process current state, if there should be a state change
           if new_index
             unless state != :outer && new_state == :code_skip
               if new_state == :outer
@@ -59,6 +65,7 @@ module Tanuki
               index = new_index + match.length
             end
           end
+
         end until new_index.nil?
         last_state
       end

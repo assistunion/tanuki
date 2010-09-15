@@ -46,16 +46,21 @@ module Tanuki
         defined = @_defined
         class << self; self; end.instance_eval do
           method_sym = match[1].to_sym
+
+          # Search cache, if method exists; add as necessary
           if defined.include? method_sym
             undef_method method_sym
           else
             defined[method_sym] = nil
           end
+
+          # Register value in context
           if arg.is_a? Proc
             define_method(method_sym, &arg)
           else
             define_method(method_sym) { arg }
           end
+
           return arg
         end if match[2]
         super

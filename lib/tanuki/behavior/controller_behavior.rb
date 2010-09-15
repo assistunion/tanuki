@@ -16,10 +16,13 @@ module Tanuki
       @_model = model
       @_args = {}
       if @_logical_parent = logical_parent
+
+        # Register controller arguments, as declared with Tanuki::ControllerBehavior#has_arg.
         @_route = route_part[:route]
         self.class.arg_defs.each_pair do |arg_name, arg_def|
           route_part[:args][arg_def[:index]] = @_args[arg_name] = arg_def[:arg].to_value(route_part[:args][arg_def[:index]])
         end
+
         @_link = self.class.grow_link(@_logical_parent, {:route => @_route, :args => @_args}, self.class.arg_defs)
         initialize_route(*route_part[:args])
       else
@@ -44,14 +47,19 @@ module Tanuki
       ensure_configured!
       key = [route, args.dup]
       if cached = @_cache[key]
+
         # Return form cache
         return cached
+
       elsif child_def = @_child_defs[route]
+
         # Search static routes
         klass = child_def[:class]
         args = klass.extract_args(args[0]) if byname
         child = klass.new(process_child_context(@_ctx, route), self, {:route => route, :args => args}, child_def[:model])
+
       else
+
         # Search dynamic routes
         found = false
         s = route.to_s
@@ -68,11 +76,14 @@ module Tanuki
                 {:route => a_route, :args => embedded_args}, child_def[:model])
               found = true
               break child
-            end
-          end
+            end # end if
+          end # end each
+
         end
+
         # If still not found, search ghost routes
         child = missing_route(route, *args) unless found
+
       end
       @_cache[key] = child # Thread safe (possible overwrite, but within consistent state)
     end
@@ -88,12 +99,17 @@ module Tanuki
       args = []
       key = [route, args]
       if cached = @_cache[key]
+
         # Return from cache
         return cached.class
+
       elsif child_def = @_child_defs[route]
+
         # Return from static routes
         return child_def[:class]
+
       else
+
         # Search dynamic routes
         s = route.to_s
         @_child_collection_defs.each do |collection_def|
@@ -103,8 +119,10 @@ module Tanuki
             return child_def[:class] if child_def
           end
         end
+
         # If still not found, search ghost routes
         return (@_cache[key] = missing_route(route, *args)).class
+
       end
     end
 
@@ -272,6 +290,8 @@ module Tanuki
       # Dispathes route chain in context +ctx+ on +request_path+, starting with controller +klass+.
       def dispatch(ctx, klass, request_path)
         route_parts = parse_path(request_path)
+
+        # Set logical children for active controllers
         curr = root_ctrl = klass.new(ctx, nil, nil, true)
         route_parts.each do |route_part|
           curr.instance_variable_set :@_active, true
@@ -279,24 +299,36 @@ module Tanuki
           curr.logical_child = nxt
           curr = nxt
         end
+
+        # Set links for active controllers
         while route_part = curr.default_route
+
+          # Do a redirect, if some controller in the chain asks for it
           if route_part[:redirect]
             klass = curr.child_class(route_part)
             return {:type => :redirect, :location => grow_link(curr, route_part, klass.arg_defs)}
           end
+
+          # Erm...
           curr.instance_variable_set :@_active, true
           nxt = curr[route_part[:route], *route_part[:args]]
           curr.logical_child = nxt
           curr = nxt
+
         end
+
+        # Find out dispatch result type from current controller
         curr.instance_variable_set :@_active, true
         curr.instance_variable_set :@_current, true
         type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
+
+        # Set visual children for active controllers
         prev = curr
         while curr = prev.visual_parent
           curr.visual_child = prev
           prev = curr
         end
+
         {:type => type, :controller => prev}
       end
 
@@ -319,7 +351,7 @@ module Tanuki
           end
           route_part[:args] = extract_args(args)
           route_part
-        end
+        end # end do
       end
 
       # Unescapes a given link part for internal use.

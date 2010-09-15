@@ -48,11 +48,15 @@ module Tanuki
           ct_file_exists = File.file?(ct_path)
           ct_file_mtime = ct_file_exists ? File.mtime(ct_path) : nil
           st_file = File.new(st_path, 'r:UTF-8')
+
+          # Find out if template refresh is required
           if !ct_file_exists || st_file.mtime > ct_file_mtime || File.mtime(COMPILER_PATH) > ct_file_mtime
             no_refresh = compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
           else
             no_refresh = true
           end
+
+          # Load template
           method_name = "#{sym}_view".to_sym
           owner.instance_eval do
             unless (method_exists = instance_methods(false).include? method_name) && no_refresh
@@ -60,8 +64,11 @@ module Tanuki
               load ct_path
             end
           end
+
+          # Register template in cache
           templates["#{owner}##{sym}"] = nil
           templates["#{obj.class}##{sym}"] = nil
+
           obj.send(method_name, *args, &block)
         else
           raise "undefined template `#{sym}' for #{obj.class}"
@@ -81,7 +88,11 @@ module Tanuki
       # (is equal to +ct_file_mtime+) since file locking was initiated.
       def compile_template(st_file, ct_path, ct_file_mtime, owner, sym)
         no_refresh = true
+
+        # Lock template source to avoid race condition
         st_file.flock(File::LOCK_EX)
+
+        # Compile, if template still needs compiling on lock release
         if !File.file?(ct_path) || File.mtime(ct_path) == ct_file_mtime
           no_refresh = false
           ct_dir = File.dirname(ct_path)
@@ -91,7 +102,10 @@ module Tanuki
           end
           FileUtils.mv(tmp_ct_path, ct_path)
         end
+
+        # Release lock
         st_file.flock(File::LOCK_UN)
+
         no_refresh
       end
 
