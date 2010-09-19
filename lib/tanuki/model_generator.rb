@@ -68,7 +68,7 @@ module Tanuki
             FileUtils.mkdir_p dirname unless File.directory? dirname
             File.open path, 'w' do |file|
               writer = proc {|out| file.print out.to_s }
-              Loader.run_template({}, meta_model, class_type).call(writer, ctx)
+              Loader.run_template({}, meta_model, class_type).call(writer, @ctx)
             end
             @tried[namespace_model_name][:generated] << class_name unless base
           rescue
