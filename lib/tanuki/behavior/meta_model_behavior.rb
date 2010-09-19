@@ -33,6 +33,13 @@ module Tanuki
         process_source!
         process_key!
         process_joins!
+        process_filter!
+        process_order!
+      end
+
+      # Prepares data for building a Sequel +where+ clause.
+      def process_filter!
+        # TODO: ...
       end
 
       def process_key!
@@ -53,6 +60,11 @@ module Tanuki
             [@first_source, parts[0]]
           end
         end
+      end
+
+      # Prepares data for building a Sequel +order+ clause.
+      def process_order!
+        # TODO: ...
       end
 
       # Extracts the model firts-source information form the YAML @data
