@@ -52,7 +52,7 @@ module Tanuki
         version
         print 'tanuki>'
         begin
-          print "\ntanuki>" while gets && execute($_.chomp.scan /(?<=")[^"]*(?=")|[^\s]+/)
+          print "\ntanuki>" while gets && execute($_.chomp.scan(/(?<=")[^"]*(?=")|[^\s]+/))
         rescue Interrupt
           puts "\nBye bye!"
         end
