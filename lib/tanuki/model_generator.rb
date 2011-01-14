@@ -40,6 +40,7 @@ module Tanuki
             next
           else
             @tried[namespace_model_name] = {:generated => [], :failed => [], :skipped => []}
+            @tried["#{namespace_model_name} (base)"] = {:generated => [], :failed => [], :skipped => []}
           end
         end
       end
@@ -61,6 +62,7 @@ module Tanuki
     # in Tanuki::ModelGenerator#tried hash.
     def generate_class(meta_model, namespace_model_name, class_type, base)
       class_name = meta_model.class_name_for class_type
+      namespace_model_name += ' (base)' if base
       path = Tanuki::Loader.class_path(class_name, base ? @ctx.gen_root : @ctx.app_root)
       if base || !(File.exists? path)
         begin
@@ -70,12 +72,12 @@ module Tanuki
             writer = proc {|out| file.print out.to_s }
             Loader.run_template({}, meta_model, class_type).call(writer, @ctx)
           end
-          @tried[namespace_model_name][:generated] << class_name unless base
+          @tried[namespace_model_name][:generated] << class_name
         rescue
-          @tried[namespace_model_name][:failed] << class_name unless base
+          @tried[namespace_model_name][:failed] << class_name
         end
       else
-        @tried[namespace_model_name][:skipped] << class_name unless base
+        @tried[namespace_model_name][:skipped] << class_name
       end
     end
 
