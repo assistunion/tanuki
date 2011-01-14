@@ -24,7 +24,7 @@ module Tanuki
     # Loads all models into memory from a given +schema_root+ and prepares
     # their own properties to be rendered in class templates.
     def read_models(schema_root)
-      Dir.entries(schema_root)[2..-1].each do |namespace_path|
+      Dir.entries(schema_root).reject {|path| path =~ /\A\.{1,2}\Z/ }.each do |namespace_path|
         namespace_name = namespace_path.split('_').map {|s| s.capitalize }.join
         namespace = @models[namespace_name] = {}
         Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
