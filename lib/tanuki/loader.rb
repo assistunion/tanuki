@@ -17,6 +17,12 @@ module Tanuki
         class_path(klass, @app_root ||= combined_app_root)
       end
 
+      # Returns the path to a directory containing class +klass+.
+      # Seatches across all common roots.
+      def combined_class_dir(klass)
+        const_to_path(klass, @app_root ||= combined_app_root)
+      end
+
       # Returns a glob pattern of all common roots.
       def combined_app_root
         local_app_root = File.expand_path(File.join('..', '..', '..', 'app'), __FILE__)
