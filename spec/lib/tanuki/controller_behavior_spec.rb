@@ -8,7 +8,7 @@ module Tanuki
   Loader.context = @context
 end
 
-describe Tanuki_Controller do
+describe Tanuki::Controller do
 
   before :all do
     @context = Tanuki::Context.child
@@ -20,12 +20,12 @@ describe Tanuki_Controller do
   end
 
   it 'should have empty argument definitions when created' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.arg_defs.should == {}
   end
 
   it 'should have expected argument definitions when they are declared' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     c.has_arg :b, 69
     c.arg_defs.keys.should == [:a, :b]
@@ -36,7 +36,7 @@ describe Tanuki_Controller do
   end
 
   it 'should inherit argument definitions from parent controllers' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     d = Class.new(c)
     d.has_arg :b, 69
@@ -45,7 +45,7 @@ describe Tanuki_Controller do
   end
 
   it 'should initialize default values when arguments are extracted' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     c.has_arg :b, 69
     c.has_arg :c, 17
@@ -55,33 +55,33 @@ describe Tanuki_Controller do
   end
 
   it 'should process arguments received in route part' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     c.has_arg :b, 69
     c.has_arg :c, 17
     c.instance_eval { define_method(:initialize_route) {|*args| args.should == [1, 2, 3] } }
-    c_obj = c.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => [1, 2, 3]})
+    c_obj = c.new(nil, Class.new(Tanuki::Controller).new(nil, nil, nil), {:route => 'pie', :args => [1, 2, 3]})
     c_obj.instance_variable_get(:@_args).should == {:a => 1, :b => 2, :c => 3}
   end
 
   it 'should initialize default values when received arguments are invalid' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     c.has_arg :b, 69
     c.has_arg :c, 17
     c.instance_eval { define_method(:initialize_route) {|*args| args.should == [42, 69, 17] } }
-    c_obj = c.new(nil, Class.new(Tanuki_Controller).new(nil, nil, nil), {:route => 'pie', :args => ['a', 'b', 'c']})
+    c_obj = c.new(nil, Class.new(Tanuki::Controller).new(nil, nil, nil), {:route => 'pie', :args => ['a', 'b', 'c']})
     c_obj.instance_variable_get(:@_args).should == {:a => 42, :b => 69, :c => 17}
   end
 
   it 'should have empty child definitions when created' do
-    c_obj = Class.new(Tanuki_Controller).new(nil, nil, nil)
+    c_obj = Class.new(Tanuki::Controller).new(nil, nil, nil)
     c_obj.ensure_configured!
     c_obj.instance_variable_get(:@_child_defs).should == {}
   end
 
   it 'should have expected child definitions when they are declared' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.instance_eval do
       define_method(:configure) do
         has_child c, :x, model * 2
@@ -98,7 +98,7 @@ describe Tanuki_Controller do
   end
 
   it 'should build links according to argument and child definitions' do
-    c = Class.new(Tanuki_Controller)
+    c = Class.new(Tanuki::Controller)
     c.has_arg :a, 42
     c.has_arg :b, 69
     c.instance_eval do

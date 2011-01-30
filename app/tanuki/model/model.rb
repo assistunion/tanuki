@@ -1,3 +1,3 @@
-class Tanuki_Model
+class Tanuki::Model
   include Tanuki::ModelBehavior
 end

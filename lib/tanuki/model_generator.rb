@@ -29,7 +29,7 @@ module Tanuki
         namespace = @models[namespace_name] = {}
         Dir.glob(File.join(schema_root, namespace_path, 'models', '*.yml')) do |file_path|
           model_name = File.basename(file_path, '.yml').split('_').map {|s| s.capitalize }.join
-          meta_model = namespace[model_name] = Tanuki_MetaModel.new(
+          meta_model = namespace[model_name] = Tanuki::MetaModel.new(
             namespace_name,
             model_name,
             YAML.load_file(file_path),

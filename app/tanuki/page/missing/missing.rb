@@ -1,4 +1,4 @@
-class Tanuki_Page_Missing < Tanuki_Controller
+class Tanuki::Page::Missing < Tanuki::Controller
   def visual_parent
     nil
   end

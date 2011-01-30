@@ -1,2 +1,2 @@
-class <%= class_name_for :manager_base %> < Tanuki_Controller
+class <%= class_name_for :manager_base %> < Tanuki::Controller
 end
