@@ -1,13 +1,17 @@
 class Module
 
   # Runs Tanuki::Loader for every missing constant in any namespace.
-  def const_missing_with_tanuki(const)
-    paths = Dir.glob(Tanuki::Loader.combined_class_path(sym))
-    unless paths.empty?
+  def const_missing_with_tanuki(sym)
+    klass = "#{name + '::' if name != 'Object'}#{sym}"
+    paths = Dir.glob(Tanuki::Loader.combined_class_path(klass))
+    if paths.empty?
+      puts "Creating: #{klass}"
+      const_set(sym, Class.new)
+    else
+      puts "Loading: #{klass}"
       paths.reverse_each {|path| require path }
-      return const_defined?(const) ? const_get(const) : super
+      const_defined?(sym) ? const_get(sym) : super
     end
-    super
   end
 
   alias_method_chain :const_missing, :tanuki
