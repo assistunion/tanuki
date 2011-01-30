@@ -1,5 +1,17 @@
 class Module
 
+  # Runs Tanuki::Loader for every missing constant in any namespace.
+  def const_missing_with_tanuki(const)
+    paths = Dir.glob(Tanuki::Loader.combined_class_path(sym))
+    unless paths.empty?
+      paths.reverse_each {|path| require path }
+      return const_defined?(const) ? const_get(const) : super
+    end
+    super
+  end
+
+  alias_method_chain :const_missing, :tanuki
+
   # Creates a reader +sym+ and a writer +sym=+ for the instance variable @_sym.
   def internal_attr_accessor(*syms)
     internal_attr_reader(*syms)
