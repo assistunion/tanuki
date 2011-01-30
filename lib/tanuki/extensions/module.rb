@@ -5,10 +5,8 @@ class Module
     klass = "#{name + '::' if name != 'Object'}#{sym}"
     paths = Dir.glob(Tanuki::Loader.combined_class_path(klass))
     if paths.empty?
-      puts "Creating: #{klass}"
       const_set(sym, Class.new)
     else
-      puts "Loading: #{klass}"
       paths.reverse_each {|path| require path }
       const_defined?(sym) ? const_get(sym) : super
     end
