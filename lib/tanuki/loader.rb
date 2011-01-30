@@ -116,7 +116,7 @@ module Tanuki
 
       # Transforms a given constant +klass+ to a path with a given +root+.
       def const_to_path(klass, root)
-        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
+        File.join(root, klass.to_s.split('::').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
       end
 
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.
