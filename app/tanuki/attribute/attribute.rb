@@ -1,4 +1,4 @@
-class Tanuki_Attribute
+class Tanuki::Attribute
   def initialize(cfg, owner)
     #--
     # created on demand (first access)

@@ -1,3 +1,3 @@
-class Tanuki_Base
+class Tanuki::Base
   include Tanuki::BaseBehavior
 end

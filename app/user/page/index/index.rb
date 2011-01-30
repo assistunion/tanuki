@@ -1,2 +1,2 @@
-class User_Page_Index < Tanuki_Controller
+class User::Page::Index < Tanuki::Controller
 end

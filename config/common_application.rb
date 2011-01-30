@@ -11,8 +11,8 @@ set :port, 3000
 set :development, false
 
 # Default controllers
-set :root_page, ::User_Page_Index
-set :missing_page, ::Tanuki_Page_Missing
+set :root_page, ::User::Page::Index
+set :missing_page, ::Tanuki::Page::Missing
 
 # Internationalization
 set :i18n, false

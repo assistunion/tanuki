@@ -17,6 +17,12 @@ module Tanuki
         class_path(klass, @app_root ||= combined_app_root)
       end
 
+      # Returns the path to a directory containing class +klass+.
+      # Seatches across all common roots.
+      def combined_class_dir(klass)
+        const_to_path(klass, @app_root ||= combined_app_root)
+      end
+
       # Returns a glob pattern of all common roots.
       def combined_app_root
         local_app_root = File.expand_path(File.join('..', '..', '..', 'app'), __FILE__)
@@ -116,7 +122,7 @@ module Tanuki
 
       # Transforms a given constant +klass+ to a path with a given +root+.
       def const_to_path(klass, root)
-        File.join(root, klass.to_s.split('_').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
+        File.join(root, klass.to_s.split('::').map {|item| item.gsub(/(?!^)([A-Z])/, '_\1') }.join(File::SEPARATOR).downcase)
       end
 
       # Finds the direct template +method_name+ owner among ancestors of class +klass+.

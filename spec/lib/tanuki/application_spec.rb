@@ -9,8 +9,8 @@ module Tanuki
         root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
         @context.app_root = File.join(root, 'app')
         @context.gen_root = File.join(root, 'gen')
-        @context.root_page = ::Tanuki_Controller
-        @context.missing_page = ::Tanuki_Page_Missing
+        @context.root_page = ::Tanuki::Controller
+        @context.missing_page = ::Tanuki::Page::Missing
         @context.development = true
         @rack_middleware = []
       end
@@ -50,7 +50,7 @@ module Tanuki
     it 'should build a response body' do
       ctx = Application.instance_eval { @context.child }
       ctx.templates = {}
-      ctrl = ControllerBehavior.dispatch(ctx, ::Tanuki_Controller, '/')[:controller]
+      ctrl = ControllerBehavior.dispatch(ctx, ::Tanuki::Controller, '/')[:controller]
       Application.visitor :array do arr = []; proc {|out| arr << out } end
       Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
     end
