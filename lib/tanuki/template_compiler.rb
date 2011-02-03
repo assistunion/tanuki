@@ -1,6 +1,21 @@
 module Tanuki
 
   # Tanuki::TemplateCompiler is used for, well, compiling templates.
+  #
+  # Tanuki templates are text (or HTML) files with an extended tag syntax.
+  # ERB syntax is forward compatible with Tanuki template syntax.
+  #
+  # The following tags are recognized:
+  #
+  #   <% Ruby code -- output to stdout %>
+  #   <% Ruby expression -- replace with result %>
+  #   <%# comment -- ignored -- useful in testing %>
+  #   % a line of Ruby code -- treated as <% line %>
+  #   %% replaced with % if first thing on a line
+  #   <%% or %%> -- replace with <% or %> respectively
+  #   <%! Ruby expression -- must return a template %> -- renders a template
+  #   <%_visitor Ruby code %> -- see Tanuki::Application::visitor for details
+  #   <l10n><en>English text</en> ... -- other localizations </l10n>
   class TemplateCompiler
 
     class << self
