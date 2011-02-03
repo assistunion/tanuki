@@ -1,7 +1,7 @@
 module Tanuki
 
   # Tanuki::ControllerBehavior contains basic methods for a framework controller.
-  # In is included in the base controller class.
+  # It is included in the base controller class.
   module ControllerBehavior
 
     include Enumerable
