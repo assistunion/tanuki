@@ -63,9 +63,37 @@ module Tanuki
         %Q{\nwhen :en then\n_.("en code",ctx)\nend}
     end
 
-    it 'should parse wiki inserts and replace them with code' do
+    it 'should parse wiki inserts' do
       code = TemplateCompiler.parse_wiki('[[/foo/bar?foo.bar:foo#bar]]')
       code.should == '<%! self.root[:foo][:bar].model[:foo][:bar].link_to(:foo).bar_view %>'
+    end
+
+    it 'should parse controller parts in wiki inserts' do
+      code = TemplateCompiler.parse_wiki('[[./foo]]')
+      code.should == '<%! self[:foo].link_view %>'
+      code = TemplateCompiler.parse_wiki('[[../foo]]')
+      code.should == '<%! self.logical_parent[:foo].link_view %>'
+    end
+
+    it 'should parse model parts in wiki inserts' do
+      code = TemplateCompiler.parse_wiki('[[?]]')
+      code.should == '<%! self.model.link_view %>'
+      code = TemplateCompiler.parse_wiki('[[?foo]]')
+      code.should == '<%! self.model[:foo].link_view %>'
+    end
+
+    it 'should parse link parts in wiki inserts' do
+      code = TemplateCompiler.parse_wiki('[[:edit]]')
+      code.should == '<%! self.link_to(:edit).link_view %>'
+      code = TemplateCompiler.parse_wiki('[[:]]')
+      code.should == '[[:]]'
+    end
+
+    it 'should parse template parts in wiki inserts' do
+      code = TemplateCompiler.parse_wiki('[[#]]')
+      code.should == '<%! self.default_view %>'
+      code = TemplateCompiler.parse_wiki('[[#foo]]')
+      code.should == '<%! self.foo_view %>'
     end
 
   end # describe TemplateCompiler
