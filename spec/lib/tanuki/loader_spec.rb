@@ -1,5 +1,4 @@
 require 'tanuki/extensions/module'
-require 'tanuki/extensions/object'
 require 'tanuki/behavior/controller_behavior'
 require 'tanuki/behavior/object_behavior'
 require 'tanuki/context'
@@ -20,11 +19,11 @@ module Tanuki
 
     it 'should find the path to missing application classes' do
       Loader.class_path(:'', @context.app_root).should == File.join(@context.app_root, '.rb')
-      Loader.class_path(:Aa, @context.app_root).should == File.join(@context.app_root, 'aa', 'aa.rb')
-      Loader.class_path(:AaBb, @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'aa_bb.rb')
-      Loader.class_path(:Aa_Bb, @context.app_root).should == File.join(@context.app_root, 'aa', 'bb', 'bb.rb')
-      Loader.class_path(:Aa_BbCc, @context.app_root).should == File.join(@context.app_root, 'aa', 'bb_cc', 'bb_cc.rb')
-      Loader.class_path(:AaBb_CcDd, @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'cc_dd', 'cc_dd.rb')
+      Loader.class_path(:'Aa', @context.app_root).should == File.join(@context.app_root, 'aa', 'aa.rb')
+      Loader.class_path(:'AaBb', @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'aa_bb.rb')
+      Loader.class_path(:'Aa::Bb', @context.app_root).should == File.join(@context.app_root, 'aa', 'bb', 'bb.rb')
+      Loader.class_path(:'Aa::BbCc', @context.app_root).should == File.join(@context.app_root, 'aa', 'bb_cc', 'bb_cc.rb')
+      Loader.class_path(:'AaBb::CcDd', @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'cc_dd', 'cc_dd.rb')
     end
 
     it 'should find template sources through receiver ancestors' do
