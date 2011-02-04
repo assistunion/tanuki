@@ -23,7 +23,7 @@ module Tanuki
       # Compiles a template from a given +src+ string to +ios+ for method +sym+ in class +klass+.
       def compile_template(ios, src, klass, sym)
         ios << "# encoding: #{src.encoding}\nclass #{klass}\n" << TEMPLATE_HEADER % sym
-        compile(ios, src)
+        compile(ios, src, true)
         ios << TEMPLATE_FOOTER % sym << "\nend"
       end
 
@@ -31,16 +31,13 @@ module Tanuki
       def compile_wiki(src, obj, sym)
         code = StringIO.new
         code << TEMPLATE_HEADER % sym
-        src.gsub /(.*)/ do
-          # Replace wiki elements with template tags
-        end
-        compile(code, src)
+        compile(code, src, true)
         code << TEMPLATE_FOOTER % sym
         obj.instance_eval code
       end
 
       # Compiles code from a given +src+ string to +ios+.
-      def compile(ios, src)
+      def compile(ios, src, ensure_output=false)
         state = :outer
         last_state = nil
         index = 0
