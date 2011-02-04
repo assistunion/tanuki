@@ -107,6 +107,16 @@ module Tanuki
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTER = "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\nend\nend"
 
+      # Wiki insert syntax
+      WIKI_SYNTAX = %r{
+        \[\[
+          (?<controller>(?:\.{1,2}(?:/\.\.)*|[a-z%0-9_]+|)(?:/[a-z%0-9_]+)*)
+          (?:\?(?<model>[a-z_\.]*))?
+          (?::(?<link>[a-z_]+))?
+          (?:\#(?<template>[a-z_]*))?
+        \]\]
+      }x
+
       # Generates code for Ruby template bits from a given +src+ to +ios+ for a given +state+.
       def process_code_state(ios, src, state)
         src.strip!
