@@ -31,9 +31,39 @@ module Tanuki
       def compile_wiki(src, obj, sym)
         code = StringIO.new
         code << TEMPLATE_HEADER % sym
+        parse_wiki src
         compile(code, src, true)
         code << TEMPLATE_FOOTER % sym
         obj.instance_eval code
+      end
+
+      # Replaces all wiki inserts like +[[controller?attribute:link#template]]+ with corresponding code in template tags +<%! %>+.
+      def parse_wiki(s)
+        s.gsub WIKI_SYNTAX do
+          code = '<%! self'
+
+          # Controller
+          code << $~[:controller].split('/').map {|route|
+            case route
+            when '' then '.root'
+            when '.' then ''
+            when '..' then '.logical_parent'
+            else "[:#{route}]"
+            end
+          }.join
+
+          code << ".model#{$~[:model].split('.').map {|attr| "[:#{attr}]"}.join}" if $~[:model]
+          code << ".link_to(:#{$~[:link]})" if $~[:link]
+
+          # Template
+          code << case $~[:template]
+          when '' then '.default_view'
+          when nil then '.link_view'
+          else ".#{$~[:template]}_view"
+          end
+
+          code << ' %>'
+        end
       end
 
       # Compiles code from a given +src+ string to +ios+.
@@ -89,7 +119,7 @@ module Tanuki
           end
 
         end until new_index.nil?
-        ios << "\n_.('',ctx)" unless PRINT_STATES.include? last_state
+        ios << "\n_.('',ctx)" if ensure_output && !(PRINT_STATES.include? last_state)
         last_state
       end
 
