@@ -8,7 +8,7 @@ module Tanuki
   # The following tags are recognized:
   #
   #   <% Ruby code -- output to stdout %>
-  #   <% Ruby expression -- replace with result %>
+  #   <%= Ruby expression -- replace with result %>
   #   <%# comment -- ignored -- useful in testing %>
   #   % a line of Ruby code -- treated as <% line %>
   #   %% replaced with % if first thing on a line
