@@ -22,11 +22,21 @@ module Tanuki
 
       # Compiles a template from a given +src+ string to +ios+ for method +sym+ in class +klass+.
       def compile_template(ios, src, klass, sym)
-        ios << "# encoding: #{src.encoding}\nclass #{klass}\ndef #{sym}_view(*args,&block)\nproc do|_,ctx|\n" \
-          "if _has_tpl ctx,self.class,:#{sym}\nctx=_ctx(ctx)"
-        last_state = compile(ios, src)
-        ios << "\n_.('',ctx)" unless PRINT_STATES.include? last_state
-        ios << "\nelse\n(_run_tpl ctx,self,:#{sym},*args,&block).(_,ctx)\nend\nend\nend\nend"
+        ios << "# encoding: #{src.encoding}\nclass #{klass}\n" << TEMPLATE_HEADER % sym
+        compile(ios, src)
+        ios << TEMPLATE_FOOTER % sym << "\nend"
+      end
+
+      # Compiles a wikified template from a given +src+ string to method +sym+ for a given object +obj+.
+      def compile_wiki(src, obj, sym)
+        code = StringIO.new
+        code << TEMPLATE_HEADER % sym
+        src.gsub /(.*)/ do
+          # Replace wiki elements with template tags
+        end
+        compile(code, src)
+        code << TEMPLATE_FOOTER % sym
+        obj.instance_eval code
       end
 
       # Compiles code from a given +src+ string to +ios+.
@@ -82,6 +92,7 @@ module Tanuki
           end
 
         end until new_index.nil?
+        ios << "\n_.('',ctx)" unless PRINT_STATES.include? last_state
         last_state
       end
 
@@ -89,6 +100,12 @@ module Tanuki
 
       # Scanner states that output the evaluated result.
       PRINT_STATES = [:outer, :code_print]
+
+      # Template header code. Sent to output before compilation.
+      TEMPLATE_HEADER = "def %1$s_view(*args,&block)\nproc do|_,ctx|\nif _has_tpl ctx,self.class,:%1$s\nctx=_ctx(ctx)"
+
+      # Template footer code. Sent to output after compilation.
+      TEMPLATE_FOOTER = "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\nend\nend"
 
       # Generates code for Ruby template bits from a given +src+ to +ios+ for a given +state+.
       def process_code_state(ios, src, state)
