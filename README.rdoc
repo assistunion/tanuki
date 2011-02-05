@@ -17,6 +17,14 @@ Fire up the terminal and type:
 
 View the result at: http://localhost:3000
 
-== Resources
+== Hack on the Core
 
-{Home Page}[http://withballs.org]
+If you would like to study the framework and contribute, try making sense of the project {wiki}[https://github.com/assistunion/tanuki/wiki], then move on to {documentation}[http://rubydoc.info/github/assistunion/tanuki].
+
+== Acknowledgements
+
+Tanuki is thankful to:
+
+* All of the core contributors
+* Erika Olehno, for the cute logo
+* {Rack}[http://rack.rubyforge.org/], {Sequel}[http://sequel.rubyforge.org/], {escape_utils}[https://github.com/brianmario/escape_utils], and {Active Support}[https://github.com/rails/rails/tree/master/activesupport] authors and contributors, for their amazing work
