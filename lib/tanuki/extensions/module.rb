@@ -2,7 +2,7 @@ class Module
 
   # Runs Tanuki::Loader for every missing constant in any namespace.
   def const_missing(sym)
-    klass = "#{name + '::' if name != 'Object'}#{sym}"
+    klass = "#{name + '::' unless name.nil? || (name == 'Object')}#{sym}"
     paths = Dir.glob(Tanuki::Loader.combined_class_path(klass))
     if paths.empty?
       unless Dir.glob(Tanuki::Loader.combined_class_dir(klass)).empty?
