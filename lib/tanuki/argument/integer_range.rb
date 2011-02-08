@@ -1,10 +1,12 @@
 module Tanuki
   module Argument
 
-    # Tanuki::Argument::IntegerRange is a class for +Integer+ arguments with a certain value range.
+    # Tanuki::Argument::IntegerRange is a class for +Integer+ arguments with
+    # a certain value range.
     class IntegerRange < Integer
 
-      # Initializes the argument with a +default+ value and allowed value +range+.
+      # Initializes the argument with a +default+ value and allowed value
+      # +range+.
       def initialize(range, default=nil)
         super(default ? default : range.first)
         @range = range
