@@ -22,7 +22,6 @@ module Tanuki
       Application.use Integer, 1
       middleware.find {|item| item[0] == Integer }.should_not be_nil
       Application.discard Integer
-      puts 3
       middleware.find {|item| item[0] == Integer }.should be_nil
     end
 
