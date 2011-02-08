@@ -1,11 +1,13 @@
 module Tanuki
 
   # Tanuki::Launcher is called on every request.
-  # It is used to build output starting with the default view of the root controller.
+  # It is used to build output starting with the default view
+  # of the root controller.
   # Rack iterates over an instance of this object on every request.
   class Launcher
 
-    # Creates a new Tanuki::Launcher with root controller +ctrl+ in context +ctx+.
+    # Creates a new Tanuki::Launcher with root controller +ctrl+
+    # in context +ctx+.
     def initialize(ctrl, ctx)
       @ctrl = ctrl
       @ctx = ctx
