@@ -1,7 +1,8 @@
 module Tanuki
 
   # Tanuki::Context is used to create unique environments for each request.
-  # Child contexts inherit parent context entries and can override them without modifying the parent context.
+  # Child contexts inherit parent context entries and can override them
+  # without modifying the parent context.
   # Use Tanuki::Context::child to create new contexts.
   class Context
 
@@ -17,13 +18,17 @@ module Tanuki
         child
       end
 
-      # Returns a printable version of Tanuki::Context, represented as a +Hash+.
+      # Returns a printable version of Tanuki::Context,
+      # represented as a +Hash+.
       # Can be used during development for inspection purposes.
       #--
-      # When changing this method, remember to update `#{__LINE__ + 12}' to `defined.inspect` line number.
+      # When changing this method, remember to update `#{__LINE__ + 13}'
+      # to `defined.inspect` line number.
       # This is required to avoid infinite recursion.
       def inspect
-        return to_s if caller.any? {|entry_point| entry_point =~ /\A#{__FILE__}:#{__LINE__ + 12}/}
+        return to_s if caller.any? do |entry_point|
+          entry_point =~ /\A#{__FILE__}:#{__LINE__ + 13}/
+        end
         defined = {}
         ancestors.each do |ancestor|
           ancestor.instance_variable_get(:@_defined).each_key do |key|
@@ -38,11 +43,17 @@ module Tanuki
         defined.inspect
       end
 
-      # Allowes arbitary values to be assigned to context with a +key=+ method.
+      # Allowes arbitary values to be assigned to context
+      # with a +key=+ method.
       # A reader in context object class is created for each assigned value.
       def method_missing(sym, arg=nil)
-        match = sym.to_s.match(/\A(?!(?:child|inspect|method_missing)=\Z)([^=]+)(=)?\Z/)
-        raise "`#{sym}' method cannot be called for Context and its descendants" unless match
+        match = sym.to_s.match(%r{
+          \A(?!(?:child|inspect|method_missing)=\Z)([^=]+)(=)?\Z
+        }x)
+        unless match
+          raise "`#{sym}' method cannot be called for Context " \
+                "and its descendants"
+        end
         defined = @_defined
         class << self; self; end.instance_eval do
           method_sym = match[1].to_sym
