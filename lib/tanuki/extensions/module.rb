@@ -15,7 +15,8 @@ class Module
     raise NameError, "uninitialized constant #{name}::#{sym}"
   end
 
-  # Creates a reader +sym+ and a writer +sym=+ for the instance variable @_sym.
+  # Creates a reader +sym+ and a writer +sym=+
+  # for the instance variable @_sym.
   def internal_attr_accessor(*syms)
     internal_attr_reader(*syms)
     internal_attr_writer(*syms)

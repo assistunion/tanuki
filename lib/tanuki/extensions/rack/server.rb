@@ -1,7 +1,8 @@
 module Rack
   class Server
 
-    # Wraps around Rack::Server#options to update application configuration accordingly.
+    # Wraps around Rack::Server#options to update
+    # application configuration accordingly.
     def options_with_tanuki(*args, &block)
       rack_server = self
       rackup_options = options_without_tanuki(*args, &block)

@@ -1,11 +1,14 @@
 module Rack
   class Builder
 
-    # Initializes application settings using configuration for environment +env+ and +rackup+ arguments.
-    # Application is configured for development, if no environment is specified.
+    # Initializes application settings using configuration
+    # for environment +env+ and +rackup+ arguments.
+    # Application is configured for development, if no environment
+    # is specified.
     # Returns Tanuki::Application::rack_app.
     #
-    # This should be invoked from Rackup configuration files (e.g. +config.ru+):
+    # This should be invoked from Rackup configuration files
+    # (e.g. +config.ru+):
     #
     #   #\ -p 3000
     #   require 'tanuki'

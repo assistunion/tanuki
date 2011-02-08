@@ -14,5 +14,5 @@ module Rack
       @app.call(env)
     end
 
-  end #
+  end # StaticDir
 end # Rack
