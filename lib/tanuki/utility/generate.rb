@@ -12,7 +12,6 @@ module Tanuki
       require 'active_support/inflector'
       require 'yaml'
       require 'fileutils'
-      require 'tanuki/extensions/object'
       require 'tanuki/behavior/meta_model_behavior'
       require 'tanuki/behavior/model_behavior'
       require 'tanuki/behavior/object_behavior'
