@@ -20,24 +20,29 @@ module Tanuki
 
     class << self
 
-      # Compiles a template from a given +src+ string to +ios+ for method +sym+ in class +klass+.
+      # Compiles a template from a given +src+ string to +ios+
+      # for method +sym+ in class +klass+.
       def compile_template(ios, src, klass, sym)
-        ios << "# encoding: #{src.encoding}\nclass #{klass}\n" << TEMPLATE_HEADER % sym
-        compile(ios, src, true)
+        ios << "# encoding: #{src.encoding}\nclass #{klass}\n"
+        ios << TEMPLATE_HEADER % sym
+        compile ios, src, true
         ios << TEMPLATE_FOOTER % sym << "\nend"
       end
 
-      # Compiles a wikified template from a given +src+ string to method +sym+ for a given object +obj+.
+      # Compiles a wikified template from a given +src+ string
+      # to method +sym+ for a given object +obj+.
       def compile_wiki(src, obj, sym)
         code = StringIO.new
         code << TEMPLATE_HEADER % sym
         parse_wiki src
-        compile(code, src, true)
+        compile code, src, true
         code << TEMPLATE_FOOTER % sym
         obj.instance_eval code
       end
 
-      # Replaces all wiki inserts like +[[controller?attribute:link#template]]+ with corresponding code in template tags +<%! %>+.
+      # Replaces all wiki inserts like
+      # +[[controller?attribute:link#template]]+
+      # with corresponding code in template tags +<%! %>+.
       def parse_wiki(s)
         s.gsub WIKI_SYNTAX do
           code = '<%! self'
@@ -52,7 +57,10 @@ module Tanuki
             end
           }.join
 
-          code << ".model#{$~[:model].split('.').map {|attr| "[:#{attr}]"}.join}" if $~[:model]
+          if $~[:model]
+            attrs = $~[:model].split('.').map {|attr| "[:#{attr}]"}.join
+            code << ".model#{attrs}"
+          end
           code << ".link_to(:#{$~[:link]})" if $~[:link]
 
           # Template
@@ -76,7 +84,8 @@ module Tanuki
         begin
 
           # Find out state for expected pattern
-          if new_index = src[index..-1].index(pattern = expect_pattern(state))
+          pattern = expect_pattern(state)
+          if new_index = src[index..-1].index(pattern)
             new_index += index
             match = src[index..-1].match(pattern)[0]
             new_state = next_state(state, match)
@@ -105,7 +114,8 @@ module Tanuki
           if new_index
             unless state != :outer && new_state == :code_skip
               if new_state == :outer
-                process_code_state(ios, code_buf << src[index...new_index], state)
+                code_buf << src[index...new_index]
+                process_code_state(ios, code_buf, state)
                 code_buf = ''
               end
               index = new_index + match.length
@@ -119,7 +129,10 @@ module Tanuki
           end
 
         end until new_index.nil?
-        ios << "\n_.('',ctx)" if ensure_output && !(PRINT_STATES.include? last_state)
+
+        if ensure_output && !(PRINT_STATES.include? last_state)
+          ios << "\n_.('',ctx)"
+        end
         last_state
       end
 
@@ -129,10 +142,15 @@ module Tanuki
       PRINT_STATES = [:outer, :code_print]
 
       # Template header code. Sent to output before compilation.
-      TEMPLATE_HEADER = "def %1$s_view(*args,&block)\nproc do|_,ctx|\nif _has_tpl ctx,self.class,:%1$s\nctx=_ctx(ctx)"
+      TEMPLATE_HEADER = "def %1$s_view(*args,&block)\n" \
+                        "proc do|_,ctx|\n" \
+                        "if _has_tpl ctx,self.class,:%1$s\n" \
+                        "ctx=_ctx(ctx)"
 
       # Template footer code. Sent to output after compilation.
-      TEMPLATE_FOOTER = "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\nend\nend"
+      TEMPLATE_FOOTER = "\nelse\n" \
+                        "(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\n" \
+                        "end\nend\nend" # if, proc, def
 
       # Wiki insert syntax
       WIKI_SYNTAX = %r{
@@ -144,7 +162,8 @@ module Tanuki
         \]\]
       }x
 
-      # Generates code for Ruby template bits from a given +src+ to +ios+ for a given +state+.
+      # Generates code for Ruby template bits from a given +src+ to +ios+
+      # for a given +state+.
       def process_code_state(ios, src, state)
         src.strip!
         src.gsub!(/^[ \t]+/, '')
@@ -156,8 +175,8 @@ module Tanuki
         when :code_template then
           ios << "\n(#{src}).(_,ctx)"
         when :code_visitor
-          inner_m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
-          ios << "\n#{inner_m[1]}_result=(#{inner_m[3]}).(#{inner_m[1]}_visitor#{inner_m[2]},ctx)"
+          m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
+          ios << "\n#{m[1]}_result=(#{m[3]}).(#{m[1]}_visitor#{m[2]},ctx)"
         when :l10n then
           localize(ios, src)
         end
@@ -168,7 +187,7 @@ module Tanuki
         case state
         when :outer then %r{^\s*%%?|<%[=!_#%]?|<l10n>}
         when :code_line then %r{\n|\Z}
-        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then %r{[-%]?%>}
+        when /code_(?:span|print|template|visitor|comment)/ then %r{[-%]?%>}
         when :l10n then %r{<\/l10n>}
         end
       end
@@ -189,7 +208,7 @@ module Tanuki
           when '<l10n>' then :l10n
           end
         when :code_line then :outer
-        when :code_span, :code_print, :code_template, :code_visitor, :code_comment then
+        when /code_(?:span|print|template|visitor|comment)/ then
           case match
           when '%%>' then :code_skip
           else :outer
