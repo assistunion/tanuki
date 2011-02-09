@@ -4,7 +4,8 @@ Gem::Specification.new do |s|
   s.name = 'tanuki'
   s.version = ::Tanuki::VERSION
   s.summary = 'Web framework with balls!'
-  s.description = 'Tanuki is an MVVM-inspired web framework that fancies idiomatic Ruby, DRY and extensibility by its design.'
+  s.description = 'Tanuki is an MVVM-inspired web framework that fancies ' \
+                  'idiomatic Ruby, DRY and extensibility by its design.'
 
   s.required_ruby_version = '~> 1.9.2'
   s.required_rubygems_version = '>= 1.3.6'
@@ -13,8 +14,9 @@ Gem::Specification.new do |s|
   s.email = 'tanuki@withballs.org'
   s.homepage = 'http://assistunion.com/sharing'
 
-  s.files = Dir.glob(File.join("{#{File.join('app', '{tanuki,user}')},bin,config,lib,#{File.join('schema', 'tanuki')}}",
-    '**', '*')) << 'LICENSE' << 'README.rdoc'
+  s.files = Dir["{app/{tanuki,user},bin,config,lib,schema/tanuki}/**/*"] <<
+            'LICENSE' <<
+            'README.rdoc'
   s.executables = %w{tanuki}
 
   s.add_runtime_dependency 'rack', '~> 1.0'
