@@ -19,10 +19,17 @@ module Tanuki
       ctx
     end
 
-    # Allows to return template blocks. E. g. returns +foobar+ template block when +foobar_view+ method is called.
+    # Allows to return template blocks. E. g. returns +foobar+ template block
+    # when +foobar_view+ method is called.
     def method_missing(sym, *args, &block)
       if matches = sym.to_s.match(/^(.*)_view$/)
-        return Tanuki::Loader.run_template({}, self, matches[1].to_sym, *args, &block)
+        return Tanuki::Loader.run_template(
+          {},
+          self,
+          matches[1].to_sym,
+          *args,
+          &block
+        )
       end
       super
     end
