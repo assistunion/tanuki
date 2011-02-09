@@ -19,17 +19,17 @@ module Tanuki
       version unless @in_repl
       puts "\n creating #{name = name.downcase}"
       FileUtils.mkdir project_dir
-      file_source = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
-      puts " creating #{File.join(name, 'app')}"
-      FileUtils.mkdir_p File.join(project_dir, 'app', 'user')
-      FileUtils.cp_r File.join(file_source, 'app', 'user'), File.join(project_dir, 'app')
-      puts " creating #{File.join(name, 'gen')}"
-      FileUtils.mkdir(gen_dir = File.join(project_dir, 'gen'))
+      file_source = File.expand_path('../../../..', __FILE__)
+      puts " creating #{name}/app"
+      FileUtils.mkdir_p "#{project_dir}/app/user"
+      FileUtils.cp_r "#{file_source}/app/user", "#{project_dir}/app"
+      puts " creating #{name}/gen"
+      FileUtils.mkdir(gen_dir = "#{project_dir}/gen")
       FileUtils.chmod(0777, gen_dir)
-      puts " creating #{File.join(name, 'public')}"
-      FileUtils.mkdir(File.join(project_dir, 'public'))
-      puts " creating #{File.join(name, 'schema')}"
-      FileUtils.mkdir(File.join(project_dir, 'schema'))
+      puts " creating #{name}/public"
+      FileUtils.mkdir("#{project_dir}/public")
+      puts " creating #{name}/schema"
+      FileUtils.mkdir("#{project_dir}/schema")
       Dir.chdir(project_dir) if @in_repl
     end
 

@@ -8,7 +8,8 @@ module Tanuki
     class << self
 
       # Executes given +args+.
-      # The first item in +args+ is the name of a command, and the rest are arguments for the command.
+      # The first item in +args+ is the name of a command,
+      # and the rest are arguments for the command.
       def execute(args)
         case args[0]
         when 'exit' then @in_repl ? (puts 'Bye bye!'; return false) : help
@@ -33,7 +34,7 @@ module Tanuki
         @in_repl = false
         @commands = []
         @help = {}
-        Dir.glob(File.expand_path(File.join('..', 'utility', '*.rb'), __FILE__)) do |file|
+        Dir.glob(File.expand_path('../utility/*.rb', __FILE__)) do |file|
           if match = file.match(/\/([^\/]+).rb/)
             require file
             command = match[1].to_sym
@@ -44,15 +45,21 @@ module Tanuki
         execute ARGV
       end
 
+      # Splits a given string +s+ to an argument list.
+      def split_args(s)
+        s.chomp.scan(/(?<=")[^"]*(?=")|[^\s]+/)
+      end
+
       # Starts a REPL (framework console).
-      # In this console +command [args]+ call is equivalent to +tanuki command [args]+ in the terminal.
+      # In this console +command [args]+ call is equivalent to
+      # +tanuki command [args]+ in the terminal.
       def start_repl
         @in_repl = true
         @help[:exit] = 'exit this utility'
         version
         print 'tanuki>'
         begin
-          print "\ntanuki>" while gets && execute($_.chomp.scan(/(?<=")[^"]*(?=")|[^\s]+/))
+          print "\ntanuki>" while gets && execute(split_args($_))
         rescue Interrupt
           puts "\nBye bye!"
         end
