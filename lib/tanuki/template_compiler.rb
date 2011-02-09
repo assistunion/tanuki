@@ -26,7 +26,7 @@ module Tanuki
         ios << "# encoding: #{src.encoding}\nclass #{klass}\n"
         ios << TEMPLATE_HEADER % sym
         compile ios, src, true
-        ios << TEMPLATE_FOOTER % sym << "\nend"
+        ios << TEMPLATE_FOOTER % sym << "end\n"
       end
 
       # Compiles a wikified template from a given +src+ string
@@ -150,7 +150,7 @@ module Tanuki
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTER = "\nelse\n" \
                         "(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\n" \
-                        "end\nend\nend" # if, proc, def
+                        "end\nend\nend\n" # if, proc, def
 
       # Wiki insert syntax
       WIKI_SYNTAX = %r{
