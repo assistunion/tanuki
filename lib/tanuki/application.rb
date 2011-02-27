@@ -176,7 +176,7 @@ module Tanuki
           else
 
             # Dispatch controller chain for the current path
-            request_ctx.env = env
+            request_ctx.request = Rack::Request.new(env)
             result = ::Tanuki::ControllerBehavior.dispatch(
               request_ctx,
               ctx.i18n ? ::Tanuki::I18n : ctx.root_page,

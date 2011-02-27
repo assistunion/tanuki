@@ -182,10 +182,10 @@ module Tanuki
 
     # Returns the link to the current controller, switching the active controller on the respective path level to +self+.
     def forward_link
-      uri_parts = @_ctx.env['PATH_INFO'].split(/(?<!\$)\//)
+      uri_parts = @_ctx.request.path_info.split(/(?<!\$)\//)
       link_parts = link.split(/(?<!\$)\//)
       link_parts.each_index {|i| uri_parts[i] = link_parts[i] }
-      uri_parts.join('/') << ((qs = @_ctx.env['QUERY_STRING']).empty? ? '' : "?#{qs}")
+      uri_parts.join('/') << ((qs = @_ctx.request.query_string).empty? ? '' : "?#{qs}")
     end
 
     # Returns the number of visible child controllers on static and dynamic routes.

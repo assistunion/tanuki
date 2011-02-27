@@ -113,7 +113,7 @@
         <h2>Your setup</h2>
         <div><table>
             <tr><th>Ruby</th><td><%= RUBY_VERSION %> (<%= RUBY_RELEASE_DATE %>) [<%= RUBY_PLATFORM %>]</td></tr>
-            <tr><th>Rack</th><td><%= Rack.version %> (on <%= ctx.env['SERVER_SOFTWARE'] %>)</td></tr>
+            <tr><th>Rack</th><td><%= Rack.version %> (on <%= ctx.request.env['SERVER_SOFTWARE'] %>)</td></tr>
             <tr><th>Tanuki</th><td><%= Tanuki::VERSION %></td></tr>
         </table></div>
     </div>

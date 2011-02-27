@@ -39,7 +39,7 @@
 <body>
     <h1>Page not found!</h1>
     <div>
-        <p>It seems that the page <code><%= ctx.env['REQUEST_URI'] %></code> at <a href="/"><%= ctx.env['HTTP_HOST'] %></a></p>
+        <p>It seems that the page <code><%= ctx.request.env['REQUEST_URI'] %></code> at <a href="/"><%= ctx.request.env['HTTP_HOST'] %></a></p>
         <ul>
             <li>has moved,</li>
             <li>no longer exists,</li>
