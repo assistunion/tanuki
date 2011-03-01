@@ -45,15 +45,14 @@ module Tanuki
         templates.include? "#{klass}##{sym}"
       end
 
-      # Runs template +sym+ with optional +args+ and +block+
-      # from object +obj+.
+      # Loads template +sym+.
       #
       # Template is recompiled from source on two conditions:
       # * Template source modification time is older than
       #   compiled template modification time,
       # * Tanuki::TemplateCompiler source modification time is older than
       #   compiled template modification time.
-      def run_template(templates, obj, sym, *args, &block)
+      def load_template(templates, obj, sym)
         owner, st_path = *template_owner(obj.class, sym)
         if st_path
           ct_path = compiled_template_path(owner, sym)
@@ -86,10 +85,17 @@ module Tanuki
           templates["#{owner}##{sym}"] = nil
           templates["#{obj.class}##{sym}"] = nil
 
-          obj.send(method_name, *args, &block)
+          method_name
         else
           raise "undefined template `#{sym}' for #{obj.class}"
         end
+      end
+
+      # Runs template +sym+ with optional +args+ and +block+
+      # from object +obj+.
+      def run_template(templates, obj, sym, *args, &block)
+        method_name = load_template(templates, obj, sym)
+        obj.send(method_name, *args, &block)
       end
 
       private
