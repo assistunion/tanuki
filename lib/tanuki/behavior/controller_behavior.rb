@@ -6,7 +6,7 @@ module Tanuki
 
     include Enumerable
 
-    internal_attr_reader :model, :logical_parent, :link
+    internal_attr_reader :model, :logical_parent, :link, :ctx
     internal_attr_accessor :logical_child, :visual_child
 
     # Creates new controller with context +ctx+, +logical_parent+ controller, +route_part+ definitions and a +model+.
