@@ -223,7 +223,7 @@ module Tanuki
 
     # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
     def has_child(klass, route, model=nil, hidden=false)
-      @_child_defs[route] = {:class => klass, :model => model, :hidden => hidden}
+      @_child_defs[route.to_sym] = {:class => klass, :model => model, :hidden => hidden}
       @_length += 1 unless hidden
       self
     end
