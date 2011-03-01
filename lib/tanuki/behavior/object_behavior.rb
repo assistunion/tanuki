@@ -34,6 +34,13 @@ module Tanuki
       super
     end
 
+    def method(sym)
+      if !respond_to? sym and matches = sym.to_s.match(/^(.*)_view$/)
+        Tanuki::Loader.load_template({}, self, matches[1].to_sym)
+      end
+      super(sym)
+    end
+
   end # BaseBehavior
 
 end # Tanuki
