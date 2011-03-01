@@ -35,17 +35,6 @@ module Tanuki
       sv.call('b').should == 'ab'
     end
 
-    it 'should find the best available server' do
-      random_servers = (0..3).map { (0...8).map { (65 + rand(25)).chr }.join.to_sym }
-      Application.instance_eval { @context.server = random_servers }
-      Rack::Handler.should_receive(:get).exactly(4).times.and_raise([LoadError, NameError].shuffle[0])
-      lambda { Application.instance_eval { available_server } }.should raise_error
-      Rack::Handler.should_receive(:get).with(random_servers[0].downcase).and_raise(LoadError)
-      Rack::Handler.should_receive(:get).with(random_servers[1].downcase).and_raise(NameError)
-      Rack::Handler.should_receive(:get).with(random_servers[2].downcase)
-      Application.instance_eval { available_server }
-    end
-
     it 'should build a response body' do
       ctx = Application.instance_eval { @context.child }
       ctx.templates = {}
