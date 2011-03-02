@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
             'README.rdoc'
   s.executables = %w{tanuki}
 
+  s.add_runtime_dependency 'bundler', '~> 1.0.10'
   s.add_runtime_dependency 'rack', '~> 1.0'
   s.add_runtime_dependency 'sequel', '~> 3.14'
   s.add_runtime_dependency 'escape_utils', '~> 0.1'
