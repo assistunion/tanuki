@@ -2,7 +2,7 @@ require 'etc'
 require File.expand_path('../lib/tanuki/version', __FILE__)
 Gem::Specification.new do |s|
   s.name = 'tanuki'
-  s.version = ::Tanuki::VERSION
+  s.version = ::Tanuki.version
   s.summary = 'Web framework with balls!'
   s.description = 'Tanuki is an MVVM-inspired web framework that fancies ' \
                   'idiomatic Ruby, DRY and extensibility by its design.'

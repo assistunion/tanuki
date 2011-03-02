@@ -12,7 +12,7 @@ module Tanuki
 
       # Initializes the application in a given Rack::Builder +builder+.
       def build(builder)
-        puts %{Calling for Tanuki #{VERSION} in "#{Dir.pwd}"}
+        puts %{Calling for Tanuki #{Tanuki.version} in "#{Dir.pwd}"}
         configure
         at_exit { puts 'Tanuki ran away!' }
         configure_middleware(builder)
