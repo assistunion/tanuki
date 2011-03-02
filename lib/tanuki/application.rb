@@ -10,49 +10,15 @@ module Tanuki
 
     class << self
 
-      # Initializes application settings using configuration
-      # for environment +env+.
-      # These include settings for server, context, and middleware.
-      # Returns true, if configuration is successful.
-      def configure(env)
-        @environment = env
-        begin
-          default_root = File.expand_path('../../..', __FILE__)
-          @cfg = Configurator.new(Context, pwd = Dir.pwd)
-
-          # Configure in default root (e.g. gem root)
-          if pwd != default_root
-            @cfg.config_root = File.join(default_root, 'config')
-            default_config = if [:development, :production].include? env
-              :"#{env}_application"
-            else
-              :common_application
-            end
-            @cfg.load_config default_config
-          end
-
-          # Configure in application root
-          @cfg.config_root = File.join(pwd, 'config')
-          @cfg.load_config :"#{env}_application", pwd != default_root
-
-          return true
-        rescue NameError => e
-          if e.name =~ /\AA-Z/
-            message = "missing class or module for constant `#{e.name}'"
-            raise NameError, message, e.backtrace
-          else
-            raise e
-          end
-        end
-        false
-      end
-
-      # Add utilized middleware to a given Rack::Builder instance
-      # +rack_builder+.
-      def configure_middleware(rack_builder)
-        @rack_middleware.each do |item|
-          rack_builder.use item[0], *item[1], &item[2]
-        end
+      # Initializes the application in a given Rack::Builder +builder+.
+      def build(builder)
+        puts %{Calling for Tanuki #{VERSION} in "#{Dir.pwd}"}
+        configure
+        at_exit { puts 'Tanuki ran away!' }
+        configure_middleware(builder)
+        vowel = @environment =~ /\A[aeiou]/
+        puts "A#{'n' if vowel} #{@environment} Tanuki appears!"
+        rack_app
       end
 
       # Removes all occurences of a given +middleware+ from the Rack
@@ -65,35 +31,6 @@ module Tanuki
       # Returns +nil+ otherwise.
       def environment
         @environment ||= nil
-      end
-
-      # Runs the application with current settings.
-      def run
-        configure_middleware(rack_builder = Rack::Builder.new)
-        rack_builder.run(rack_app)
-
-        # Choose and start a Rack handler
-        @context.running_server = available_server
-        args = [
-          rack_builder.to_app,
-          {:Host => @context.host, :Port => @context.port}
-        ]
-        @context.running_server.run *args do |server|
-          [:INT, :TERM].each do |sig|
-            trap(sig) do
-              if server.respond_to? :stop!
-                server.stop!
-              else
-                server.stop
-              end
-            end
-          end
-          vowel = @environment =~ /\A[aeiou]/
-          used_server = @context.running_server.name.gsub(/.*::/, '')
-          puts "A#{'n' if vowel} #{@environment} Tanuki appears! ",
-               "Press Ctrl-C to set it free.",
-               "You used #{used_server} at #{@context.host}:#{@context.port}."
-        end
       end
 
       # Adds a given +middleware+ with optional +args+ and +block+
@@ -125,17 +62,42 @@ module Tanuki
 
       private
 
-      # Returns the first available server from a server list
-      # in the current context.
-      def available_server
-        @context.server.each do |server_name|
-          begin
-            return Rack::Handler.get(server_name.downcase)
-          rescue LoadError
-          rescue NameError
+      # Initializes application settings using configuration
+      # for the current Rack environment.
+      # These include settings for server, context, and middleware.
+      def configure
+        @environment = ENV['RACK_ENV'].to_sym
+        default_root = File.expand_path('../../..', __FILE__)
+        @cfg = Configurator.new(Context, pwd = Dir.pwd)
+
+        # Configure in default root (e.g. gem root)
+        if pwd != default_root
+          @cfg.config_root = File.join(default_root, 'config')
+          if [:development, :production].include? @environment
+            default_config = :"#{@environment}_application"
+          else
+            default_config = :common_application
           end
+          @cfg.load_config default_config
         end
-        raise "servers #{@context.server.join(', ')} not found"
+
+        # Configure in application root
+        @cfg.config_root = File.join(pwd, 'config')
+        @cfg.load_config :"#{@environment}_application", pwd != default_root
+
+        self
+      rescue NameError => e
+        raise e unless e.name =~ /\AA-Z/
+        message = "missing class or module for constant `#{e.name}'"
+        raise NameError, message, e.backtrace
+      end
+
+      # Add utilized middleware to a given Rack::Builder instance
+      # +rack_builder+.
+      def configure_middleware(rack_builder)
+        @rack_middleware.each do |item|
+          rack_builder.use item[0], *item[1], &item[2]
+        end
       end
 
       # Returns a Rack app block for Rack::Builder.
@@ -193,8 +155,8 @@ module Tanuki
 
           end # if
 
-        end
-      end
+        end # proc
+      end # rack_app
 
     end # class << self
 

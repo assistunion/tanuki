@@ -4,10 +4,7 @@ load_config :common
 use Rack::Head
 use Rack::StaticDir, 'public'
 
-# Server
-set :server, [:thin, :mongrel, :webrick]
-set :host, '0.0.0.0'
-set :port, 3000
+# Environment
 set :development, false
 
 # Default controllers

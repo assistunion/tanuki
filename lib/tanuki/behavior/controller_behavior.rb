@@ -6,7 +6,7 @@ module Tanuki
 
     include Enumerable
 
-    internal_attr_reader :model, :logical_parent, :link
+    internal_attr_reader :model, :logical_parent, :link, :ctx
     internal_attr_accessor :logical_child, :visual_child
 
     # Creates new controller with context +ctx+, +logical_parent+ controller, +route_part+ definitions and a +model+.
@@ -263,7 +263,7 @@ module Tanuki
 
     # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
     def has_child(klass, route, model=nil, hidden=false)
-      @_child_defs[route] = {:class => klass, :model => model, :hidden => hidden}
+      @_child_defs[route.to_sym] = {:class => klass, :model => model, :hidden => hidden}
       @_length += 1 unless hidden
       self
     end
