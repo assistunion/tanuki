@@ -3,7 +3,8 @@ class Tanuki::Page::Missing < Tanuki::Controller
     nil
   end
 
-  def result_type
-    :not_found
+  def get # TODO: add other request methods
+    status 404
+    super
   end
 end

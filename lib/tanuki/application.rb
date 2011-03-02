@@ -138,13 +138,6 @@ module Tanuki
         raise "servers #{@context.server.join(', ')} not found"
       end
 
-      # Returns an array of template outputs for controller +ctrl+
-      # in context +request_ctx+.
-      def build_body(ctrl, request_ctx)
-        arr = []
-        Launcher.new(ctrl, request_ctx).each &proc {|out| arr << out.to_s }
-      end
-
       # Returns a Rack app block for Rack::Builder.
       # This block is passed a request environment
       # and returns and array of three elements:
@@ -177,36 +170,26 @@ module Tanuki
 
             # Dispatch controller chain for the current path
             request_ctx.request = Rack::Request.new(env)
-            result = ::Tanuki::ControllerBehavior.dispatch(
-              request_ctx,
-              ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
-              Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
+            resp = request_ctx.response = Rack::Response.new(
+              [], 200, {'Content-Type' => 'text/html; charset=utf-8'}
             )
-
-            # Handle dispatch result
-            case result[:type]
-            when :redirect then
-              [
-                302,
-                {
-                  'Location'     => result[:location],
-                  'Content-Type' => 'text/html; charset=utf-8'
-                },
-                []
-              ]
-            when :page then
-              [
-                200,
-                {'Content-Type' => 'text/html; charset=utf-8'},
-                build_body(result[:controller], request_ctx)
-              ]
+            template = nil
+            catch :halt do
+              template = ::Tanuki::ControllerBehavior.dispatch(
+                request_ctx,
+                ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
+                Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
+              )
+            end
+            if template && template.is_a?(Method) \
+              && template.receiver.is_a?(::Tanuki::BaseBehavior) \
+              && template.name.match(/^(.*)_view$/)
+              resp.finish do |resp|
+                template.call.call(proc {|s| resp.write s }, ctx)
+              end
             else
-              [
-                404,
-                {'Content-Type' => 'text/html; charset=utf-8'},
-                build_body(result[:controller], request_ctx)
-              ]
-            end # case
+              resp.finish
+            end
 
           end # if
 

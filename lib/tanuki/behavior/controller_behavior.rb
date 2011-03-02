@@ -219,6 +219,46 @@ module Tanuki
       @_logical_parent
     end
 
+    # Returns the topmost visual container that should be rendered.
+    def visual_top
+      @_ctx.visual_top
+    end
+
+    # Sets HTTP response code.
+    def status(value)
+      @_ctx.response.status = value
+    end
+
+    # Redirects to the specified URL.
+    def redirect(url)
+      @_ctx.response.redirect(url)
+      halt
+    end
+
+    # Immediately stops request and returns response.
+    def halt
+      throw :halt
+    end
+
+    def get
+      visual_top.method(:default_view)
+    end
+
+    def post
+      status 404
+      nil
+    end
+
+    def put
+      status 404
+      nil
+    end
+
+    def delete
+      status 404
+      nil
+    end
+
     private
 
     # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
@@ -300,21 +340,24 @@ module Tanuki
           curr = nxt
         end
 
-        # Set links for active controllers and default routes
-        while route_part = curr.default_route
+        # Set links for active controllers and default routes (only for GET)
+        if ctx.request.get?
+          while route_part = curr.default_route
 
-          # Do a redirect, if some controller in the chain asks for it
-          if route_part[:redirect]
-            klass = curr.child_class(route_part)
-            return {:type => :redirect, :location => grow_link(curr, route_part, klass.arg_defs)}
+            # Do a redirect, if some controller in the chain asks for it
+            if route_part[:redirect]
+              klass = curr.child_class(route_part)
+              redirect grow_link(curr, route_part, klass.arg_defs)
+              return
+            end
+
+            # Add default route as logical child
+            curr.instance_variable_set :@_active, true
+            nxt = curr[route_part[:route], *route_part[:args]]
+            curr.logical_child = nxt
+            curr = nxt
+
           end
-
-          # Add default route as logical child
-          curr.instance_variable_set :@_active, true
-          nxt = curr[route_part[:route], *route_part[:args]]
-          curr.logical_child = nxt
-          curr = nxt
-
         end
 
         # Find out dispatch result type from current controller
@@ -323,13 +366,17 @@ module Tanuki
         type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
 
         # Set visual children for active controllers
+        last = curr
         prev = curr
         while curr = prev.visual_parent
           curr.visual_child = prev
           prev = curr
         end
 
-        {:type => type, :controller => prev}
+        # Set visual top
+        ctx.visual_top = prev
+
+        last.send :"#{ctx.request.request_method.downcase}"
       end
 
       # Extends the including module with Tanuki::ControllerBehavior::ClassMethods.
