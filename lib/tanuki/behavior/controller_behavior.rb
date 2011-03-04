@@ -241,7 +241,7 @@ module Tanuki
     end
 
     def get
-      visual_top.method(:default_view)
+      visual_top.method(:page_view)
     end
 
     def post

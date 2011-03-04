@@ -23,8 +23,8 @@ module Tanuki
     end
 
     # Calls default view of visual child.
-    def default_view
-      @_visual_child.default_view
+    def view
+      @_visual_child.view
     end
 
     # Adds child controller language to its context.

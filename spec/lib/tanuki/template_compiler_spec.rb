@@ -91,7 +91,7 @@ module Tanuki
 
     it 'should parse template parts in wiki inserts' do
       code = TemplateCompiler.parse_wiki('[[#]]')
-      code.should == '<%! self.default_view %>'
+      code.should == '<%! self.view %>'
       code = TemplateCompiler.parse_wiki('[[#foo]]')
       code.should == '<%! self.foo_view %>'
     end

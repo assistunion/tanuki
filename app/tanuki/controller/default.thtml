@@ -1,5 +1,0 @@
-% if visual_child
-<%! visual_child.default_view -%>
-% else
-<%! index_view -%>
-% end

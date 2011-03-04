@@ -8,7 +8,7 @@ module Tanuki
     end
 
     it 'should build response body when iterated' do
-      ctrl = mock('Controller', :default_view => proc {|p| p.call(42) })
+      ctrl = mock('Controller', :view => proc {|p| p.call(42) })
       mock_proc = proc {}
       mock_proc.should_receive(:call).with '42'
       Launcher.new(ctrl, nil).each &mock_proc
