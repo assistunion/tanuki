@@ -224,6 +224,21 @@ module Tanuki
       @_ctx.visual_top
     end
 
+    # Returns Rack request object
+    def request
+      @_ctx.request
+    end
+
+    # Returns Rack response object
+    def response
+      @_ctx.response
+    end
+
+    # Returns Rack params hash
+    def params
+      request.params
+    end
+
     # Sets HTTP response code.
     def status(value)
       @_ctx.response.status = value
@@ -241,7 +256,7 @@ module Tanuki
     end
 
     def get
-      visual_top.method(:default_view)
+      visual_top.method(:page_view)
     end
 
     def post

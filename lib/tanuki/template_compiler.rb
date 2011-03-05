@@ -65,7 +65,7 @@ module Tanuki
 
           # Template
           code << case $~[:template]
-          when '' then '.default_view'
+          when '' then '.view'
           when nil then '.link_view'
           else ".#{$~[:template]}_view"
           end

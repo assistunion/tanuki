@@ -53,7 +53,7 @@ module Tanuki
 
     it 'should compile and run templates' do
       ctrl = ControllerBehavior.dispatch(@context.child, ::Tanuki::Controller, '/')[:controller]
-      ctrl.should_receive(:default_view)
+      ctrl.should_receive(:view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki::Controller, :default) }, :force => true
       Loader.run_template({}, ctrl, :default)
       ctrl = ControllerBehavior.dispatch(@context.child, ::Tanuki::Page::Missing, '/')[:controller]

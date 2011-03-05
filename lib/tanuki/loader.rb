@@ -72,7 +72,7 @@ module Tanuki
           end
 
           # Load template
-          method_name = "#{sym}_view".to_sym
+          method_name = (sym == 'view' ? sym : "#{sym}_view").to_sym
           owner.instance_eval do
             method_exists = instance_methods(false).include?(method_name)
             unless method_exists && no_refresh
@@ -152,9 +152,10 @@ module Tanuki
       # Finds the direct template +method_name+ owner
       # among ancestors of class +klass+.
       def template_owner(klass, method_name)
-        method_file = method_name.to_s << TEMPLATE_EXT
         klass.ancestors.each do |ancestor|
           path = const_to_path(ancestor, @app_root ||= combined_app_root)
+          method_file = ancestor.to_s.split('::')[-1].underscore.downcase
+          method_file << '.' << method_name.to_s << TEMPLATE_EXT
           files = Dir.glob("#{path}/#{method_file}")
           return ancestor, files[0] unless files.empty?
         end

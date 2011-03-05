@@ -1,0 +1,3 @@
+% if visual_child
+<%! visual_child.view -%>
+% else
