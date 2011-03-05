@@ -255,20 +255,24 @@ module Tanuki
       throw :halt
     end
 
+    # Returns default result for HTTP GET to controller's address.
     def get
       visual_top.method(:page_view)
     end
 
+    # Returns default result for HTTP POST to controller's address.
     def post
       status 404
       nil
     end
 
+    # Returns default result for HTTP PUT to controller's address.
     def put
       status 404
       nil
     end
 
+    # Returns default result for HTTP DELETE to controller's address.
     def delete
       status 404
       nil
