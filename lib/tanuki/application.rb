@@ -148,9 +148,11 @@ module Tanuki
                 Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
               )
             end
-            if template && template.is_a?(Method) \
-              && template.receiver.is_a?(::Tanuki::BaseBehavior) \
-              && template.name.match(/^(.*)_view$/)
+            if template &&
+               template.is_a?(Method) &&
+               template.receiver.is_a?(BaseBehavior) &&
+               template.name =~ /^.*_view$/
+            then
               resp.finish do |resp|
                 template.call.call(proc {|s| resp.write s }, ctx)
               end

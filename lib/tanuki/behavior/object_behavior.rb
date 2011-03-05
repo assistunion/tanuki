@@ -22,11 +22,11 @@ module Tanuki
     # Allows to return template blocks. E. g. returns +foobar+ template block
     # when +foobar_view+ method is called.
     def method_missing(sym, *args, &block)
-      if matches = sym.to_s.match(/^.*(?=_view$)|view(?=$)/)
+      if matches = sym.to_s.match(/^.*(?=_view$)|view$/)
         return Tanuki::Loader.run_template(
           {},
           self,
-          (matches[0]).to_sym,
+          matches[0].to_sym,
           *args,
           &block
         )
@@ -35,7 +35,7 @@ module Tanuki
     end
 
     def method(sym)
-      if !respond_to? sym and m = sym.to_s.match(/^.*(?=_view$)|view(?=$)/)
+      if !respond_to?(sym) && (m = sym.to_s.match(/^.*(?=_view$)|view$/))
         Tanuki::Loader.load_template({}, self, m[0].to_sym)
       end
       super
