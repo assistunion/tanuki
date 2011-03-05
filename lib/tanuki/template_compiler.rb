@@ -25,7 +25,7 @@ module Tanuki
       def compile_template(ios, src, klass, sym)
         ios << "# encoding: #{src.encoding}\nclass #{klass}\n"
         ios << TEMPLATE_HEADER % sym
-        compile ios, src, true
+        compile ios, src.chomp, true
         ios << TEMPLATE_FOOTER % sym << "end\n"
       end
 
