@@ -2,7 +2,7 @@ require 'etc'
 require File.expand_path('../lib/tanuki/version', __FILE__)
 Gem::Specification.new do |s|
   s.name = 'tanuki'
-  s.version = ::Tanuki::VERSION
+  s.version = ::Tanuki.version
   s.summary = 'Web framework with balls!'
   s.description = 'Tanuki is an MVVM-inspired web framework that fancies ' \
                   'idiomatic Ruby, DRY and extensibility by its design.'
@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
             'README.rdoc'
   s.executables = %w{tanuki}
 
+  s.add_runtime_dependency 'bundler', '~> 1.0.10'
   s.add_runtime_dependency 'rack', '~> 1.0'
   s.add_runtime_dependency 'sequel', '~> 3.14'
   s.add_runtime_dependency 'escape_utils', '~> 0.1'

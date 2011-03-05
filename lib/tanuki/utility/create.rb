@@ -17,19 +17,60 @@ module Tanuki
         return
       end
       version unless @in_repl
-      puts "\n creating #{name = name.downcase}"
+      puts "Creating `#{name}'\n"
       FileUtils.mkdir project_dir
       file_source = File.expand_path('../../../..', __FILE__)
-      puts " creating #{name}/app"
-      FileUtils.mkdir_p "#{project_dir}/app/user"
-      FileUtils.cp_r "#{file_source}/app/user", "#{project_dir}/app"
-      puts " creating #{name}/gen"
+      name_pos = ((file_source.length + 1)..-1)
+
+      # ./app/
+      puts '  app/'
+      FileUtils.mkdir "#{project_dir}/app"
+      puts '  app/user/'
+      FileUtils.mkdir "#{project_dir}/app/user"
+      Dir["#{file_source}/app/user/**/*"].each do |file|
+        is_dir = File.directory? file
+        puts "  #{file[name_pos]}#{'/' if is_dir}"
+        if is_dir
+          FileUtils.mkdir("#{project_dir}/#{file[name_pos]}")
+        else
+          FileUtils.cp(file, "#{project_dir}/#{file[name_pos]}")
+        end
+      end
+
+      # ./gen/
+      puts '  gen/'
       FileUtils.mkdir(gen_dir = "#{project_dir}/gen")
       FileUtils.chmod(0777, gen_dir)
-      puts " creating #{name}/public"
+
+      # ./public/
+      puts '  public/'
       FileUtils.mkdir("#{project_dir}/public")
-      puts " creating #{name}/schema"
+
+      # ./schema/
+      puts '  schema/'
       FileUtils.mkdir("#{project_dir}/schema")
+
+      # ./config.ru
+      puts '  config.ru'
+      File.open("#{project_dir}/config.ru", 'w') do |f|
+        f << "require 'bundler'\nBundler.require\n" <<
+             "run Tanuki::Application.build(self)\n"
+      end
+
+      # ./Gemfile
+      puts '  Gemfile'
+      File.open("#{project_dir}/Gemfile", 'w') do |f|
+        f << "source :rubygems\ngem 'tanuki', '~> #{Tanuki.version}'\n"
+      end
+
+      # ./README.rdoc
+      puts '  README.rdoc'
+      File.open("#{project_dir}/README.rdoc", 'w') do |f|
+        f << "= #{title = name.titleize}\n\n" <<
+             "#{title} is a " <<
+             "{Tanuki}[https://assistunion.com/sharing] application.\n"
+      end
+
       Dir.chdir(project_dir) if @in_repl
     end
 

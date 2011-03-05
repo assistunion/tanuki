@@ -7,7 +7,7 @@ module Tanuki
     # Prints the running framework version.
     def self.version
       require 'tanuki/version'
-      puts "Tanuki version #{VERSION}"
+      puts "Tanuki version #{Tanuki.version}"
     end
 
   end # Utility

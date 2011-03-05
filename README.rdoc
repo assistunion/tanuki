@@ -11,9 +11,10 @@ Right now it's very raw, so don't expect things to work properly.
 Fire up the terminal and type:
 
   $ gem install tanuki
-  $ tanuki
-  tanuki> create test
-  tanuki> server
+  $ tanuki create test
+  $ cd test
+  $ bundle install
+  $ rackup
 
 View the result at: http://localhost:3000
 
@@ -27,4 +28,4 @@ Tanuki is thankful to:
 
 * All of the core contributors
 * Erika Olehno, for the cute logo
-* {Rack}[http://rack.rubyforge.org/], {Sequel}[http://sequel.rubyforge.org/], {escape_utils}[https://github.com/brianmario/escape_utils], and {Active Support}[https://github.com/rails/rails/tree/master/activesupport] authors and contributors, for their amazing work
+* {Rack}[http://rack.rubyforge.org/], {Sequel}[http://sequel.rubyforge.org/], {Bundler}[http://gembundler.com/], {escape_utils}[https://github.com/brianmario/escape_utils], and {Active Support}[https://github.com/rails/rails/tree/master/activesupport] authors and contributors, for their amazing work
