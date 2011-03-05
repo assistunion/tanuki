@@ -69,12 +69,13 @@ module Tanuki
         @environment = ENV['RACK_ENV'].to_sym
         default_root = File.expand_path('../../..', __FILE__)
         @cfg = Configurator.new(Context, pwd = Dir.pwd)
+        env_config = :"#{@environment}_application"
 
         # Configure in default root (e.g. gem root)
         if pwd != default_root
           @cfg.config_root = File.join(default_root, 'config')
           if [:development, :production].include? @environment
-            default_config = :"#{@environment}_application"
+            default_config = env_config
           else
             default_config = :common_application
           end
@@ -83,7 +84,11 @@ module Tanuki
 
         # Configure in application root
         @cfg.config_root = File.join(pwd, 'config')
-        @cfg.load_config :"#{@environment}_application", pwd != default_root
+        if @cfg.config_file? env_config
+          @cfg.load_config env_config, pwd != default_root
+        elsif @cfg.config_file? :common_application
+          @cfg.load_config :common_application
+        end
 
         self
       rescue NameError => e

@@ -15,6 +15,12 @@ module Tanuki
       set :root, root ? root : Dir.pwd
     end
 
+    # Returns true, if a configuration file
+    # with a symbolic name +config+ exists.
+    def config_file?(config)
+      File.file?(File.join(@config_root, config.to_s) << '.rb')
+    end
+
     # Loads and executes a given configuraion file
     # with symbolic name +config+.
     # If +silent+ is +true+, exception is not raised on missing file.
