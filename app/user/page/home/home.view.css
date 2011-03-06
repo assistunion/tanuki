@@ -1,0 +1,88 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Trebuchet MS', Helvetica, sans-serif;
+    font-size: 11pt;
+    background-color: #f5f4ef;
+    color: #000305;
+}
+
+#header {
+    margin: 0 auto;
+    width: 540px;
+}
+
+div.top {
+    background-color: #fff;
+    margin: 0 auto 20px auto;
+    padding: 15px 20px 0 20px;
+    width: 540px;
+    border-radius: 10px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
+
+h1 {
+    margin: 20px 0;
+    padding: 0;
+    font-size: 22pt;
+}
+
+h1 em {
+    display: block;
+    font-style: normal;
+    font-size: 12pt;
+    color: #777a7c;
+}
+
+h2 {
+    margin: 0 0 15px 0;
+    padding: 0;
+    font-size: 16pt;
+}
+
+#next ol {
+    margin: 0;
+    padding-bottom: 25px;
+}
+
+#next li {
+    margin: 0;
+    padding: 0;
+    font-size: 16pt;
+    font-weight: bold;
+    color: #c74451;
+}
+
+#next li span {
+    font-size: 11pt;
+    font-weight: normal;
+    color: #000305;
+}
+
+code {
+    font-family: 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', Menlo, Monaco, Consolas, 'Courier New', monospace;
+    font-size: 10pt;
+    background-color: #fffccc;
+    padding: 1px 3px;
+}
+
+#env div {
+    padding-bottom: 25px;
+}
+
+#env table {
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+    color: #444;
+}
+
+#env table th {
+    text-align: left;
+}
+
+#env table td {
+    padding-left: 20px;
+    font-size: 10pt;
+}
