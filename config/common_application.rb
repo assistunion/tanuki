@@ -8,7 +8,7 @@ use Rack::StaticDir, 'public'
 set :development, false
 
 # Default controllers
-set :root_page, ::User::Page::Index
+set :root_page, ::User::Page::Home
 set :missing_page, ::Tanuki::Page::Missing
 
 # Internationalization
