@@ -120,22 +120,20 @@ module Tanuki
       end
 
       # Compiles all stylesheets into a single file.
-      def build_css_bundle
-        return if @mtime and Time.new < @mtime + 20
-        @mtime = Time.new
-        css = ""
-        app_root_regexp = combined_app_root_regexp(false)
-        Dir[combined_app_root_glob(false) << '/**/*'].each do |file|
-          if FileTest.file?(file) && file =~ /\.css$/
-            css << "/*** #{file.sub(app_root_regexp, '')} ***/\n"
-            css << File.read(file) << "\n"
-          end
-        end
-        css
-        File.open(@context.public_root + '/' + 'bundle.css', 'w') do |file|
-          file << css
-          file << "\n"
-        end
+      # Reloads with a given +interval+ in seconds.
+      def build_css_bundle(interval=20)
+        return if @css_reload && (time = Time.new) < (@css_reload + interval)
+        @css_reload = time
+        File.open("#{@context.public_root}/bundle.css", 'w') do |f|
+          app_root_regexp = combined_app_root_regexp(false)
+          css = Dir["#{combined_app_root_glob(false)}/**/*#{STYLESHEET_EXT}"]
+          css.each do |file|
+            if File.file? file
+              f << "/*** #{file.sub(app_root_regexp, '')} ***/\n"
+              f << File.read(file) << "\n"
+            end
+          end # each
+        end # open
       end
 
 
