@@ -24,7 +24,7 @@ module Tanuki
       # for method +sym+ in class +klass+.
       def compile_template(ios, src, klass, sym)
         ios << "# encoding: #{src.encoding}\nclass #{klass}\n"
-        ios << TEMPLATE_HEADER % sym
+        ios << TEMPLATE_HEADER % [sym, klass]
         compile ios, src.chomp, true
         ios << TEMPLATE_FOOTER % sym << "end\n"
       end
@@ -33,7 +33,7 @@ module Tanuki
       # to method +sym+ for a given object +obj+.
       def compile_wiki(src, obj, sym)
         code = StringIO.new
-        code << TEMPLATE_HEADER % sym
+        code << TEMPLATE_HEADER % [sym, obj.class]
         parse_wiki src
         compile code, src, true
         code << TEMPLATE_FOOTER % sym
@@ -145,7 +145,7 @@ module Tanuki
       TEMPLATE_HEADER = "def %1$s_view(*args,&block)\n" \
                         "proc do|_,ctx|\n" \
                         "if _has_tpl ctx,self.class,:%1$s\n" \
-                        "ctx=_ctx(ctx)"
+                        "ctx=_ctx(ctx,\"%2$s#%1$s\")"
 
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTER = "\nelse\n" \

@@ -3,8 +3,12 @@
 <head>
     <meta charset="utf-8">
     <title><%! title_view %></title>
+    <link rel="stylesheet" href="/bundle.css" media="screen" />
 </head>
 <body>
     <%! view %>
+    <% ctx.javascripts.each_key do |js| %>
+    	<script><%= File.read js %></script>
+    <% end %>
 </body>
 </html>

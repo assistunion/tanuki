@@ -1,3 +1,5 @@
+require 'find'
+
 module Tanuki
 
   # Tanuki::Loader deals with framework paths resolving,
@@ -53,7 +55,7 @@ module Tanuki
       # * Tanuki::TemplateCompiler source modification time is older than
       #   compiled template modification time.
       def load_template(templates, obj, sym)
-        owner, st_path = *template_owner(obj.class, sym)
+        owner, st_path = *resource_owner(obj.class, sym)
         if st_path
           ct_path = compiled_template_path(owner, sym)
           ct_file_exists = File.file?(ct_path)
@@ -91,6 +93,34 @@ module Tanuki
         end
       end
 
+      def load_template_files(ctx, template_signature)
+        klass_name, method = *template_signature.split('#')
+        klass = klass_name.constantize
+        method = method.to_sym
+        _, path = *resource_owner(klass, method, JAVASCRIPT_EXT)
+        ctx.javascripts[path] = false if path
+        ctx.resources[template_signature] = nil
+      end
+
+
+      def build_css_bundle
+        return if @mtime and Time.new < @mtime + 20
+        @mtime = Time.new
+        css = ""
+        Find.find @context.app_root do |file|
+          if FileTest.file?(file) && file =~ /\.css$/
+            css << "/*** #{file.sub(@context.app_root, '')} ***/\n"
+            css << File.read(file) << "\n"
+          end
+        end
+        css
+        File.open(@context.public_root + '/' + 'bundle.css', 'w') do |file|
+          file << css
+          file << "\n"
+        end
+      end
+
+
       # Runs template +sym+ with optional +args+ and +block+
       # from object +obj+.
       def run_template(templates, obj, sym, *args, &block)
@@ -105,6 +135,12 @@ module Tanuki
 
       # Extension glob for template files.
       TEMPLATE_EXT = '.t{html,txt}'
+
+      # Extension glob for JavaScript files.
+      JAVASCRIPT_EXT = '.js'
+
+      # Extension glob for CSS files.
+      STYLESHEET_EXT = '.css'
 
       # Compiles template +sym+ from +owner+ class
       # using source in +st_file+ to +ct_path+.
@@ -151,11 +187,11 @@ module Tanuki
 
       # Finds the direct template +method_name+ owner
       # among ancestors of class +klass+.
-      def template_owner(klass, method_name)
+      def resource_owner(klass, method_name, extension=TEMPLATE_EXT)
         klass.ancestors.each do |ancestor|
           path = const_to_path(ancestor, @app_root ||= combined_app_root)
           method_file = ancestor.to_s.split('::')[-1].underscore.downcase
-          method_file << '.' << method_name.to_s << TEMPLATE_EXT
+          method_file << '.' << method_name.to_s << extension
           files = Dir.glob("#{path}/#{method_file}")
           return ancestor, files[0] unless files.empty?
         end

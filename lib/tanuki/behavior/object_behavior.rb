@@ -15,7 +15,10 @@ module Tanuki
     end
 
     # Returns the same context as given. Used internally by templates.
-    def _ctx(ctx)
+    def _ctx(ctx, template_signature)
+      if !ctx.resources.include? template_signature
+        Loader.load_template_files(ctx, template_signature)
+      end
       ctx
     end
 

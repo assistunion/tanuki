@@ -131,8 +131,12 @@ module Tanuki
             ]
 
           else
+            Loader.build_css_bundle
+
             ctx = Context.child
             ctx.templates = {}
+            ctx.resources = {}
+            ctx.javascripts = {}
 
             # Dispatch controller chain for the current path
             ctx.request = Rack::Request.new(env)

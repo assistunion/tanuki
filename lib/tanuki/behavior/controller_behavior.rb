@@ -37,7 +37,10 @@ module Tanuki
     end
 
     # Returns controller context. Used internally by templates.
-    def _ctx(ctx)
+    def _ctx(ctx, template_signature)
+      if !ctx.resources.include? template_signature
+        Loader.load_template_files(ctx, template_signature)
+      end
       @_ctx
     end
 
@@ -248,6 +251,15 @@ module Tanuki
     def redirect(url)
       @_ctx.response.redirect(url)
       halt
+    end
+
+    # Includes JavaScript in page footer
+    def javascript(file)
+      if file.is_a? Symbol
+        Loader.resource_owner self.class, file, '.js'
+      end
+      external = file =~ /^https?:/
+      ctx.javascripts[file] = external
     end
 
     # Immediately stops request and returns response.
