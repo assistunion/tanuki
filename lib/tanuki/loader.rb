@@ -29,11 +29,9 @@ module Tanuki
       # Returns an array with all common roots.
       def combined_app_root(include_gen_root=true)
         local_app_root = File.expand_path('../../../app', __FILE__)
-        context_app_root = @context.app_root
-        app_root = []
-        app_root << context_app_root
+        app_root = [@ctx_app_root ||= @context.app_root]
         app_root << @context.gen_root if include_gen_root
-        app_root << local_app_root if local_app_root != context_app_root
+        app_root << local_app_root if local_app_root != @ctx_app_root
         app_root
       end
 
@@ -125,11 +123,10 @@ module Tanuki
         return if @css_reload && (time = Time.new) < (@css_reload + interval)
         @css_reload = time
         File.open("#{@context.public_root}/bundle.css", 'w') do |f|
-          app_root_regexp = combined_app_root_regexp(false)
-          css = Dir["#{combined_app_root_glob(false)}/**/*#{STYLESHEET_EXT}"]
-          css.each do |file|
+          @ctx_app_root ||= @context.app_root
+          Dir["#{@ctx_app_root}/**/*#{STYLESHEET_EXT}"].each do |file|
             if File.file? file
-              f << "/*** #{file.sub(app_root_regexp, '')} ***/\n"
+              f << "/*** #{file.sub("#{@ctx_app_root}/", '')} ***/\n"
               f << File.read(file) << "\n"
             end
           end # each
