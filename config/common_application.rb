@@ -2,7 +2,7 @@ load_config :common
 
 # Rack middleware
 use Rack::Head
-use Rack::StaticDir, 'public'
+use Rack::StaticDir, @context.public_root
 
 # Environment
 set :development, false
