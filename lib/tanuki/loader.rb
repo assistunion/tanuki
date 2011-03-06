@@ -17,22 +17,39 @@ module Tanuki
       # Returns the path to a source file containing class +klass+.
       # Seatches across all common roots.
       def combined_class_path(klass)
-        class_path(klass, @app_root ||= combined_app_root)
+        class_path(klass, @app_root ||= combined_app_root_glob)
       end
 
       # Returns the path to a directory containing class +klass+.
       # Seatches across all common roots.
       def combined_class_dir(klass)
-        const_to_path(klass, @app_root ||= combined_app_root)
+        const_to_path(klass, @app_root ||= combined_app_root_glob)
+      end
+
+      # Returns an array with all common roots.
+      def combined_app_root(include_gen_root=true)
+        local_app_root = File.expand_path('../../../app', __FILE__)
+        context_app_root = @context.app_root
+        app_root = []
+        app_root << context_app_root
+        app_root << @context.gen_root if include_gen_root
+        app_root << local_app_root if local_app_root != context_app_root
+        app_root
       end
 
       # Returns a glob pattern of all common roots.
-      def combined_app_root
-        local_app_root = File.expand_path('../../../app', __FILE__)
-        context_app_root = @context.app_root
-        app_root = "{#{context_app_root},#{@context.gen_root}"
-        app_root << ",#{local_app_root}" if local_app_root != context_app_root
-        app_root << '}'
+      def combined_app_root_glob(include_gen_root=true)
+        "{#{combined_app_root(include_gen_root).join(',')}}"
+      end
+
+      # Returns a regexp pattern of all common roots.
+      def combined_app_root_regexp(include_gen_root=true)
+        regexp_root = '^('
+        regexp_root << combined_app_root(include_gen_root).map do |dir|
+          Regexp.escape(dir)
+        end.join('|')
+        regexp_root << ')/?'
+        Regexp.new(regexp_root)
       end
 
       # Assigns a context to Tanuki::Loader.
@@ -102,14 +119,15 @@ module Tanuki
         ctx.resources[template_signature] = nil
       end
 
-
+      # Compiles all stylesheets into a single file.
       def build_css_bundle
         return if @mtime and Time.new < @mtime + 20
         @mtime = Time.new
         css = ""
-        Find.find @context.app_root do |file|
+        app_root_regexp = combined_app_root_regexp(false)
+        Dir[combined_app_root_glob(false) << '/**/*'].each do |file|
           if FileTest.file?(file) && file =~ /\.css$/
-            css << "/*** #{file.sub(@context.app_root, '')} ***/\n"
+            css << "/*** #{file.sub(app_root_regexp, '')} ***/\n"
             css << File.read(file) << "\n"
           end
         end
@@ -189,7 +207,7 @@ module Tanuki
       # among ancestors of class +klass+.
       def resource_owner(klass, method_name, extension=TEMPLATE_EXT)
         klass.ancestors.each do |ancestor|
-          path = const_to_path(ancestor, @app_root ||= combined_app_root)
+          path = const_to_path(ancestor, @app_root ||= combined_app_root_glob)
           method_file = ancestor.to_s.split('::')[-1].underscore.downcase
           method_file << '.' << method_name.to_s << extension
           files = Dir.glob("#{path}/#{method_file}")
