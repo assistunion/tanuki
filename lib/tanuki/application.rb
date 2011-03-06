@@ -5,7 +5,7 @@ module Tanuki
   # handling and view management.
   class Application
 
-    @context = (Loader.context = Context).child
+    Loader.context = Context
     @rack_middleware = []
 
     class << self
@@ -113,10 +113,7 @@ module Tanuki
       # * an iterable body object.
       # It is run on each request.
       def rack_app
-        ctx = @context
         proc do |env|
-          request_ctx = ctx.child
-          request_ctx.templates = {}
 
           # If there are trailing slashes in path, don't dispatch
           if match = env['PATH_INFO'].match(/^(.+)(?<!\$)\/$/)
@@ -134,17 +131,19 @@ module Tanuki
             ]
 
           else
+            ctx = Context.child
+            ctx.templates = {}
 
             # Dispatch controller chain for the current path
-            request_ctx.request = Rack::Request.new(env)
-            resp = request_ctx.response = Rack::Response.new(
+            ctx.request = Rack::Request.new(env)
+            resp = ctx.response = Rack::Response.new(
               [], 200, {'Content-Type' => 'text/html; charset=utf-8'}
             )
             template = nil
             catch :halt do
               template = ::Tanuki::ControllerBehavior.dispatch(
-                request_ctx,
-                ctx.i18n ? ::Tanuki::I18n : ctx.root_page,
+                ctx,
+                Context.i18n ? ::Tanuki::I18n : Context.root_page,
                 Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
               )
             end
