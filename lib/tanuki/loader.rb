@@ -121,7 +121,8 @@ module Tanuki
       # Reloads with a given +interval+ in seconds.
       def build_css_bundle(interval=20)
         return if @next_reload && @next_reload > Time.new
-        File.open("#{@context.public_root}/bundle.css", 'a+') do |f|
+        mode = File::RDWR|File::CREAT
+        File.open("#{@context.public_root}/bundle.css", mode) do |f|
           f.flock(File::LOCK_EX) # Avoid race condition
           now = Time.new
           if !@next_reload || @next_reload < now
