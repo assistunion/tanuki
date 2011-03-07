@@ -119,14 +119,14 @@ module Tanuki
 
       # Compiles all stylesheets into a single file.
       # Reloads with a given +interval+ in seconds.
-      def build_css_bundle(interval=20)
+      def build_css_bundle(interval=5)
         return if @next_reload && @next_reload > Time.new
         mode = File::RDWR|File::CREAT
         File.open("#{@context.public_root}/bundle.css", mode) do |f|
           f.flock(File::LOCK_EX) # Avoid race condition
           now = Time.new
           if !@next_reload || @next_reload < now
-            @next_reload = now + 20
+            @next_reload = now + interval
             @ctx_app_root ||= @context.app_root
             f.rewind
             Dir["#{@ctx_app_root}/**/*#{STYLESHEET_EXT}"].each do |file|
