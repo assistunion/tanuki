@@ -29,11 +29,9 @@ module Tanuki
       # Returns an array with all common roots.
       def combined_app_root(include_gen_root=true)
         local_app_root = File.expand_path('../../../app', __FILE__)
-        context_app_root = @context.app_root
-        app_root = []
-        app_root << context_app_root
+        app_root = [@ctx_app_root ||= @context.app_root]
         app_root << @context.gen_root if include_gen_root
-        app_root << local_app_root if local_app_root != context_app_root
+        app_root << local_app_root if local_app_root != @ctx_app_root
         app_root
       end
 
@@ -122,17 +120,22 @@ module Tanuki
       # Compiles all stylesheets into a single file.
       # Reloads with a given +interval+ in seconds.
       def build_css_bundle(interval=20)
-        return if @css_reload && (time = Time.new) < (@css_reload + interval)
-        @css_reload = time
-        File.open("#{@context.public_root}/bundle.css", 'w') do |f|
-          app_root_regexp = combined_app_root_regexp(false)
-          css = Dir["#{combined_app_root_glob(false)}/**/*#{STYLESHEET_EXT}"]
-          css.each do |file|
-            if File.file? file
-              f << "/*** #{file.sub(app_root_regexp, '')} ***/\n"
-              f << File.read(file) << "\n"
+        return if @next_reload && @next_reload > Time.new
+        File.open("#{@context.public_root}/bundle.css", 'a+') do |f|
+          f.flock(File::LOCK_EX) # Avoid race condition
+          now = Time.new
+          if !@next_reload || @next_reload < now
+            @next_reload = now + 20
+            @ctx_app_root ||= @context.app_root
+            f.rewind
+            Dir["#{@ctx_app_root}/**/*#{STYLESHEET_EXT}"].each do |file|
+              if File.file? file
+                f << "/*** #{file.sub("#{@ctx_app_root}/", '')} ***/\n"
+                f << File.read(file) << "\n"
+              end
             end
-          end # each
+            f.flush.truncate(f.pos)
+          end # if
         end # open
       end
 
