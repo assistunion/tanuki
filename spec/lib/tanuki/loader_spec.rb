@@ -27,9 +27,9 @@ module Tanuki
     end
 
     it 'should find template sources through receiver ancestors' do
-      Loader.instance_eval { template_owner(::Tanuki::Controller, :default) }.should ==
+      Loader.instance_eval { resource_owner(::Tanuki::Controller, :default) }.should ==
         [::Tanuki::Controller, File.join(@context.app_root, 'tanuki', 'controller', 'default.thtml')]
-      Loader.instance_eval { template_owner(::Tanuki::Page::Missing, :index) }.should ==
+      Loader.instance_eval { resource_owner(::Tanuki::Page::Missing, :index) }.should ==
         [::Tanuki::Controller, File.join(@context.app_root, 'tanuki', 'controller', 'index.thtml')]
     end
 

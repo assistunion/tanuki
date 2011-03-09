@@ -5,13 +5,14 @@ module Tanuki
 
     before :each do
       Application.instance_eval do
-        @context = Tanuki::Loader.context = Tanuki::Context.child
+        Tanuki::Loader.context = Tanuki::Context.child
         root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
-        @context.app_root = File.join(root, 'app')
-        @context.gen_root = File.join(root, 'gen')
-        @context.root_page = ::Tanuki::Controller
-        @context.missing_page = ::Tanuki::Page::Missing
-        @context.development = true
+        Context.app_root = File.join(root, 'app')
+        Context.gen_root = File.join(root, 'gen')
+        Context.public_root = File.join(root, 'public')
+        Context.root_page = ::Tanuki::Controller
+        Context.missing_page = ::Tanuki::Page::Missing
+        Context.development = true
         @rack_middleware = []
       end
     end
@@ -35,12 +36,15 @@ module Tanuki
       sv.call('b').should == 'ab'
     end
 
-    it 'should build a response body' do
-      ctx = Application.instance_eval { @context.child }
+    it 'should return a template method' do
+      ctx = Application.instance_eval { Context.child }
       ctx.templates = {}
-      ctrl = ControllerBehavior.dispatch(ctx, ::Tanuki::Controller, '/')[:controller]
-      Application.visitor :array do arr = []; proc {|out| arr << out } end
-      Application.instance_eval { build_body(ctrl, ctx) }.should be_a Array
+      ctx.resources = {}
+      ctx.javascripts = {}
+      ctx.request = Rack::Request.new({'REQUEST_METHOD' => 'GET'})
+      tpl = ControllerBehavior.dispatch(ctx, ::Tanuki::Controller, '/')
+      tpl.should be_a Method
+      tpl.receiver.should be_a Tanuki::BaseBehavior
     end
 
     it 'should construct a Rack app block' do
@@ -56,7 +60,7 @@ module Tanuki
     end
 
     it 'should have this block build pages with response code 200' do
-      Application.instance_eval { @context.i18n = false }
+      Application.instance_eval { Context.i18n = false }
       result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
       result[0].should == 200
       result[1].should be_a Hash
@@ -65,7 +69,7 @@ module Tanuki
     end
 
     it 'should have this block build pages with response code 404' do
-      Application.instance_eval { @context.i18n = false }
+      Application.instance_eval { Context.i18n = false }
       result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/missing'})
       result[0].should == 404
       result[1].should be_a Hash
@@ -75,10 +79,10 @@ module Tanuki
 
     it 'should have this block build redirects with response code 302' do
       Application.instance_eval do
-        @context.i18n = true
-        @context.i18n_redirect = true
-        @context.language = :ru
-        @context.languages = [:ru]
+        Context.i18n = true
+        Context.i18n_redirect = true
+        Context.language = :ru
+        Context.languages = [:ru]
       end
       result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
       result[0].should == 302
