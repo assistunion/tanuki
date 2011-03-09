@@ -68,15 +68,14 @@ module Tanuki
         s = route.to_s
         @_child_collection_defs.each do |collection_def|
           if md = collection_def[:parse].match(s)
-            a_route = md['route'].to_sym
-            child_def = collection_def[:fetcher].fetch(a_route, collection_def[:format])
+            child_def = collection_def[:fetcher].fetch(md, collection_def[:format])
             if child_def
               klass = child_def[:class]
               args = klass.extract_args(args[0]) if byname
               embedded_args = klass.extract_args(md)
               args.each_index {|i| embedded_args[i] = args[i] if args[i] }
-              child = klass.new(process_child_context(@_ctx, a_route), self,
-                {:route => a_route, :args => embedded_args}, child_def[:model])
+              child = klass.new(process_child_context(@_ctx, child_def[:route]), self,
+                {:route => child_def[:route], :args => embedded_args}, child_def[:model])
               found = true
               break child
             end # if
@@ -117,8 +116,7 @@ module Tanuki
         s = route.to_s
         @_child_collection_defs.each do |collection_def|
           if md = collection_def[:parse].match(s)
-            a_route = md['route'].to_sym
-            child_def = collection_def[:fetcher].fetch(a_route, collection_def[:format])
+            child_def = collection_def[:fetcher].fetch(md, collection_def[:format])
             return child_def[:class] if child_def
           end
         end
@@ -256,7 +254,7 @@ module Tanuki
     # Includes JavaScript in page footer
     def javascript(file)
       if file.is_a? Symbol
-        Loader.resource_owner self.class, file, '.js'
+        _, file = *Loader.resource_owner(self.class, file, '.js')
       end
       external = file =~ /^https?:/
       ctx.javascripts[file] = external
@@ -299,10 +297,10 @@ module Tanuki
       self
     end
 
-    # Defines a child collection of type +parse_regexp+, formatted back by +format_string+.
-    def has_child_collection(parse_regexp, format_string, child_def_fetcher)
+    # Defines a child collection of type +parse_regexp+, formatted back by +format+ block.
+    def has_child_collection(child_def_fetcher, parse_regexp, &format)
       @_child_defs[parse_regexp] = @_child_collection_defs.size
-      @_child_collection_defs << {:parse => parse_regexp, :format => format_string, :fetcher => child_def_fetcher}
+      @_child_collection_defs << {:parse => parse_regexp, :format => format, :fetcher => child_def_fetcher}
       @_length_is_valid = false
     end
 
