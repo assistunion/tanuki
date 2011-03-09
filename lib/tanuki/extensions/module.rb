@@ -1,7 +1,7 @@
 class Module
 
   # Runs Tanuki::Loader for every missing constant in any namespace.
-  def const_missing(sym)
+  def const_missing_with_balls(sym)
     klass = "#{name + '::' unless name.nil? || (name == 'Object')}#{sym}"
     paths = Dir.glob(Tanuki::Loader.combined_class_path(klass))
     if paths.empty?
@@ -12,8 +12,9 @@ class Module
       paths.reverse_each {|path| require path }
       return const_get(sym) if const_defined?(sym)
     end
-    raise NameError, "uninitialized constant #{name}::#{sym}"
+    const_missing_without_balls(sym)
   end
+  alias_method_chain :const_missing, :balls
 
   # Creates a reader +sym+ and a writer +sym=+
   # for the instance variable @_sym.
