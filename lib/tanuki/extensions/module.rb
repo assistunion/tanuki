@@ -6,7 +6,7 @@ class Module
     paths = Dir.glob(Tanuki::Loader.combined_class_path(klass))
     if paths.empty?
       unless Dir.glob(Tanuki::Loader.combined_class_dir(klass)).empty?
-        return const_set(sym, Class.new)
+        return const_set(sym, Module.new)
       end
     else
       paths.reverse_each {|path| require path }
