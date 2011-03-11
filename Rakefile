@@ -1,12 +1,11 @@
 require 'rake/rdoctask'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 libdir = File.join(File.expand_path('..', __FILE__), 'lib')
 require File.join(libdir, 'tanuki/version')
 
-Spec::Rake::SpecTask.new do |t|
-  t.libs = [libdir]
+RSpec::Core::RakeTask.new do |t|
   t.pattern = 'spec/**/*_spec.rb'
-  t.spec_opts = ['--format', 'specdoc']
+  t.rspec_opts = ['--format', 'documentation']
 end
 
 Rake::RDocTask.new do |rd|
