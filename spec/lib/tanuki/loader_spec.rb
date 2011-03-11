@@ -10,7 +10,7 @@ module Tanuki
 
     before :all do
       @context = Tanuki::Context.child
-      root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+      root = File.expand_path('../../../..', __FILE__)
       @context.app_root = File.join(root, 'app')
       @context.gen_root = File.join(root, 'gen')
       Loader.context = @context
@@ -19,23 +19,23 @@ module Tanuki
 
     it 'should find the path to missing application classes' do
       Loader.class_path(:'', @context.app_root).should == File.join(@context.app_root, '.rb')
-      Loader.class_path(:'Aa', @context.app_root).should == File.join(@context.app_root, 'aa', 'aa.rb')
-      Loader.class_path(:'AaBb', @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'aa_bb.rb')
-      Loader.class_path(:'Aa::Bb', @context.app_root).should == File.join(@context.app_root, 'aa', 'bb', 'bb.rb')
-      Loader.class_path(:'Aa::BbCc', @context.app_root).should == File.join(@context.app_root, 'aa', 'bb_cc', 'bb_cc.rb')
-      Loader.class_path(:'AaBb::CcDd', @context.app_root).should == File.join(@context.app_root, 'aa_bb', 'cc_dd', 'cc_dd.rb')
+      Loader.class_path(:'Aa', @context.app_root).should == File.join(@context.app_root, 'aa/aa.rb')
+      Loader.class_path(:'AaBb', @context.app_root).should == File.join(@context.app_root, 'aa_bb/aa_bb.rb')
+      Loader.class_path(:'Aa::Bb', @context.app_root).should == File.join(@context.app_root, 'aa/bb/bb.rb')
+      Loader.class_path(:'Aa::BbCc', @context.app_root).should == File.join(@context.app_root, 'aa/bb_cc/bb_cc.rb')
+      Loader.class_path(:'AaBb::CcDd', @context.app_root).should == File.join(@context.app_root, 'aa_bb/cc_dd/cc_dd.rb')
     end
 
     it 'should find template sources through receiver ancestors' do
       Loader.instance_eval { resource_owner(::Tanuki::Controller, :default) }.should ==
-        [::Tanuki::Controller, File.join(@context.app_root, 'tanuki', 'controller', 'default.thtml')]
+        [::Tanuki::Controller, File.join(@context.app_root, 'tanuki/controller/default.thtml')]
       Loader.instance_eval { resource_owner(::Tanuki::Page::Missing, :index) }.should ==
-        [::Tanuki::Controller, File.join(@context.app_root, 'tanuki', 'controller', 'index.thtml')]
+        [::Tanuki::Controller, File.join(@context.app_root, 'tanuki/controller/index.thtml')]
     end
 
     it 'should assemble the path to compiled templates' do
       Loader.instance_eval { compiled_template_path(::Tanuki::Page::Missing, :default) }.should ==
-        File.join(@context.gen_root, File.join('tanuki', 'page', 'missing'), 'default.tpl.rb')
+        File.join(@context.gen_root, 'tanuki/page/missing/default.tpl.rb')
     end
 
     it 'should remember templates it ran at least once for each request' do

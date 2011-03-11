@@ -2,7 +2,7 @@ require 'tanuki'
 
 module Tanuki
   @context = Context.child
-  root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+  root = File.expand_path('../../../..', __FILE__)
   @context.app_root = File.join(root, 'app')
   @context.gen_root = File.join(root, 'gen')
   Loader.context = @context
@@ -12,7 +12,7 @@ describe Tanuki::Controller do
 
   before :all do
     @context = Tanuki::Context.child
-    root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+    root = File.expand_path('../../../..', __FILE__)
     @context.app_root = File.join(root, 'app')
     @context.gen_root = File.join(root, 'gen')
     Tanuki::Loader.context = @context

@@ -6,7 +6,7 @@ module Tanuki
     before :each do
       Application.instance_eval do
         Tanuki::Loader.context = Tanuki::Context.child
-        root = File.expand_path(File.join('..', '..', '..', '..'), __FILE__)
+        root = File.expand_path('../../../..', __FILE__)
         Context.app_root = File.join(root, 'app')
         Context.gen_root = File.join(root, 'gen')
         Context.public_root = File.join(root, 'public')
