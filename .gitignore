@@ -20,3 +20,4 @@
 /public
 /schema/test
 /*.gem
+/Gemfile.lock
