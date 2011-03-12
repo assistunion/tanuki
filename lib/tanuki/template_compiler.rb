@@ -29,15 +29,12 @@ module Tanuki
         ios << TEMPLATE_FOOTER % sym << "end\n"
       end
 
-      # Compiles a wikified template from a given +src+ string
-      # to method +sym+ for a given object +obj+.
-      def compile_wiki(src, obj, sym)
-        code = StringIO.new
-        code << TEMPLATE_HEADER % [sym, obj.class]
-        parse_wiki src
-        compile code, src, true
-        code << TEMPLATE_FOOTER % sym
-        obj.instance_eval code
+      # Compiles a wikified template from a given +src+ string to +ios+
+      # for method +sym+ in class +klass+.
+      def compile_wiki(ios, src, klass, sym)
+        ios << TEMPLATE_HEADER % [sym, klass]
+        compile(ios, parse_wiki(src.chomp), true)
+        ios << TEMPLATE_FOOTER % sym
       end
 
       # Replaces all wiki inserts like
