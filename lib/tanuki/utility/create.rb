@@ -27,7 +27,7 @@ module Tanuki
       FileUtils.mkdir "#{project_dir}/app"
       puts '  app/user/'
       FileUtils.mkdir "#{project_dir}/app/user"
-      Dir["#{file_source}/app/user/**/*"].each do |file|
+      Dir.glob("#{file_source}/app/user/**/*") do |file|
         is_dir = File.directory? file
         puts "  #{file[name_pos]}#{'/' if is_dir}"
         if is_dir

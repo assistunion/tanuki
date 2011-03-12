@@ -129,7 +129,7 @@ module Tanuki
             @next_reload = now + interval
             @ctx_app_root ||= @context.app_root
             f.rewind
-            Dir["#{@ctx_app_root}/**/*#{STYLESHEET_EXT}"].each do |file|
+            Dir.glob("#{@ctx_app_root}/**/*#{STYLESHEET_EXT}") do |file|
               if File.file? file
                 f << "/*** #{file.sub("#{@ctx_app_root}/", '')} ***/\n"
                 f << File.read(file) << "\n"
@@ -212,7 +212,7 @@ module Tanuki
           path = const_to_path(ancestor, @app_root ||= combined_app_root_glob)
           method_file = ancestor.to_s.split('::')[-1].underscore.downcase
           method_file << '.' << method_name.to_s << extension
-          files = Dir.glob("#{path}/#{method_file}")
+          files = Dir["#{path}/#{method_file}"]
           return ancestor, files[0] unless files.empty?
         end
         [nil, nil]
