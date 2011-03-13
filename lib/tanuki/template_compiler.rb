@@ -22,19 +22,17 @@ module Tanuki
 
       # Compiles a template from a given +src+ string to +ios+
       # for method +sym+ in class +klass+.
-      def compile_template(ios, src, klass, sym)
-        ios << "# encoding: #{src.encoding}\nclass #{klass}\n"
-        ios << TEMPLATE_HEADER % [sym, klass]
-        compile ios, src.chomp, true
-        ios << TEMPLATE_FOOTER % sym << "end\n"
-      end
-
-      # Compiles a wikified template from a given +src+ string to +ios+
-      # for method +sym+ in class +klass+.
-      def compile_wiki(ios, src, klass, sym)
-        ios << TEMPLATE_HEADER % [sym, klass]
+      # If +development+ is false, then no encoding and class declarations,
+      # as well as runtime template checks are generated.
+      def compile_template(ios, src, klass, sym, development=true)
+        ios << TEMPLATE_HEADERS[:class] % [src.encoding, klass] if development
+        ios << TEMPLATE_HEADERS[:method] % sym
+        ios << TEMPLATE_HEADERS[:dev] % sym if development
+        ios << TEMPLATE_HEADERS[:context] % [klass, sym]
         compile(ios, parse_wiki(src.chomp), true)
-        ios << TEMPLATE_FOOTER % sym
+        ios << TEMPLATE_FOOTERS[:dev] % sym if development
+        ios << TEMPLATE_FOOTERS[:method]
+        ios << TEMPLATE_FOOTERS[:class] if development
       end
 
       # Replaces all wiki inserts like
@@ -139,15 +137,19 @@ module Tanuki
       PRINT_STATES = [:outer, :code_print]
 
       # Template header code. Sent to output before compilation.
-      TEMPLATE_HEADER = "def %1$s_view(*args,&block)\n" \
-                        "proc do|_,ctx|\n" \
-                        "if _has_tpl ctx,self.class,:%1$s\n" \
-                        "ctx=_ctx(ctx,\"%2$s#%1$s\")"
+      TEMPLATE_HEADERS = {
+        :class => "# encoding: %s\nclass %s\n",
+        :method => "def %s_view(*args,&block)\nproc do|_,ctx|\n",
+        :dev => "if _has_tpl ctx,self.class,:%s\n",
+        :context => %{ctx=_ctx(ctx,"%s#%s")}
+      }
 
       # Template footer code. Sent to output after compilation.
-      TEMPLATE_FOOTER = "\nelse\n" \
-                        "(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\n" \
-                        "end\nend\nend\n" # if, proc, def
+      TEMPLATE_FOOTERS = {
+        :dev => "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\n",
+        :method => "end\nend\n",
+        :class => "end\n"
+      }
 
       # Wiki insert syntax
       WIKI_SYNTAX = %r{
