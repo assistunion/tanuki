@@ -61,7 +61,10 @@ module Tanuki
 
     it 'should have this block build pages with response code 200' do
       Application.instance_eval { Context.i18n = false }
-      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
+      result = Application.instance_eval { rack_app }.call({
+        'REQUEST_METHOD' => 'GET',
+        'PATH_INFO' => '/'
+      })
       result[0].should == 200
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
@@ -70,7 +73,10 @@ module Tanuki
 
     it 'should have this block build pages with response code 404' do
       Application.instance_eval { Context.i18n = false }
-      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/missing'})
+      result = Application.instance_eval { rack_app }.call({
+        'REQUEST_METHOD' => 'GET',
+        'PATH_INFO' => '/missing'
+      })
       result[0].should == 404
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'
@@ -84,7 +90,10 @@ module Tanuki
         Context.language = :ru
         Context.languages = [:ru]
       end
-      result = Application.instance_eval { rack_app }.call({'PATH_INFO' => '/'})
+      result = Application.instance_eval { rack_app }.call({
+        'REQUEST_METHOD' => 'GET',
+        'PATH_INFO' => '/'
+      })
       result[0].should == 302
       result[1].should be_a Hash
       result[1].should have_key 'Content-Type'

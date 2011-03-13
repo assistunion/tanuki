@@ -376,7 +376,7 @@ module Tanuki
             # Do a redirect, if some controller in the chain asks for it
             if route_part[:redirect]
               klass = curr.child_class(route_part)
-              redirect grow_link(curr, route_part, klass.arg_defs)
+              curr.redirect grow_link(curr, route_part, klass.arg_defs)
               return
             end
 
