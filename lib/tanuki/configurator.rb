@@ -7,6 +7,9 @@ module Tanuki
     # Configuration root.
     attr_writer :config_root
 
+    # Configurator context.
+    attr_reader :context
+
     # Creates a new configurator in context +ctx+ and +root+ directory.
     # Configuration root +config_root+ defaults
     # to _config_ directory in +root+.
