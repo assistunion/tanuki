@@ -56,10 +56,17 @@ module Tanuki
 
       elsif child_def = @_child_defs[route]
 
+        # Search actions
+        if child_def[:type] == :action && (a = child_def[ctx.request.request_method])
+          throw :action, a
+
+        else
+
         # Search static routes
-        klass = child_def[:class]
-        args = klass.extract_args(args[0]) if byname
-        child = klass.new(process_child_context(@_ctx, route), self, {:route => route, :args => args}, child_def[:model])
+          klass = child_def[:class]
+          args = klass.extract_args(args[0]) if byname
+          child = klass.new(process_child_context(@_ctx, route), self, {:route => route, :args => args}, child_def[:model])
+        end
 
       else
 
@@ -288,6 +295,10 @@ module Tanuki
       nil
     end
 
+    def has_action(method, route, &block)
+      (@_child_defs[route.to_sym] ||= {:type => :action})[method] = block
+    end
+
     private
 
     # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
@@ -360,29 +371,42 @@ module Tanuki
       def dispatch(ctx, klass, request_path)
         route_parts = parse_path(request_path)
 
+        # Prepare for getting an Action result
+        action_result = nil
+
+
         # Set logical children for active controllers
         curr = root_ctrl = klass.new(ctx, nil, nil, true)
+        nxt = nil
         route_parts.each do |route_part|
           curr.instance_variable_set :@_active, true
-          nxt = curr[route_part[:route], *route_part[:args]]
+          action_result = catch :action do
+            nxt = curr[route_part[:route], *route_part[:args]]
+            nil
+          end
+          break if action_result
           curr.logical_child = nxt
           curr = nxt
         end
 
+
         # Set links for active controllers and default routes (only for GET)
-        if ctx.request.get?
+        if ctx.request.get? && !action_result
           while route_part = curr.default_route
 
             # Do a redirect, if some controller in the chain asks for it
             if route_part[:redirect]
               klass = curr.child_class(route_part)
               curr.redirect grow_link(curr, route_part, klass.arg_defs)
-              return
             end
 
             # Add default route as logical child
             curr.instance_variable_set :@_active, true
-            nxt = curr[route_part[:route], *route_part[:args]]
+            action_result = catch :action do
+              nxt = curr[route_part[:route], *route_part[:args]]
+              nil
+            end
+            break if action_result
             curr.logical_child = nxt
             curr = nxt
 
@@ -405,6 +429,7 @@ module Tanuki
         # Set visual top
         ctx.visual_top = prev
 
+        return action_result.call if action_result
         last.send :"#{ctx.request.request_method.downcase}"
       end
 
