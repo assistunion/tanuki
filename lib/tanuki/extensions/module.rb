@@ -16,6 +16,20 @@ class Module
   end
   alias_method_chain :const_missing, :balls
 
+  # Sets the named constant to the given object, returning that object.
+  # Creates new constants and modules recursively if no constant with the
+  # given name and nesting previously existed.
+  def const_set_recursive(sym, obj)
+    sym.to_s.split('::').inject(self) do |klass, const|
+      if const_defined? const.to_sym
+        const = const_get(const)
+      else
+        const = const_set(const, Module.new)
+      end
+      const
+    end
+  end
+
   # Creates a reader +sym+ and a writer +sym=+
   # for the instance variable @_sym.
   def internal_attr_accessor(*syms)

@@ -1,4 +1,4 @@
-require 'find'
+require 'stringio'
 
 module Tanuki
 
@@ -129,7 +129,7 @@ module Tanuki
             @next_reload = now + interval
             @ctx_app_root ||= @context.app_root
             f.rewind
-            Dir["#{@ctx_app_root}/**/*#{STYLESHEET_EXT}"].each do |file|
+            Dir.glob("#{@ctx_app_root}/**/*#{STYLESHEET_EXT}") do |file|
               if File.file? file
                 f << "/*** #{file.sub("#{@ctx_app_root}/", '')} ***/\n"
                 f << File.read(file) << "\n"
@@ -140,6 +140,40 @@ module Tanuki
         end # open
       end
 
+      # Prepares the application for production mode. This includes:
+      # * precompiling all templates into memory,
+      # * and prebuilding static file like the CSS bundle.
+      def prepare_for_production
+        root_glob = combined_app_root_glob(false)
+        root_re = combined_app_root_regexp(false)
+
+        # Load application modules
+        path_re = /#{root_re}(?<path>.*)/
+        Dir.glob(File.join(root_glob, "**/*")) do |file|
+          if File.directory? file
+            file.match(path_re) do |m|
+              mod = File.join(file, File.basename(file)) << '.rb'
+              if File.file? mod
+                require mod
+              else
+                Object.const_set_recursive(m[:path].camelize, Module.new)
+              end
+            end # match
+          end # if
+        end
+
+        # Load templates
+        file_re = /#{root_re}(?<path>.*)\/.*\.(?<template>.*)\./
+        Dir.glob(File.join(root_glob, "**/*#{TEMPLATE_EXT}")) do |file|
+          file.match(file_re) do |m|
+            ios = StringIO.new
+            TemplateCompiler.compile_template(
+              ios, File.read(file), m[:path].camelize, m[:template], false
+            )
+            m[:path].camelize.constantize.class_eval(ios.string)
+          end # match
+        end # glob
+      end
 
       # Runs template +sym+ with optional +args+ and +block+
       # from object +obj+.
@@ -212,7 +246,7 @@ module Tanuki
           path = const_to_path(ancestor, @app_root ||= combined_app_root_glob)
           method_file = ancestor.to_s.split('::')[-1].underscore.downcase
           method_file << '.' << method_name.to_s << extension
-          files = Dir.glob("#{path}/#{method_file}")
+          files = Dir["#{path}/#{method_file}"]
           return ancestor, files[0] unless files.empty?
         end
         [nil, nil]
