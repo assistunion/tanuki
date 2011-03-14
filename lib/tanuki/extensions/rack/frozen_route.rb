@@ -13,7 +13,7 @@ module Rack
         'Content-Type' => content_type,
         'ETag'         => Digest::MD5.hexdigest(body)
       }
-      @body = body
+      @body = body.freeze
     end
 
     # Returns the defined +body+ if the route is matched.
@@ -21,7 +21,7 @@ module Rack
       if env['PATH_INFO'] =~ @route
         if @headers['ETag'] == env['HTTP_IF_NONE_MATCH']
           status = 304
-          body = ''
+          body = []
         else
           status = 200
           body = @body

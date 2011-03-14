@@ -117,9 +117,9 @@ module Tanuki
         ctx.resources[template_signature] = nil
       end
 
-      # Compiles all stylesheets into a single file.
-      # Reloads with a given +interval+ in seconds.
-      def build_css_bundle(interval=5)
+      # Writes the compiled CSS file to disk
+      # and refreshes with a given +interval+ in seconds.
+      def refresh_css(interval=5)
         return if @next_reload && @next_reload > Time.new
         mode = File::RDWR|File::CREAT
         File.open("#{@context.public_root}/bundle.css", mode) do |f|
@@ -129,12 +129,7 @@ module Tanuki
             @next_reload = now + interval
             @ctx_app_root ||= @context.app_root
             f.rewind
-            Dir.glob("#{@ctx_app_root}/**/*#{STYLESHEET_EXT}") do |file|
-              if File.file? file
-                f << "/*** #{file.sub("#{@ctx_app_root}/", '')} ***/\n"
-                f << File.read(file) << "\n"
-              end
-            end
+            compile_css(f, true)
             f.flush.truncate(f.pos)
           end # if
         end # open
@@ -173,6 +168,13 @@ module Tanuki
             m[:path].camelize.constantize.class_eval(ios.string)
           end # match
         end # glob
+
+        # Load CSS
+        Application.use(
+          Rack::FrozenRoute,
+          %r{/bundle.css}, 'text/css', compile_css(StringIO.new).string
+        )
+        Application.pull_down(Rack::StaticDir)
       end
 
       # Runs template +sym+ with optional +args+ and +block+
@@ -195,6 +197,19 @@ module Tanuki
 
       # Extension glob for CSS files.
       STYLESHEET_EXT = '.css'
+
+      # Compiles all application stylesheets into +ios+.
+      # Add path headers for each chunk of CSS if +mark_source+ is true.
+      def compile_css(ios, mark_source=false)
+        header = "/*** %s ***/\n"
+        Dir.glob("#{@ctx_app_root}/**/*#{STYLESHEET_EXT}") do |file|
+          if File.file? file
+            ios << header % file.sub("#{@ctx_app_root}/", '') if mark_source
+            ios << File.read(file) << "\n"
+          end
+        end
+        ios
+      end
 
       # Compiles template +sym+ from +owner+ class
       # using source in +st_file+ to +ct_path+.

@@ -34,6 +34,16 @@ module Tanuki
         @environment ||= nil
       end
 
+      # Pulls all occurences of a given +middleware+ down to the end
+      # of the Rack middleware pipeline (it would have the lowest priority).
+      def pull_down(middleware)
+        items = @rack_middleware.select {|item| item[0] == middleware }
+        if items
+          @rack_middleware.reject! {|item| item[0] == middleware }
+          items.each {|item| @rack_middleware << item }
+        end
+      end
+
       # Adds a given +middleware+ with optional +args+ and +block+
       # to the Rack middleware pipeline.
       def use(middleware, *args, &block)
@@ -132,14 +142,13 @@ module Tanuki
             ]
 
           else
-            Loader.build_css_bundle
-
             ctx = Context.child
             ctx.templates = {}
             ctx.resources = {}
             ctx.javascripts = {}
 
             # Dispatch controller chain for the current path
+            Loader.refresh_css if ctx.development
             ctx.request = Rack::Request.new(env)
             resp = ctx.response = Rack::Response.new(
               [], 200, {'Content-Type' => 'text/html; charset=utf-8'}
