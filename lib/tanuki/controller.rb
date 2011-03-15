@@ -215,11 +215,12 @@ module Tanuki
     # Returns the link to the current controller, switching
     # the active controller on the respective path level to +self+.
     def forward_link
-      uri_parts = @_ctx.request.path_info.split(/(?<!\$)\//)
-      link_parts = link.split(/(?<!\$)\//)
+      uri_parts = @_ctx.request.path_info.split(Const::UNESCAPED_SLASH)
+      link_parts = link.split(Const::UNESCAPED_SLASH)
       link_parts.each_index {|i| uri_parts[i] = link_parts[i] }
       query_string = @_ctx.request.query_string
-      uri_parts.join('/') << (query_string.empty? ? '' : "?#{query_string}")
+      query_string = query_string.empty? ? '' : "?#{query_string}"
+      uri_parts.join(Const::SLASH) << query_string
     end
 
     # Returns the number of visible child controllers
@@ -439,7 +440,11 @@ module Tanuki
       # Escapes characters +chrs+ and encodes a given string +s+
       # for use in links.
       def escape(s, chrs)
-        s ? Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, '$\0')) : nil
+        if s
+          Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, Const::ESCAPED_MATCH))
+        else
+          nil
+        end
       end
 
       # Extracts arguments, initializing default values beforehand.
@@ -458,11 +463,13 @@ module Tanuki
           if arg_defs[k][:arg].default == v
             ''
           else
-            ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
+            key = escape(k, Const::ARG_KEY_ESCAPE)
+            value = escape(v, Const::ARG_VALUE_ESCAPE)
+            ":#{key}-#{value}"
           end
         }.join
-        own_link = escape(route_part[:route], '\/:') << args
-        "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
+        own_link = escape(route_part[:route], Const::ARG_VALUE_ESCAPE) << args
+        "#{ctrl.link == Const::SLASH ? '' : ctrl.link}/#{own_link}"
       end
 
       # Defines an argument with a +name+,
@@ -479,12 +486,15 @@ module Tanuki
 
       # Parses +path+ to return route name and arguments.
       def parse_path(path)
-        path[1..-1].split(/(?<!\$)\//).map do |s|
-          arr = s.gsub('$/', '/').split(/(?<!\$):/)
+        path[1..-1].split(Const::UNESCAPED_SLASH).map do |s|
+          arr = s.gsub(
+            Const::ESCAPED_SLASH,
+            Const::SLASH
+          ).split(Const::UNESCAPED_COLON)
           route_part = {:route => unescape(arr[0]).to_sym}
           args = {}
           arr[1..-1].each do |argval|
-            varr = argval.split(/(?<!\$)-/)
+            varr = argval.split(Const::UNESCAPED_MINUS)
             args[unescape(varr[0])] = unescape(varr[1..-1].join)
             # TODO Predict argument
           end
@@ -495,7 +505,7 @@ module Tanuki
 
       # Unescapes a given link part for internal use.
       def unescape(s)
-        s ? s.gsub(/\$([\/\$:-])/, '\1') : nil
+        s ? s.gsub(Const::ESCAPED_ROUTE_CHARS, Const::FIRST_SUBPATTERN) : nil
       end
 
     end # class << self
