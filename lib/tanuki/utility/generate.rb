@@ -14,16 +14,17 @@ module Tanuki
       require 'active_support/inflector'
       require 'yaml'
       require 'fileutils'
-      require 'tanuki/behavior/meta_model_behavior'
-      require 'tanuki/model_behavior'
       require 'tanuki/base_behavior'
       require 'tanuki/configurator'
       require 'tanuki/context'
       require 'tanuki/loader'
       require 'tanuki/template_compiler'
+      require 'tanuki/meta_model'
+      require 'tanuki/model_behavior'
       require 'tanuki/model_generator'
 
       ctx = Loader.context = Context
+      ctx.resources = {}
       default_root = File.expand_path('../../../..', __FILE__)
       cfg = Configurator.new(ctx, cwd)
 

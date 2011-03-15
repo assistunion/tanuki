@@ -1,3 +1,2 @@
-class Tanuki::MetaModel < Tanuki::Base
-  include Tanuki::MetaModelBehavior
+class Tanuki::MetaModel
 end

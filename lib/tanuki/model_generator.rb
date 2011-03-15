@@ -26,11 +26,12 @@ module Tanuki
     # Loads all models into memory from a given +schema_root+ and prepares
     # their own properties to be rendered in class templates.
     def read_models(schema_root)
-      paths = Dir.entries(schema_root).reject {|path| path =~ /\A\.{1,2}\Z/ }
+      paths = Dir.entries(schema_root).reject {|path| path =~ /\A\..*\Z/ }
       paths.each do |namespace_path|
         namespace_name = namespace_path.camelize
         namespace = @models[namespace_name] = {}
-        schema_glob = "#{schema_root}/#{namespace_path}/#{models}/*.yml"
+        schema_glob = "#{schema_root}/#{namespace_path}/models/*.yml"
+        p schema_glob
         Dir.glob(schema_glob) do |file_path|
 
           # Create meta model for namespace and model name from schema
@@ -41,7 +42,7 @@ module Tanuki
             YAML.load_file(file_path),
             @models
           )
-          meta_model.process!
+          meta_model.process
           namespace_model_name = "#{namespace_name}.#{model_name}"
 
           # TODO is this necessary?
@@ -86,8 +87,8 @@ module Tanuki
         begin
           dirname = File.dirname(path)
           FileUtils.mkdir_p dirname unless File.directory? dirname
-          File.open path, 'w' do |file|
-            writer = proc {|out| file.print out.to_s }
+          File.open(path, 'w') do |file|
+            writer = proc {|out| file << out.to_s }
             Loader.run_template({}, meta_model, class_type).call(writer, @ctx)
           end
           @tried[namespace_model_name][:generated] << class_name
@@ -123,7 +124,7 @@ module Tanuki
     def process_models
       @models.each do |namespace_name, namespace |
         namespace.each do |model_name, meta_model|
-          meta_model.process_relations!
+          meta_model.process_relations
         end
       end
     end
