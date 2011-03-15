@@ -22,7 +22,9 @@ module Tanuki
       @_errors ||= {}
       @_original ||= {}
       begin
-        @_original[attribute] = self[attribute] unless @_original.include? attribute
+        unless @_original.include? attribute
+          @_original[attribute] = self[attribute]
+        end
         self.class[attribute].set(@_data, value)
         @_errors.delete(attribute)
       rescue
@@ -79,11 +81,13 @@ module Tanuki
       # Creates new model, or returns existing one.
       def get(data, ctx, lazy=false) # IDENTITY TRACKING AND LAZY LOADING
         entity_key = extract_key(data)
-        key = [self, entity_key] # extract_key is generated ad hoc by model compiler!
+        key = [self, entity_key]
+        # extract_key is generated ad-hoc by model compiler!
         if cached = ctx.entity_cache[key]
           cached
         else
-          ctx.entity_cache[key] = get(*entity_key) # get is generated Ad Hoc by model compiler
+          ctx.entity_cache[key] = get(*entity_key)
+          # get is generated ad-hoc by model compiler
         end
       end
 
