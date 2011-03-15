@@ -1,3 +1,2 @@
-class Tanuki::Controller < Tanuki::Base
-  include Tanuki::ControllerBehavior
+class Tanuki::Controller
 end

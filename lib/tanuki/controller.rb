@@ -1,15 +1,17 @@
 module Tanuki
 
-  # Tanuki::ControllerBehavior contains basic methods for a framework controller.
-  # It is included in the base controller class.
-  module ControllerBehavior
+  # Tanuki::Controller provides basic methods for
+  # a subclassable framework controller.
+  class Controller
 
+    include Tanuki::BaseBehavior
     include Enumerable
 
     internal_attr_reader :model, :logical_parent, :link, :ctx
     internal_attr_accessor :logical_child, :visual_child
 
-    # Creates new controller with context +ctx+, +logical_parent+ controller, +route_part+ definitions and a +model+.
+    # Creates new controller with context +ctx+, +logical_parent+ controller,
+    # +route_part+ definitions and a +model+.
     def initialize(ctx, logical_parent, route_part, model=nil)
       @_configured = false
       @_ctx = ctx
@@ -17,13 +19,17 @@ module Tanuki
       @_args = {}
       if @_logical_parent = logical_parent
 
-        # Register controller arguments, as declared with Tanuki::ControllerBehavior#has_arg.
+        # Register controller arguments, as declared with #has_arg.
         @_route = route_part[:route]
         self.class.arg_defs.each_pair do |arg_name, arg_def|
-          route_part[:args][arg_def[:index]] = @_args[arg_name] = arg_def[:arg].to_value(route_part[:args][arg_def[:index]])
+          arg_val = arg_def[:arg].to_value(route_part[:args][arg_def[:index]])
+          route_part[:args][arg_def[:index]] = @_args[arg_name] = arg_val
         end
 
-        @_link = self.class.grow_link(@_logical_parent, {:route => @_route, :args => @_args}, self.class.arg_defs)
+        @_link = self.class.grow_link(@_logical_parent, {
+          :route => @_route,
+          :args  => @_args
+        }, self.class.arg_defs)
         initialize_route(*route_part[:args])
       else
         @_link = '/'
@@ -44,7 +50,8 @@ module Tanuki
       @_ctx
     end
 
-    # Initializes and retrieves child controller on +route+. Searches static, dynamic, and ghost routes (in that order).
+    # Initializes and retrieves child controller on +route+.
+    # Searches static, dynamic, and ghost routes (in that order).
     def [](route, *args)
       byname = (args.length == 1 and args[0].is_a? Hash)
       ensure_configured!
@@ -57,15 +64,19 @@ module Tanuki
       elsif child_def = @_child_defs[route]
 
         # Search actions
-        if child_def[:type] == :action && (a = child_def[ctx.request.request_method])
-          throw :action, a
-
+        if child_def[:type] == :action &&
+           action = child_def[ctx.request.request_method]
+        then
+          throw :action, action
         else
 
         # Search static routes
           klass = child_def[:class]
           args = klass.extract_args(args[0]) if byname
-          child = klass.new(process_child_context(@_ctx, route), self, {:route => route, :args => args}, child_def[:model])
+          child = klass.new(process_child_context(@_ctx, route), self, {
+            :route => route,
+            :args  => args
+          }, child_def[:model])
         end
 
       else
@@ -74,21 +85,26 @@ module Tanuki
         found = false
         s = route.to_s
         @_child_collection_defs.each do |collection_def|
-          if md = collection_def[:parse].match(s)
-            child_def = collection_def[:fetcher].fetch(md, collection_def[:format])
+          collection_def[:parse].match(s) do |route_match|
+            child_def = collection_def[:fetcher].fetch(
+              route_match,
+              collection_def[:format]
+            )
             if child_def
               klass = child_def[:class]
               args = klass.extract_args(args[0]) if byname
-              embedded_args = klass.extract_args(md)
+              embedded_args = klass.extract_args(route_match)
               args.each_index {|i| embedded_args[i] = args[i] if args[i] }
-              child = klass.new(process_child_context(@_ctx, child_def[:route]), self,
-                {:route => child_def[:route], :args => embedded_args}, child_def[:model])
+              child_context = process_child_context(@_ctx, child_def[:route])
+              child = klass.new(child_context, self, {
+                :route => child_def[:route],
+                :args  => embedded_args
+              }, child_def[:model])
               found = true
               break child
             end # if
-          end # each
-
-        end
+          end # match
+        end # each
 
         # If still not found, search ghost routes
         child = missing_route(route, *args) unless found
@@ -122,8 +138,11 @@ module Tanuki
         # Search dynamic routes
         s = route.to_s
         @_child_collection_defs.each do |collection_def|
-          if md = collection_def[:parse].match(s)
-            child_def = collection_def[:fetcher].fetch(md, collection_def[:format])
+          collection_def[:parse].match(s) do |route_match|
+            child_def = collection_def[:fetcher].fetch(
+              route_match,
+              collection_def[:format]
+            )
             return child_def[:class] if child_def
           end
         end
@@ -144,7 +163,8 @@ module Tanuki
     end
 
     # If set, controller navigates to a given child route by default.
-    # Returned object should be either +nil+ (don't navigate), or a +Hash+ with keys:
+    # Returned object should be either +nil+ (don't navigate),
+    # or a +Hash+ with keys:
     # * +:route+ is the +Symbol+ for the route
     # * +:args+ contain route arguments +Hash+
     # * +:redirect+ makes a 302 redirect to this route, if true (optional)
@@ -152,7 +172,8 @@ module Tanuki
       nil
     end
 
-    # Calls +block+ once for each visible child controller on static or dynamic routes, passing it as a parameter.
+    # Calls +block+ once for each visible child controller
+    # on static or dynamic routes, passing it as a parameter.
     def each(&block)
       return Enumerator.new(self) unless block_given?
       ensure_configured!
@@ -162,8 +183,11 @@ module Tanuki
           cd[:fetcher].fetch_all(cd[:format]) do |child_def|
             key = [child_def[:route], []]
             unless child = @_cache[key]
-              child = child_def[:class].new(process_child_context(@_ctx, route), self,
-                {:route => child_def[:route], :args => {}}, child_def[:model])
+              child_context = process_child_context(@_ctx, route)
+              child = child_def[:class].new(child_context, self, {
+                :route => child_def[:route],
+                :args  => {}
+              }, child_def[:model])
               @_cache[key] = child
             end
             block.call child
@@ -188,15 +212,18 @@ module Tanuki
       nil
     end
 
-    # Returns the link to the current controller, switching the active controller on the respective path level to +self+.
+    # Returns the link to the current controller, switching
+    # the active controller on the respective path level to +self+.
     def forward_link
       uri_parts = @_ctx.request.path_info.split(/(?<!\$)\//)
       link_parts = link.split(/(?<!\$)\//)
       link_parts.each_index {|i| uri_parts[i] = link_parts[i] }
-      uri_parts.join('/') << ((qs = @_ctx.request.query_string).empty? ? '' : "?#{qs}")
+      query_string = @_ctx.request.query_string
+      uri_parts.join('/') << (query_string.empty? ? '' : "?#{query_string}")
     end
 
-    # Returns the number of visible child controllers on static and dynamic routes.
+    # Returns the number of visible child controllers
+    # on static and dynamic routes.
     def length
       if @_child_collection_defs.length > 0
         if @_length_is_valid
@@ -210,7 +237,8 @@ module Tanuki
       end
     end
 
-    # Invoked when child controller context needs to be processed before initializing.
+    # Invoked when child controller context needs to be processed
+    # before initializing.
     def process_child_context(ctx, route)
       ctx
     end
@@ -222,7 +250,8 @@ module Tanuki
       @_route.to_s
     end
 
-    # Invoked when visual parent needs to be determined. Defaults to logical parent.
+    # Invoked when visual parent needs to be determined.
+    # Defaults to logical parent.
     def visual_parent
       @_logical_parent
     end
@@ -301,73 +330,47 @@ module Tanuki
 
     private
 
-    # Defines a child of class +klass+ on +route+ with +model+, optionally +hidden+.
+    # Defines a child of class +klass+ on +route+ with +model+,
+    # optionally +hidden+.
     def has_child(klass, route, model=nil, hidden=false)
-      @_child_defs[route.to_sym] = {:class => klass, :model => model, :hidden => hidden}
+      @_child_defs[route.to_sym] = {
+        :class  => klass,
+        :model  => model,
+        :hidden => hidden
+      }
       @_length += 1 unless hidden
       self
     end
 
-    # Defines a child collection of type +parse_regexp+, formatted back by +format+ block.
+    # Defines a child collection of type +parse_regexp+,
+    # formatted back by +format+ block.
     def has_child_collection(child_def_fetcher, parse_regexp, &format)
       @_child_defs[parse_regexp] = @_child_collection_defs.size
-      @_child_collection_defs << {:parse => parse_regexp, :format => format, :fetcher => child_def_fetcher}
+      @_child_collection_defs << {
+        :parse   => parse_regexp,
+        :format  => format,
+        :fetcher => child_def_fetcher
+      }
       @_length_is_valid = false
     end
 
-    # Invoked for +route+ with +args+ when a route is missing. This hook can be used to make ghost routes.
+    # Invoked for +route+ with +args+ when a route is missing.
+    # This hook can be used to make ghost routes.
     def missing_route(route, *args)
       @_ctx.missing_page.new(@_ctx, self, {:route => route, :args => []})
     end
 
-    # Tanuki::ControllerBehavior mixed-in class methods.
-    module ClassMethods
+    @_arg_defs = {}
+
+    class << self
 
       # Returns own or superclass argument definitions.
       def arg_defs
         @_arg_defs ||= superclass.arg_defs.dup
       end
 
-      # Escapes characters +chrs+ and encodes a given string +s+ for use in links.
-      def escape(s, chrs)
-        s ? Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, '$\0')) : nil
-      end
-
-      # Extracts arguments, initializing default values beforehand. Searches +md+ hash for default value overrides.
-      def extract_args(md)
-        res = []
-        arg_defs.each_pair do |name, arg|
-          res[arg[:index]] = md[name]
-        end
-        res
-      end
-
-      # Builds link from controller +ctrl+ to a given route.
-      def grow_link(ctrl, route_part, arg_defs)
-        own_link = escape(route_part[:route], '\/:') << route_part[:args].map do |k, v|
-          arg_defs[k][:arg].default == v ? '' : ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
-        end.join
-        "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
-      end
-
-      # Defines an argument with a +name+, derived from type +obj+ with additional +args+.
-      def has_arg(name, obj, *args)
-        # TODO Ensure thread safety
-        arg_defs[name] = {:arg => Argument.to_argument(obj, *args), :index => @_arg_defs.size}
-      end
-
-      # Prepares the extended module.
-      def self.extended(mod)
-        mod.instance_variable_set(:@_arg_defs, {})
-      end
-
-    end # ClassMethods
-
-    extend ClassMethods
-
-    class << self
-
-      # Dispathes route chain in context +ctx+ on +request_path+, starting with controller +klass+.
+      # Dispathes route chain in context +ctx+ on +request_path+,
+      # starting with controller +klass+.
       def dispatch(ctx, klass, request_path)
         route_parts = parse_path(request_path)
 
@@ -433,9 +436,43 @@ module Tanuki
         last.send :"#{ctx.request.request_method.downcase}"
       end
 
-      # Extends the including module with Tanuki::ControllerBehavior::ClassMethods.
-      def included(mod)
-        mod.extend ClassMethods
+      # Escapes characters +chrs+ and encodes a given string +s+
+      # for use in links.
+      def escape(s, chrs)
+        s ? Rack::Utils.escape(s.to_s.gsub(/[\$#{chrs}]/, '$\0')) : nil
+      end
+
+      # Extracts arguments, initializing default values beforehand.
+      # Searches +md+ hash for default value overrides.
+      def extract_args(md)
+        res = []
+        arg_defs.each_pair do |name, arg|
+          res[arg[:index]] = md[name]
+        end
+        res
+      end
+
+      # Builds link from controller +ctrl+ to a given route.
+      def grow_link(ctrl, route_part, arg_defs)
+        args = route_part[:args].map {|k, v|
+          if arg_defs[k][:arg].default == v
+            ''
+          else
+            ":#{escape(k, '\/:-')}-#{escape(v, '\/:')}"
+          end
+        }.join
+        own_link = escape(route_part[:route], '\/:') << args
+        "#{ctrl.link == '/' ? '' : ctrl.link}/#{own_link}"
+      end
+
+      # Defines an argument with a +name+,
+      # derived from type +obj+ with additional +args+.
+      def has_arg(name, obj, *args)
+        # TODO Ensure thread safety
+        arg_defs[name] = {
+          :arg   => Argument.to_argument(obj, *args),
+          :index => @_arg_defs.size
+        }
       end
 
       private
@@ -448,11 +485,12 @@ module Tanuki
           args = {}
           arr[1..-1].each do |argval|
             varr = argval.split(/(?<!\$)-/)
-            args[unescape(varr[0])] = unescape(varr[1..-1].join) # TODO Predict argument
+            args[unescape(varr[0])] = unescape(varr[1..-1].join)
+            # TODO Predict argument
           end
           route_part[:args] = extract_args(args)
           route_part
-        end # do
+        end # map
       end
 
       # Unescapes a given link part for internal use.
@@ -462,6 +500,6 @@ module Tanuki
 
     end # class << self
 
-  end # ControllerBehavior
+  end # Controller
 
 end # Tanuki

@@ -42,7 +42,7 @@ module Tanuki
       ctx.resources = {}
       ctx.javascripts = {}
       ctx.request = Rack::Request.new({'REQUEST_METHOD' => 'GET'})
-      tpl = ControllerBehavior.dispatch(ctx, ::Tanuki::Controller, '/')
+      tpl = Controller.dispatch(ctx, ::Tanuki::Controller, '/')
       tpl.should be_a Method
       tpl.receiver.should be_a Tanuki::BaseBehavior
     end

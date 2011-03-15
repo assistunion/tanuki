@@ -1,9 +1,7 @@
 module Tanuki
 
   # Tanuki::I18n is a drop-in controller for localizable applications.
-  class I18n
-
-    include ControllerBehavior
+  class I18n < Controller
 
     # Adds language routes of root controller class when invoked.
     def configure

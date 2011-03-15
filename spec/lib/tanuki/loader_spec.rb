@@ -1,7 +1,7 @@
 require 'tanuki/extensions/module'
-require 'tanuki/behavior/controller_behavior'
 require 'tanuki/behavior/base_behavior'
 require 'tanuki/context'
+require 'tanuki/controller'
 require 'tanuki/loader'
 require 'tanuki/template_compiler'
 
@@ -46,7 +46,7 @@ module Tanuki
     it 'should remember templates it ran at least once for each request' do
       ctx = @context.child
       ctx.templates = {}
-      result = ControllerBehavior.dispatch(ctx, ::Tanuki::Controller, '/')
+      result = Controller.dispatch(ctx, ::Tanuki::Controller, '/')
       result.should be_a Method
       Loader.run_template(ctx.templates, result.receiver, :view)
       Loader.should have_template(ctx.templates, ::Tanuki::Controller, :view)
@@ -56,11 +56,11 @@ module Tanuki
     end
 
     it 'should compile and run templates' do
-      ctrl = ControllerBehavior.dispatch(@context.child, ::Tanuki::Controller, '/').receiver
+      ctrl = Controller.dispatch(@context.child, ::Tanuki::Controller, '/').receiver
       ctrl.should_receive(:view_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki::Controller, :view) }, :force => true
       Loader.run_template({}, ctrl, :view)
-      ctrl = ControllerBehavior.dispatch(@context.child, ::Tanuki::Page::Missing, '/').receiver
+      ctrl = Controller.dispatch(@context.child, ::Tanuki::Page::Missing, '/').receiver
       ctrl.should_receive(:link_view)
       FileUtils.rm Loader.instance_eval { compiled_template_path(::Tanuki::Page::Missing, :link) }, :force => true
       Loader.run_template({}, ctrl, :link)

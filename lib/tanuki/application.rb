@@ -155,7 +155,7 @@ module Tanuki
             )
             template = nil
             catch :halt do
-              template = ::Tanuki::ControllerBehavior.dispatch(
+              template = ::Tanuki::Controller.dispatch(
                 ctx,
                 Context.i18n ? ::Tanuki::I18n : Context.root_page,
                 Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
