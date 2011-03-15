@@ -170,10 +170,8 @@ module Tanuki
         end # glob
 
         # Load CSS
-        Application.use(
-          Rack::FrozenRoute,
-          %r{/bundle.css}, 'text/css', compile_css(StringIO.new).string
-        )
+        css = CssCompressor.compress(compile_css(StringIO.new).string)
+        Application.use(Rack::FrozenRoute, %r{/bundle.css}, 'text/css', css)
         Application.pull_down(Rack::StaticDir)
       end
 
