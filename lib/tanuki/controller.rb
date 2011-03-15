@@ -110,7 +110,8 @@ module Tanuki
         child = missing_route(route, *args) unless found
 
       end
-      @_cache[key] = child # Thread safe (possible overwrite, but within consistent state)
+      # Thread safe (possible overwrite, but within consistent state)
+      @_cache[key] = child
     end
 
     # Returns +true+, if controller is active.
@@ -118,7 +119,8 @@ module Tanuki
       @_active
     end
 
-    # Retrieves child controller class on +route+. Searches static, dynamic, and ghost routes (in that order).
+    # Retrieves child controller class on +route+.
+    # Searches static, dynamic, and ghost routes (in that order).
     def child_class(route)
       ensure_configured!
       args = []
