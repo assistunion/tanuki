@@ -16,7 +16,7 @@ module Tanuki
       require 'fileutils'
       require 'tanuki/behavior/meta_model_behavior'
       require 'tanuki/behavior/model_behavior'
-      require 'tanuki/behavior/base_behavior'
+      require 'tanuki/base_behavior'
       require 'tanuki/configurator'
       require 'tanuki/context'
       require 'tanuki/loader'
