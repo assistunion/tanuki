@@ -185,16 +185,19 @@ module Tanuki
       private
 
       # Path to Tanuki::TemplateCompiler for internal use.
-      COMPILER_PATH = File.expand_path('../template_compiler.rb', __FILE__)
+      COMPILER_PATH = File.expand_path(
+        '../template_compiler.rb',
+        __FILE__
+      ).freeze
 
       # Extension glob for template files.
-      TEMPLATE_EXT = '.t{html,txt}'
+      TEMPLATE_EXT = '.t{html,txt}'.freeze
 
       # Extension glob for JavaScript files.
-      JAVASCRIPT_EXT = '.js'
+      JAVASCRIPT_EXT = '.js'.freeze
 
       # Extension glob for CSS files.
-      STYLESHEET_EXT = '.css'
+      STYLESHEET_EXT = '.css'.freeze
 
       # Compiles all application stylesheets into +ios+.
       # Add path headers for each chunk of CSS if +mark_source+ is true.

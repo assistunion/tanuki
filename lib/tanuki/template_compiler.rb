@@ -134,7 +134,7 @@ module Tanuki
       private
 
       # Scanner states that output the evaluated result.
-      PRINT_STATES = [:outer, :code_print]
+      PRINT_STATES = [:outer, :code_print].freeze
 
       # Template header code. Sent to output before compilation.
       TEMPLATE_HEADERS = {
@@ -142,14 +142,14 @@ module Tanuki
         :method => "def %s_view(*args,&block)\nproc do|_,ctx|\n",
         :dev => "if _has_tpl ctx,self.class,:%s\n",
         :context => %{ctx=_ctx(ctx,"%s#%s")}
-      }
+      }.freeze
 
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTERS = {
         :dev => "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\n",
         :method => "end\nend\n",
         :class => "end\n"
-      }
+      }.freeze
 
       # Wiki insert syntax
       WIKI_SYNTAX = %r{
@@ -159,7 +159,7 @@ module Tanuki
           (?::(?<link>[a-z_]+))?
           (?:\#(?<template>[a-z_]*))?
         \]\]
-      }x
+      }x.freeze
 
       # Generates code for Ruby template bits from a given +src+ to +ios+
       # for a given +state+.
