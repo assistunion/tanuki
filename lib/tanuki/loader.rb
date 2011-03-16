@@ -1,5 +1,3 @@
-require 'stringio'
-
 module Tanuki
 
   # Tanuki::Loader deals with framework paths resolving,
