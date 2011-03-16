@@ -1,13 +1,16 @@
 libdir = File.dirname(__FILE__)
 $:.unshift(libdir) unless $:.include?(libdir)
 
-require 'active_support/all'
-require 'rack'
 require 'fileutils'
-require 'sequel'
+require 'stringio'
 require 'yaml'
+
+require 'active_support/all'
 require 'escape_utils'
 require 'escape_utils/url/rack'
+require 'rack'
+require 'sequel'
+
 require 'tanuki/version'
 require 'tanuki/const'
 require 'tanuki/extensions/module'

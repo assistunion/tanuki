@@ -10,8 +10,8 @@ module Tanuki
     end
 
     # Shortcut to Tanuki::Loader::run_template. Used internally by templates.
-    def _run_tpl(ctx, obj, sym, *args, &block)
-      Tanuki::Loader.run_template(ctx.templates, obj, sym, *args, &block)
+    def _run_tpl(ctx, obj, sym, args={}, &block)
+      Tanuki::Loader.run_template(ctx.templates, obj, sym, args, &block)
     end
 
     # Returns the same context as given. Used internally by templates.
