@@ -148,14 +148,14 @@ module Tanuki
       # Template header code. Sent to output before compilation.
       TEMPLATE_HEADERS = {
         :class => "# encoding: %s\nclass %s\n",
-        :method => "def %s_view(*args,&block)\nproc do|_,ctx|\n",
+        :method => "def %s_view(args={},&block)\nproc do|_,ctx|\n",
         :dev => "if _has_tpl ctx,self.class,:%s\n",
         :context => %{ctx=_ctx(ctx,"%s#%s")}
       }.freeze
 
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTERS = {
-        :dev => "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\n",
+        :dev => "\nelse\n(_run_tpl ctx,self,:%s,args,&block).(_,ctx)\nend\n",
         :method => "end\nend\n",
         :class => "end\n"
       }.freeze

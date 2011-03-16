@@ -173,11 +173,11 @@ module Tanuki
         Application.pull_down(Rack::StaticDir)
       end
 
-      # Runs template +sym+ with optional +args+ and +block+
+      # Runs template +sym+ with optional +args+ hash and +block+
       # from object +obj+.
-      def run_template(templates, obj, sym, *args, &block)
+      def run_template(templates, obj, sym, args={}, &block)
         method_name = load_template(templates, obj, sym)
-        obj.send(method_name, *args, &block)
+        obj.send(method_name, args, &block)
       end
 
       private
