@@ -181,7 +181,13 @@ module Tanuki
         when /code_(?:line_)?print/ then
           ios << "\n_.((#{src}),ctx)"
         when /code_(?:line_)?template/ then
-          ios << "\n(#{src}).(_,ctx)"
+          if src =~ /do\s*(\|[^\|]+\|\s*)?\Z/
+            ios << "\n(#{src}"
+          elsif src =~ /end\s*\Z/
+            ios << "\nend).(_,ctx)"
+          else
+            ios << "\n(#{src}).(_,ctx)"
+          end
         when /code_(?:line_)?visitor/
           m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
           ios << "\n#{m[1]}_result=(#{m[3]}).(#{m[1]}_visitor#{m[2]},ctx)"
