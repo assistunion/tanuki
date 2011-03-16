@@ -1,5 +1,3 @@
-require 'stringio'
-
 module Tanuki
 
   # Tanuki::Loader deals with framework paths resolving,
@@ -170,33 +168,34 @@ module Tanuki
         end # glob
 
         # Load CSS
-        Application.use(
-          Rack::FrozenRoute,
-          %r{/bundle.css}, 'text/css', compile_css(StringIO.new).string
-        )
+        css = CssCompressor.compress(compile_css(StringIO.new).string)
+        Application.use(Rack::FrozenRoute, %r{/bundle.css}, 'text/css', css)
         Application.pull_down(Rack::StaticDir)
       end
 
-      # Runs template +sym+ with optional +args+ and +block+
+      # Runs template +sym+ with optional +args+ hash and +block+
       # from object +obj+.
-      def run_template(templates, obj, sym, *args, &block)
+      def run_template(templates, obj, sym, args={}, &block)
         method_name = load_template(templates, obj, sym)
-        obj.send(method_name, *args, &block)
+        obj.send(method_name, args, &block)
       end
 
       private
 
       # Path to Tanuki::TemplateCompiler for internal use.
-      COMPILER_PATH = File.expand_path('../template_compiler.rb', __FILE__)
+      COMPILER_PATH = File.expand_path(
+        '../template_compiler.rb',
+        __FILE__
+      ).freeze
 
       # Extension glob for template files.
-      TEMPLATE_EXT = '.t{html,txt}'
+      TEMPLATE_EXT = '.t{html,txt}'.freeze
 
       # Extension glob for JavaScript files.
-      JAVASCRIPT_EXT = '.js'
+      JAVASCRIPT_EXT = '.js'.freeze
 
       # Extension glob for CSS files.
-      STYLESHEET_EXT = '.css'
+      STYLESHEET_EXT = '.css'.freeze
 
       # Compiles all application stylesheets into +ios+.
       # Add path headers for each chunk of CSS if +mark_source+ is true.

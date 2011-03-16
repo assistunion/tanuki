@@ -127,18 +127,20 @@ module Tanuki
         proc do |env|
 
           # If there are trailing slashes in path, don't dispatch
-          if match = env['PATH_INFO'].match(/^(.+)(?<!\$)\/$/)
+          path_info = env[Const::PATH_INFO]
+          if match = path_info.match(Const::TRAILING_SLASH)
 
             # Remove trailing slash in the path and redirect
             loc = match[1]
-            loc << "?#{env['QUERY_STRING']}" unless env['QUERY_STRING'].empty?
+            query_string = env[Const::QUERY_STRING]
+            loc << "?#{query_string}" unless query_string.empty?
             [
               301,
               {
-                'Location'     => loc,
-                'Content-Type' => 'text/html; charset=utf-8'
+                Const::LOCATION     => loc,
+                Const::CONTENT_TYPE => Const::MIME_TEXT_HTML
               },
-              []
+              Const::EMPTY_ARRAY
             ]
 
           else
@@ -151,20 +153,22 @@ module Tanuki
             Loader.refresh_css if ctx.development
             ctx.request = Rack::Request.new(env)
             resp = ctx.response = Rack::Response.new(
-              [], 200, {'Content-Type' => 'text/html; charset=utf-8'}
+              [],
+              200,
+              {Const::CONTENT_TYPE => Const::MIME_TEXT_HTML}
             )
             template = nil
             catch :halt do
               template = ::Tanuki::Controller.dispatch(
                 ctx,
                 Context.i18n ? ::Tanuki::I18n : Context.root_page,
-                Rack::Utils.unescape(env['PATH_INFO']).force_encoding('UTF-8')
+                Rack::Utils.unescape(path_info).force_encoding(Const::UTF_8)
               )
             end
             if template &&
                template.is_a?(Method) &&
                template.receiver.is_a?(BaseBehavior) &&
-               template.name =~ /^.*_view$/
+               template.name =~ Const::VIEW_METHOD
             then
               resp.finish do |resp|
                 template.call.call(proc {|s| resp.write s }, ctx)

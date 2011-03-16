@@ -8,14 +8,23 @@ module Tanuki
   # The following tags are recognized:
   #
   #   <% Ruby code -- output to stdout %>
+  #   <%~ Ruby code -- output to stdout %>
   #   <%= Ruby expression -- replace with result %>
   #   <%# comment -- ignored -- useful in testing %>
-  #   % a line of Ruby code -- treated as <% line %>
-  #   %% replaced with % if first thing on a line
   #   <%% or %%> -- replace with <% or %> respectively
   #   <%! Ruby expression -- must return a template %> -- renders a template
   #   <%_visitor Ruby code %> -- see Tanuki::Application::visitor for details
   #   <l10n><en>English text</en> ... -- other localizations </l10n>
+  #
+  # All of these tags, except +l10n+, have a single line syntax:
+  #
+  #   % a line of Ruby code -- treated as <% line -%>
+  #   %~ a line of Ruby code -- treated as <% line -%>
+  #   %= Ruby expression -- treated as <%= line -%>
+  #   %# comment -- ignored -- treated as <%# line -%>
+  #   %% -- replace with % if first thing on a line
+  #   %! Ruby expression that returns a template -- treated as <%! line -%>
+  #   %_visitor Ruby code -- treated as <%_visitor line -%>
   class TemplateCompiler
 
     class << self
@@ -134,22 +143,22 @@ module Tanuki
       private
 
       # Scanner states that output the evaluated result.
-      PRINT_STATES = [:outer, :code_print]
+      PRINT_STATES = [:outer, :code_print].freeze
 
       # Template header code. Sent to output before compilation.
       TEMPLATE_HEADERS = {
         :class => "# encoding: %s\nclass %s\n",
-        :method => "def %s_view(*args,&block)\nproc do|_,ctx|\n",
+        :method => "def %s_view(args={},&block)\nproc do|_,ctx|\n",
         :dev => "if _has_tpl ctx,self.class,:%s\n",
         :context => %{ctx=_ctx(ctx,"%s#%s")}
-      }
+      }.freeze
 
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTERS = {
-        :dev => "\nelse\n(_run_tpl ctx,self,:%s,*args,&block).(_,ctx)\nend\n",
+        :dev => "\nelse\n(_run_tpl ctx,self,:%s,args,&block).(_,ctx)\nend\n",
         :method => "end\nend\n",
         :class => "end\n"
-      }
+      }.freeze
 
       # Wiki insert syntax
       WIKI_SYNTAX = %r{
@@ -159,7 +168,7 @@ module Tanuki
           (?::(?<link>[a-z_]+))?
           (?:\#(?<template>[a-z_]*))?
         \]\]
-      }x
+      }x.freeze
 
       # Generates code for Ruby template bits from a given +src+ to +ios+
       # for a given +state+.
@@ -167,13 +176,13 @@ module Tanuki
         src.strip!
         src.gsub!(/^[ \t]+/, '')
         case state
-        when :code_line, :code_span then
+        when /code_(?:line_)?span/ then
           ios << "\n#{src}"
-        when :code_print then
+        when /code_(?:line_)?print/ then
           ios << "\n_.((#{src}),ctx)"
-        when :code_template then
+        when /code_(?:line_)?template/ then
           ios << "\n(#{src}).(_,ctx)"
-        when :code_visitor
+        when /code_(?:line_)?visitor/
           m = src.match(/^([^ \(]+)?(\([^\)]*\))?\s*(.*)$/)
           ios << "\n#{m[1]}_result=(#{m[3]}).(#{m[1]}_visitor#{m[2]},ctx)"
         when :l10n then
@@ -184,9 +193,9 @@ module Tanuki
       # Returns the next expected pattern for a given +state+.
       def expect_pattern(state)
         case state
-        when :outer then %r{^\s*%%?|<%[=!_#%]?|<l10n>}
-        when :code_line then %r{\n|\Z}
-        when /code_(?:span|print|template|visitor|comment)/ then %r{[-%]?%>}
+        when :outer then %r{(?:^\s*|<)%[~=!_#%]?|<l10n>}
+        when /\Acode_line/ then %r{\n|\Z}
+        when /\Acode_(?:span|print|template|visitor|comment)/ then %r{[-%]?%>}
         when :l10n then %r{<\/l10n>}
         end
       end
@@ -196,8 +205,6 @@ module Tanuki
         case state
         when :outer then
           case match
-          when /\A\s*%\Z/ then :code_line
-          when /\A\s*%%\Z/ then :code_skip
           when '<%' then :code_span
           when '<%=' then :code_print
           when '<%!' then :code_template
@@ -205,9 +212,15 @@ module Tanuki
           when '<%#' then :code_comment
           when '<%%' then :code_skip
           when '<l10n>' then :l10n
+          when /\A\s*%~?\Z/ then :code_line_span
+          when /\A\s*%=\Z/ then :code_line_print
+          when /\A\s*%!\Z/ then :code_line_template
+          when /\A\s*%_\Z/ then :code_line_visitor
+          when /\A\s*%#\Z/ then :code_line_comment
+          when /\A\s*%%\Z/ then :code_skip
           end
-        when :code_line then :outer
-        when /code_(?:span|print|template|visitor|comment)/ then
+        when /\Acode_line/ then :outer
+        when /\Acode_(?:span|print|template|visitor|comment)/ then
           case match
           when '%%>' then :code_skip
           else :outer

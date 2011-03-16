@@ -39,6 +39,22 @@
 			<string>comment.block.erb</string>
 		</dict>
 		<dict>
+			<key>begin</key>
+			<string>^\s*%#</string>
+			<key>captures</key>
+			<dict>
+				<key>0</key>
+				<dict>
+					<key>name</key>
+					<string>punctuation.definition.comment.erb</string>
+				</dict>
+			</dict>
+			<key>end</key>
+			<string>$</string>
+			<key>name</key>
+			<string>comment.block.erb</string>
+		</dict>
+		<dict>
 			<key>match</key>
 			<string>^\s*%%|&lt;%%</string>
 			<key>name</key>
@@ -46,7 +62,7 @@
 		</dict>
 		<dict>
 			<key>begin</key>
-			<string>&lt;%[=!?_]?</string>
+			<string>&lt;%[~=!?_]?</string>
 			<key>captures</key>
 			<dict>
 				<key>0</key>
@@ -89,19 +105,13 @@
 		</dict>
 		<dict>
 			<key>begin</key>
-			<string>^\s*%</string>
+			<string>^\s*%[~=!?_]?</string>
 			<key>end</key>
 			<string>$</string>
 			<key>name</key>
 			<string>source.ruby.tanuki.embedded.html</string>
 			<key>patterns</key>
 			<array>
-				<dict>
-					<key>match</key>
-					<string>%%&gt;</string>
-					<key>name</key>
-					<string>punctuation.section.embedded.ruby</string>
-				</dict>
 				<dict>
 					<key>captures</key>
 					<dict>
@@ -112,7 +122,7 @@
 						</dict>
 					</dict>
 					<key>match</key>
-					<string>(#).*?(?=-?%&gt;)</string>
+					<string>(#).*?$</string>
 					<key>name</key>
 					<string>comment.line.number-sign.ruby</string>
 				</dict>
@@ -130,6 +140,6 @@
 	<key>scopeName</key>
 	<string>text.html.tanuki</string>
 	<key>uuid</key>
-	<string>11082450-51D9-4728-9E38-88798954ED88</string>
+	<string>C9ED17EE-64B8-416C-B20F-2E44D71EDE32</string>
 </dict>
 </plist>
