@@ -17,14 +17,14 @@ module Tanuki
       @ios.string.should == %Q{\n_.("hello",ctx)}
     end
 
-    it 'should treat % at the beginning of lines as Ruby code' do
-      TemplateCompiler.compile(@ios, "% code\n  %code")
-      @ios.string.should == %Q{\ncode\ncode}
-    end
-
     it 'should treat <% %> and <% -%> as Ruby code' do
       TemplateCompiler.compile(@ios, "<% code %>\n  <% code -%>\ntext")
       @ios.string.should == %Q{\ncode\n_.("\\n  ",ctx)\ncode\n_.("text",ctx)}
+    end
+
+    it 'should treat % at the beginning of lines as Ruby code' do
+      TemplateCompiler.compile(@ios, "% code\n  %code")
+      @ios.string.should == %Q{\ncode\ncode}
     end
 
     it 'should treat <%= %> and <%= -%> as printable Ruby code' do
@@ -32,9 +32,19 @@ module Tanuki
       @ios.string.should == %Q{\n_.("text",ctx)\n_.((code),ctx)\n_.("text",ctx)}
     end
 
+    it 'should treat %= at the beginning of lines as printable Ruby code' do
+      TemplateCompiler.compile(@ios, "text\n%= code\ntext")
+      @ios.string.should == %Q{\n_.("text\\n",ctx)\n_.((code),ctx)\n_.("text",ctx)}
+    end
+
     it 'should treat <%! %> and <%! -%> as Ruby code that returns a template' do
       TemplateCompiler.compile(@ios, 'text<%! code %>text')
       @ios.string.should == %Q{\n_.("text",ctx)\n(code).(_,ctx)\n_.("text",ctx)}
+    end
+
+    it 'should treat %! at the beginning of lines as Ruby code that returns a template' do
+      TemplateCompiler.compile(@ios, "text\n%! code\ntext")
+      @ios.string.should == %Q{\n_.("text\\n",ctx)\n(code).(_,ctx)\n_.("text",ctx)}
     end
 
     it 'should treat <%_ %> and <%_ -%> as Ruby code that calls a visitor' do
@@ -42,8 +52,18 @@ module Tanuki
       @ios.string.should == %Q{\nfoo_result=(code).(foo_visitor,ctx)\nfoo_result=(code).(foo_visitor(x, y),ctx)}
     end
 
+    it 'should treat %_ at the beginning of lines as Ruby code that calls a visitor' do
+      TemplateCompiler.compile(@ios, "%_foo code\n%_foo(x, y) code")
+      @ios.string.should == %Q{\nfoo_result=(code).(foo_visitor,ctx)\nfoo_result=(code).(foo_visitor(x, y),ctx)}
+    end
+
     it 'should treat <%# %> and <%# -%> as comments' do
       TemplateCompiler.compile(@ios, "<% code %><%# comment -%>\ntext")
+      @ios.string.should == %Q{\ncode\n_.("text",ctx)}
+    end
+
+    it 'should treat %# at the beginning of lines as a comment' do
+      TemplateCompiler.compile(@ios, "% code\n%# comment\ntext")
       @ios.string.should == %Q{\ncode\n_.("text",ctx)}
     end
 
