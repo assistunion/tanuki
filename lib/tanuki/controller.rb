@@ -177,6 +177,7 @@ module Tanuki
     # Returns route of the first child.
     # Returned object has the same format as default_route.
     def first_route
+      ensure_configured!
       @_child_defs.each_pair do |route, child|
         if route.is_a? Regexp
           cd = @_child_collection_defs[child]
@@ -250,6 +251,7 @@ module Tanuki
     # Returns the number of visible child controllers
     # on static and dynamic routes.
     def length
+      ensure_configured!
       if @_child_collection_defs.length > 0
         if @_length_is_valid
           @_length
