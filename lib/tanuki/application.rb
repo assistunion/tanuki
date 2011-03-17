@@ -101,11 +101,38 @@ module Tanuki
           @cfg.load_config :common_application
         end
 
+        # Configure root page children
+        DEFAULT_PAGE_OPTIONS[:controller] = @cfg.context.default_page
+        tree = YAML.load_file(File.join(@cfg.config_root, 'webpages.yml'))
+        merge_tree_config_with_defaults(tree)
+        @cfg.context.root_tree = tree
+
         self
       rescue NameError => e
         raise e unless e.name =~ /\AA-Z/
         message = "missing class or module for constant `#{e.name}'"
         raise NameError, message, e.backtrace
+      end
+
+      DEFAULT_PAGE_OPTIONS = {
+        :title => 'Webpage',
+        :autoselect_first => false,
+        :hidden => false,
+        :children => {}
+      }
+
+      def merge_tree_config_with_defaults(tree)
+        tree.symbolize_keys!
+        if tree.key? :controller
+          tree[:controller] = tree[:controller].constantize
+        end
+        DEFAULT_PAGE_OPTIONS.each{|k, v|
+          tree[k] = v unless tree.key?(k)
+        }
+
+        tree[:children].each_value{|v|
+           merge_tree_config_with_defaults(v)
+        }
       end
 
       # Add utilized middleware to a given Rack::Builder instance
@@ -161,7 +188,7 @@ module Tanuki
             catch :halt do
               template = ::Tanuki::Controller.dispatch(
                 ctx,
-                Context.i18n ? ::Tanuki::I18n : Context.root_page,
+                Context.i18n ? ::Tanuki::I18n : ctx.root_tree[:controller],
                 Rack::Utils.unescape(path_info).force_encoding(Const::UTF_8)
               )
             end

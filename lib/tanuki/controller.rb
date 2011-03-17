@@ -174,6 +174,28 @@ module Tanuki
       nil
     end
 
+    # Returns route of the first child.
+    # Returned object has the same format as default_route.
+    def first_route
+      @_child_defs.each_pair do |route, child|
+        if route.is_a? Regexp
+          cd = @_child_collection_defs[child]
+          cd[:fetcher].fetch_all(cd[:format]) do |child_def|
+            return ({
+              :route => child_def[:route],
+              :args => {}
+            }) unless child_def[:hidden]
+          end
+        elsif !child[:hidden]
+          return
+          {
+            :route => route,
+            :args => {}
+          }
+        end
+      end
+    end
+
     # Calls +block+ once for each visible child controller
     # on static or dynamic routes, passing it as a parameter.
     def each(&block)
@@ -382,7 +404,7 @@ module Tanuki
 
 
         # Set logical children for active controllers
-        curr = root_ctrl = klass.new(ctx, nil, nil, true)
+        curr = root_ctrl = klass.new(ctx, nil, nil, ctx.root_tree)
         nxt = nil
         route_parts.each do |route_part|
           curr.instance_variable_set :@_active, true

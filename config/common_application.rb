@@ -8,7 +8,7 @@ use Rack::StaticDir, @context.public_root
 set :development, false
 
 # Default controllers
-set :root_page, ::User::Page::Home
+set :default_page, ::Tanuki::Controller::Configurable
 set :missing_page, ::Tanuki::Page::Missing
 
 # Internationalization

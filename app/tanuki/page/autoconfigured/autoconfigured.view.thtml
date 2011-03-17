@@ -1,5 +1,0 @@
-
-<h1><%=self%></h1>
-% if visual_child
-<h2><%! visual_child.view %></h2>
-% end

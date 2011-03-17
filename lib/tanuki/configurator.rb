@@ -5,7 +5,7 @@ module Tanuki
   class Configurator
 
     # Configuration root.
-    attr_writer :config_root
+    attr_accessor :config_root
 
     # Configurator context.
     attr_reader :context
