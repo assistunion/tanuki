@@ -388,6 +388,20 @@ module Tanuki
       @_length_is_valid = false
     end
 
+    # Adds specified autoconfiguration +branch+ as child at the given +route+.
+    def has_configured_branch(branch, route)
+      tree = @_ctx.autoconfiguration[branch]
+      has_child tree[:controller], route, tree, tree[:hidden]
+    end
+
+    # Adds specified autoconfiguration +branch+ contents as children.
+    def has_configured_children(branch)
+      tree = @_ctx.autoconfiguration[branch]
+      tree[:children].each_pair do |route, child|
+        has_child child[:controller], route, child, child[:hidden]
+      end
+    end
+
     # Invoked for +route+ with +args+ when a route is missing.
     # This hook can be used to make ghost routes.
     def missing_route(route, *args)
@@ -413,7 +427,7 @@ module Tanuki
 
 
         # Set logical children for active controllers
-        curr = root_ctrl = klass.new(ctx, nil, nil, ctx.root_tree)
+        curr = root_ctrl = klass.new(ctx, nil, nil, ctx.autoconfiguration[:root])
         ctx.logical_top = root_ctrl
         nxt = nil
         route_parts.each do |route_part|

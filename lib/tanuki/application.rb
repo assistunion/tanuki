@@ -105,7 +105,7 @@ module Tanuki
         DEFAULT_PAGE_OPTIONS[:controller] = @cfg.context.default_page
         tree = YAML.load_file(File.join(@cfg.config_root, 'webpages.yml'))
         merge_tree_config_with_defaults(tree)
-        @cfg.context.root_tree = tree
+        @cfg.context.autoconfiguration = tree
 
         self
       rescue NameError => e
@@ -121,18 +121,20 @@ module Tanuki
         :children => {}
       }
 
-      def merge_tree_config_with_defaults(tree)
-        tree.symbolize_keys!
-        if tree.key? :controller
-          tree[:controller] = tree[:controller].constantize
-        end
-        DEFAULT_PAGE_OPTIONS.each{|k, v|
-          tree[k] = v unless tree.key?(k)
-        }
+      def merge_tree_config_with_defaults(children)
+        children.symbolize_keys!
 
-        tree[:children].each_value{|v|
-           merge_tree_config_with_defaults(v)
-        }
+        children.each_value do |tree|
+          tree.symbolize_keys!
+          if tree.key? :controller
+            tree[:controller] = tree[:controller].constantize
+          end
+          DEFAULT_PAGE_OPTIONS.each{|k, v|
+            tree[k] = v unless tree.key?(k)
+          }
+          merge_tree_config_with_defaults tree[:children]
+        end
+
       end
 
       # Add utilized middleware to a given Rack::Builder instance
@@ -188,7 +190,7 @@ module Tanuki
             catch :halt do
               template = ::Tanuki::Controller.dispatch(
                 ctx,
-                Context.i18n ? ::Tanuki::I18n : ctx.root_tree[:controller],
+                Context.i18n ? ::Tanuki::I18n : ctx.autoconfiguration[:root][:controller],
                 Rack::Utils.unescape(path_info).force_encoding(Const::UTF_8)
               )
             end
