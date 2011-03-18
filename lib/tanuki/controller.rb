@@ -288,6 +288,13 @@ module Tanuki
       @_ctx.visual_top
     end
 
+    # Returns the topmost controller.
+    def logical_top
+      @_ctx.logical_top
+    end
+
+    alias :root :logical_top
+
     # Returns Rack request object
     def request
       @_ctx.request
@@ -407,6 +414,7 @@ module Tanuki
 
         # Set logical children for active controllers
         curr = root_ctrl = klass.new(ctx, nil, nil, ctx.root_tree)
+        ctx.logical_top = root_ctrl
         nxt = nil
         route_parts.each do |route_part|
           curr.instance_variable_set :@_active, true
