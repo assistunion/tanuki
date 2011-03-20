@@ -7,7 +7,7 @@ module Tanuki
     include Tanuki::BaseBehavior
     include Enumerable
 
-    internal_attr_reader :model, :logical_parent, :link, :ctx
+    internal_attr_reader :model, :logical_parent, :link, :ctx, :route
     internal_attr_accessor :logical_child, :visual_child
 
     # Creates new controller with context +ctx+, +logical_parent+ controller,
@@ -274,7 +274,11 @@ module Tanuki
 
     # Returns controller string representation. Defaults to route name.
     def to_s
-      @_route.to_s
+      if model
+        model.to_s
+      else
+        route.to_s.capitalize
+      end
     end
 
     # Invoked when visual parent needs to be determined.

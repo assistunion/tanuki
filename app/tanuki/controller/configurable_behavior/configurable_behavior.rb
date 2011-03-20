@@ -8,8 +8,4 @@ module Tanuki::Controller::ConfigurableBehavior
   def default_route
     first_route if model[:autoselect_first]
   end
-
-  def to_s
-    model[:title]
-  end
 end

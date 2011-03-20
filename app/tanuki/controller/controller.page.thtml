@@ -2,7 +2,7 @@
 <html lang="en-US">
 <head>
     <meta charset="utf-8">
-    <title><%! title_view %></title>
+    <title><%! page_title_view %></title>
     <link rel="stylesheet" href="/bundle.css" media="screen" />
 </head>
 <body>
