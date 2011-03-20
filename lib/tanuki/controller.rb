@@ -299,6 +299,11 @@ module Tanuki
 
     alias :root :logical_top
 
+    # Returns current controller.
+    def current
+      @_ctx.current
+    end
+
     # Returns Rack request object
     def request
       @_ctx.request
@@ -472,6 +477,7 @@ module Tanuki
         # Find out dispatch result type from current controller
         curr.instance_variable_set :@_active, true
         curr.instance_variable_set :@_current, true
+        ctx.current = curr
         type = (curr.is_a? ctx.missing_page) ? :missing_page : :page
 
         # Set visual children for active controllers
