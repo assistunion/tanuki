@@ -46,6 +46,21 @@ module Tanuki
       TemplateCompiler.compile(@ios, "text\n%! code\ntext")
       @ios.string.should == %Q{\n_.("text\\n",ctx)\n(code).(_,ctx)\n_.("text",ctx)}
     end
+    
+    it 'should allow to pass blocks to templates' do
+      TemplateCompiler.compile(@ios, "%! foo_view do |a, b|\n<%= code %>text\n%! end")
+      @ios.string.should == %Q{\n(foo_view {|a, b|\n_.((code),ctx)\n_.("text\\n",ctx)}).(_,ctx)}
+    end
+
+    it 'should allow to pass curly blocks to templates' do
+      TemplateCompiler.compile(@ios, "%! foo_view {|a, b|\n<%= code %>text\n%! }")
+      @ios.string.should == %Q{\n(foo_view {|a, b|\n_.((code),ctx)\n_.("text\\n",ctx)}).(_,ctx)}
+    end
+    
+    it 'should not pass blocks with unmatched beginning and end to templates' do
+      TemplateCompiler.compile(@ios, "%! foo_view do |a, b|\n<%= code %>text\n%! }")
+      @ios.string.should == %Q{\n(foo_view {|a, b|\n_.((code),ctx)\n_.("text\\n",ctx)\n(}).(_,ctx)}
+    end
 
     it 'should treat <%_ %> and <%_ -%> as Ruby code that calls a visitor' do
       TemplateCompiler.compile(@ios, "<%_foo code %><%_foo(x, y) code %>")

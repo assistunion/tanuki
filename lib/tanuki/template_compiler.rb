@@ -181,10 +181,13 @@ module Tanuki
         when /code_(?:line_)?print/ then
           ios << "\n_.((#{src}),ctx)"
         when /code_(?:line_)?template/ then
-          if src =~ /do\s*(\|[^\|]+\|\s*)?\Z/
-            ios << "\n(#{src}"
-          elsif src =~ /end\s*\Z/
-            ios << "\nend).(_,ctx)"
+          if src =~ /\A(.*)(do|{)\s*(\|[^\|]+\|\s*)?\Z/
+            ios << "\n(#{$~[1]}{#{$~[3]}"
+            @curly_end = $~[2] == '{'
+          elsif !@curly_end && (src =~ /\A\s*end\s*\Z/)
+            ios << '}).(_,ctx)'
+          elsif @curly_end && (src =~ /\A\s*\}\s*\Z/)
+            ios << '}).(_,ctx)'
           else
             ios << "\n(#{src}).(_,ctx)"
           end
