@@ -103,6 +103,7 @@ module Tanuki
 
         # Configure root page children
         DEFAULT_PAGE_OPTIONS[:controller] = @cfg.context.default_page
+        DEFAULT_PAGE_OPTIONS[:controller].freeze
         tree = YAML.load_file(File.join(@cfg.config_root, 'webpages.yml'))
         merge_tree_config_with_defaults(tree)
         @cfg.context.autoconfiguration = tree
@@ -142,9 +143,7 @@ module Tanuki
             end
           end
 
-          DEFAULT_PAGE_OPTIONS.each{|k, v|
-            tree[k] = v unless tree.key?(k)
-          }
+          tree = DEFAULT_PAGE_OPTIONS.merge(tree)
           merge_tree_config_with_defaults tree[:children]
         end
 

@@ -1,7 +1,7 @@
 % if current?
-<span class="active"><% if block_given? then yield; else %><%= self %><% end %></span>
+<span class="active"><% if block_given? then yield else %><%= self %><% end %></span>
 % elsif active?
-<a class="active" href="<%= self.link %>"><% if block_given? then yield; else %><%= self %><% end %></a>
+<a class="active" href="<%= self.link %>"><% if block_given? then yield else %><%= self %><% end %></a>
 % else
-<a href="<%= self.link %>"><% if block_given? then yield; else %><%= self %><% end %></a>
+<a href="<%= self.link %>"><% if block_given? then yield else %><%= self %><% end %></a>
 % end
