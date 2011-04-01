@@ -33,12 +33,16 @@ module Tanuki
       # for method +sym+ in class +klass+.
       # If +development+ is false, then no encoding and class declarations,
       # as well as runtime template checks are generated.
-      def compile_template(ios, src, klass, sym, development=true)
+      # If +timer+ is true, every template render time will be measured and
+      # printed to stdout.
+      def compile_template(ios, src, klass, sym, development=true, timer=true)
         ios << TEMPLATE_HEADERS[:class] % [src.encoding, klass] if development
         ios << TEMPLATE_HEADERS[:method] % sym
         ios << TEMPLATE_HEADERS[:dev] % sym if development
+        ios << TEMPLATE_HEADERS[:timer] if timer
         ios << TEMPLATE_HEADERS[:context] % [klass, sym]
         compile(ios, parse_wiki(src.chomp), true)
+        ios << TEMPLATE_FOOTERS[:timer] % [klass, sym] if timer
         ios << TEMPLATE_FOOTERS[:dev] % sym if development
         ios << TEMPLATE_FOOTERS[:method]
         ios << TEMPLATE_FOOTERS[:class] if development
@@ -150,11 +154,13 @@ module Tanuki
         :class => "# encoding: %s\nclass %s\n",
         :method => "def %s_view(args={},&block)\nproc do|_,ctx|\n",
         :dev => "if _has_tpl ctx,self.class,:%s\n",
+        :timer => "_t=Time.new\n",
         :context => %{ctx=_ctx(ctx,"%s#%s")}
       }.freeze
 
       # Template footer code. Sent to output after compilation.
       TEMPLATE_FOOTERS = {
+        :timer => %{\nputs "%s#%s - \#{'%%.4f'%%(Time.new-_t)}"},
         :dev => "\nelse\n(_run_tpl ctx,self,:%s,args,&block).(_,ctx)\nend\n",
         :method => "end\nend\n",
         :class => "end\n"

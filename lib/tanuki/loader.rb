@@ -161,7 +161,8 @@ module Tanuki
           file.match(file_re) do |m|
             ios = StringIO.new
             TemplateCompiler.compile_template(
-              ios, File.read(file), m[:path].camelize, m[:template], false
+              ios, File.read(file), m[:path].camelize, m[:template],
+              false, @context.timers
             )
             m[:path].camelize.constantize.class_eval(ios.string)
           end # match
@@ -228,7 +229,7 @@ module Tanuki
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
           File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
             TemplateCompiler.compile_template(
-              ct_file, st_file.read, owner, sym
+              ct_file, st_file.read, owner, sym, true, @context.timers
             )
           end
           FileUtils.mv(tmp_ct_path, ct_path)
