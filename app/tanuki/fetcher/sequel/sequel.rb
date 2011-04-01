@@ -5,7 +5,8 @@ class Tanuki::Fetcher::Sequel
   end
 
   def fetch(md, format)
-    keys = Hash[md.names.map {|name| [name.to_sym, md[name]] }]
+    table = @dataset.first_source_alias
+    keys = Hash[md.names.map {|name| ["#{table}__#{name}".to_sym, md[name]] }]
     item = @dataset.filter(keys).first
     if item
       {
@@ -19,7 +20,8 @@ class Tanuki::Fetcher::Sequel
   end
 
   def fetch_all(format)
-    @dataset.each do |item|
+    @items ||= @dataset.all
+    @items.each do |item|
       yield({
         :class => @controller_class,
         :model => item,
