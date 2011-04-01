@@ -6,6 +6,7 @@ use Rack::StaticDir, @context.public_root
 
 # Environment
 set :development, false
+set :timers, false
 
 # Default controllers
 set :default_page, ::Tanuki::Controller::Configurable

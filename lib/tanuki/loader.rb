@@ -147,7 +147,7 @@ module Tanuki
             file.match(path_re) do |m|
               mod = File.join(file, File.basename(file)) << '.rb'
               if File.file? mod
-                require mod
+                require_for_production mod
               else
                 Object.const_set_recursive(m[:path].camelize, Module.new)
               end
@@ -161,7 +161,8 @@ module Tanuki
           file.match(file_re) do |m|
             ios = StringIO.new
             TemplateCompiler.compile_template(
-              ios, File.read(file), m[:path].camelize, m[:template], false
+              ios, File.read(file), m[:path].camelize, m[:template],
+              false, @context.timers
             )
             m[:path].camelize.constantize.class_eval(ios.string)
           end # match
@@ -171,6 +172,15 @@ module Tanuki
         css = CssCompressor.compress(compile_css(StringIO.new).string)
         Application.use(Rack::FrozenRoute, %r{/bundle.css}, 'text/css', css)
         Application.pull_down(Rack::StaticDir)
+      end
+
+      # Requires the given +file+ and handles exceptions that may be raised
+      # when modules are required from the application root in production.
+      def require_for_production(file)
+        require file
+      rescue Sequel::Error => e
+        # Raised when Sequel::Model can't find a database config
+        # TODO Check if application needs a database
       end
 
       # Runs template +sym+ with optional +args+ hash and +block+
@@ -228,7 +238,7 @@ module Tanuki
           FileUtils.mkdir_p(ct_dir) unless File.directory?(ct_dir)
           File.open(tmp_ct_path = ct_path + '~', 'w:UTF-8') do |ct_file|
             TemplateCompiler.compile_template(
-              ct_file, st_file.read, owner, sym
+              ct_file, st_file.read, owner, sym, true, @context.timers
             )
           end
           FileUtils.mv(tmp_ct_path, ct_path)
