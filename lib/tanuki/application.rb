@@ -14,7 +14,11 @@ module Tanuki
       def build(builder)
         puts %{Calling for Tanuki #{Tanuki.version} in "#{Dir.pwd}"}
         configure
-        Loader.prepare_for_production unless @cfg.context.development
+        if @cfg.context.development
+          Loader.prepare_for_development
+        else
+          Loader.prepare_for_production
+        end
         at_exit { puts 'Tanuki ran away!' }
         configure_middleware(builder)
         vowel = @environment =~ /\A[aeiou]/

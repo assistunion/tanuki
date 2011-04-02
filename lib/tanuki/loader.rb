@@ -133,6 +133,14 @@ module Tanuki
         end # open
       end
 
+      # Prepares the application for development mode. This includes:
+      # * clearing the template cache,
+      # * clearing the static file cache like the CSS bundle.
+      def prepare_for_development
+        FileUtils.rm_r(Dir[File.join(@context.gen_root, '*')])
+        FileUtils.rm(File.join(@context.public_root, 'bundle.css'))
+      end
+
       # Prepares the application for production mode. This includes:
       # * precompiling all templates into memory,
       # * and prebuilding static file like the CSS bundle.
