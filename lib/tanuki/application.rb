@@ -120,7 +120,6 @@ module Tanuki
       end
 
       DEFAULT_PAGE_OPTIONS = {
-        :title => 'Untitled',
         :autoselect_first => false,
         :hidden => false,
         :children => {}
@@ -129,11 +128,25 @@ module Tanuki
       def merge_tree_config_with_defaults(children)
         children.symbolize_keys!
 
-        children.each_value do |tree|
+        children.each_pair do |route, tree|
           tree.symbolize_keys!
           if tree.key? :controller
             tree[:controller] = tree[:controller].constantize
           end
+
+          class << tree
+            def self.pm_define_method(sym, &block)
+              define_method sym, &block
+            end
+            self
+          end.pm_define_method :to_s do
+            if tree[:title]
+              tree[:title]
+            else
+              route.to_s.capitalize
+            end
+          end
+
           tree = DEFAULT_PAGE_OPTIONS.merge(tree)
           merge_tree_config_with_defaults tree[:children]
         end
