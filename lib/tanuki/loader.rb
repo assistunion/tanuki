@@ -120,7 +120,7 @@ module Tanuki
       def refresh_css(interval=5)
         return if @next_reload && @next_reload > Time.new
         mode = File::RDWR|File::CREAT
-        File.open("#{@context.public_root}/bundle.css", mode) do |f|
+        File.open(File.join(@context.public_root, 'bundle.css'), mode) do |f|
           f.flock(File::LOCK_EX) # Avoid race condition
           now = Time.new
           if !@next_reload || @next_reload < now
@@ -142,6 +142,7 @@ module Tanuki
       end
 
       # Prepares the application for production mode. This includes:
+      # * preloading all application modules,
       # * precompiling all templates into memory,
       # * and prebuilding static file like the CSS bundle.
       def prepare_for_production
@@ -150,7 +151,7 @@ module Tanuki
 
         # Load application modules
         path_re = /#{root_re}(?<path>.*)/
-        Dir.glob(File.join(root_glob, "**/*")) do |file|
+        Dir.glob(File.join(root_glob, '**/*')) do |file|
           if File.directory? file
             file.match(path_re) do |m|
               mod = File.join(file, File.basename(file)) << '.rb'
@@ -219,7 +220,7 @@ module Tanuki
       # Add path headers for each chunk of CSS if +mark_source+ is true.
       def compile_css(ios, mark_source=false)
         header = "/*** %s ***/\n"
-        Dir.glob("#{@ctx_app_root}/**/*#{STYLESHEET_EXT}") do |file|
+        Dir.glob(File.join(@ctx_app_root, "**/*#{STYLESHEET_EXT}")) do |file|
           if File.file? file
             ios << header % file.sub("#{@ctx_app_root}/", '') if mark_source
             ios << File.read(file) << "\n"
