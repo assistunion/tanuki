@@ -138,7 +138,10 @@ module Tanuki
       # * clearing the static file cache like the CSS bundle.
       def prepare_for_development
         FileUtils.rm_r(Dir[File.join(@context.gen_root, '*')])
-        FileUtils.rm(File.join(@context.public_root, 'bundle.css'))
+        FileUtils.rm(
+          File.join(@context.public_root, 'bundle.css'),
+          :force => true
+        )
       end
 
       # Prepares the application for production mode. This includes:
