@@ -1,5 +1,7 @@
 = Tanuki
 
+== This project is abandoned. Feel free to take it over.
+
 Tanuki is a web application framework inspired by the MVVM pattern with focus
 on DRY code and extensibility. Tanuki tries to keep its looks close to
 idiomatic Ruby, so you would feel at home.
